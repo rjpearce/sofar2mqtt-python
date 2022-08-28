@@ -1,48 +1,91 @@
 #!/usr/bin/python3
-
+""" Sofar 2 MQQT """
+import json
+import time
+import logging
 import click
 import minimalmodbus
-import json
 import serial
-import paho.mqtt.publish as publish
-import time
+from paho.mqtt import publish
 import requests
-import logging
 
-instrument = minimalmodbus.Instrument('/dev/ttyUSB0', 1, debug=False) # port name, slave address 
-instrument.serial.baudrate = 9600   # Baud
-instrument.serial.bytesize = 8
-instrument.serial.parity   = serial.PARITY_NONE
-instrument.serial.stopbits = 1
-#instrument.serial.timeout  = 5   # seconds
-
-requests = 0
-failures = 0
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
+logging.info('Getting Consumption data')
 
 def load_config(config_file_path):
+    """ Load configuration file """
     config = {}
-    with open (config_file_path, mode='r') as config_file:
-      config = json.loads(config_file.read())
+    with open(config_file_path, mode='r', encoding='utf-8') as config_file:
+        config = json.loads(config_file.read())
     return config
 
-def read_value(register, retry, retry_delay):
-    global failures, requests
-    value = None
-    while retry >0 and value == None:
-        try:   
-            requests = requests + 1
-            value = instrument.read_register(register, 0, functioncode=3, signed=False) 
-        except minimalmodbus.NoResponseError as e:
-            #print(e)
-            retry = retry - 1
-            failures = failures + 1
-            time.sleep(retry_delay)
-        except minimalmodbus.InvalidResponseError as e:
-            #print(e)
-            retry = retry - 1
-            failures = failures + 1
-            time.sleep(retry_delay)
-    return value
+# pylint: disable=too-many-instance-attributes
+class Sofar():
+    """ Sofar """
+
+    # pylint: disable=line-too-long,too-many-arguments
+    def __init__(self, config_file_path, retry, retry_delay, refresh_interval, broker, topic, log_level):
+        self.config = load_config(config_file_path)
+        self.retry = retry
+        self.retry_delay = retry_delay
+        self.refresh_interval = refresh_interval
+        self.broker = broker
+        self.topic = topic
+        self.log_level = log_level
+        self.requests = 0
+        self.failures = 0
+        self.instrument = minimalmodbus.Instrument('/dev/ttyUSB0', 1)
+        self.instrument.serial.baudrate = 9600   # Baud
+        self.instrument.serial.bytesize = 8
+        self.instrument.serial.parity = serial.PARITY_NONE
+        self.instrument.serial.stopbits = 1
+        # self.instrument.serial.timeout  = 5   # seconds
+
+    def main(self):
+        """ Main method """
+        while True:
+            for register in self.config['registers']:
+                value = self.read_value(int(register['register'], 16))
+                if value is None:
+                    continue
+                if 'combine' in register:
+                    value = value + \
+                        self.read_value(int(register['combine'],16))
+                if 'function' in register:
+                    if register['function'] == 'multiply':
+                        value = value * register['factor']
+                    elif register['function'] == 'divide':
+                        value = value / register['factor']
+                    elif register['function'] == 'mode':
+                        value = register['modes'][str(value)]
+                logging.debug('%s:%s', register['name'], value)
+                publish.single(self.topic + register['name'], value, hostname=self.broker)
+
+            logging.info('Failures: %d/%d %s', self.failures, self.requests, (self.failures/self.requests)*100 + '%')
+            publish.single(self.topic + 'modbus_failures', self.failures, hostname=self.broker)
+            publish.single(self.topic + 'modbus_requests', self.requests, hostname=self.broker)
+            publish.single(self.topic + 'modbus_failure_rate',
+                        (self.failures/requests)*100, hostname=self.broker)
+            time.sleep(self.refresh_interval)
+
+    def read_value(self, register):
+        """ Read value from register with a retry mechanism """
+        value = None
+        retry = self.retry
+        while retry > 0 and value is None:
+            try:
+                self.requests +=1
+                value = self.instrument.read_register(
+                    register, 0, functioncode=3, signed=False)
+            except minimalmodbus.NoResponseError:
+                retry = retry - 1
+                self.failures = self.failures + 1
+                time.sleep(self.retry_delay)
+            except minimalmodbus.InvalidResponseError:
+                retry = retry - 1
+                self.failures = self.failures + 1
+                time.sleep(self.retry_delay)
+        return value
 
 
 @click.command()
@@ -86,35 +129,12 @@ def read_value(register, retry, retry_delay):
     default='INFO',
     required=False,
 )
-
+# pylint: disable=too-many-arguments
 def main(config_file, retry, retry_delay, refresh_interval, broker, topic, log_level):
     """Main"""
-    config = load_config(config_file)
-    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
-    logging.info('Getting Consumption data')
+    sofar = Sofar(config_file, retry, retry_delay, refresh_interval, broker, topic, log_level)
+    sofar.main()
 
-    while(True):
-        for register in config['registers']:
-            value = read_value(int(register['register'], 16), retry, retry_delay)
-            if value == None:
-                continue
-            if 'combine' in register:
-                value = value + read_value(int(register['combine'], 16), retry, retry_delay)
-            if 'function' in register:
-                if register['function'] == 'multiply':
-                    value = value * register['factor']
-                elif register['function'] == 'divide':
-                    value = value / register['factor']
-                elif register['function'] == 'mode':
-                    value = register['modes'][str(value)]
-            logging.debug(f"{register['name']}:{value}")
-            publish.single(topic + register['name'],value, hostname=broker)
-
-        logging.info(f"Failures: {failures}/{requests} {failures/requests*100}")
-        publish.single(topic + 'modbus_failures', failures, hostname=broker)
-        publish.single(topic + 'modbus_requests', requests, hostname=broker)
-        publish.single(topic + 'modbus_failure_rate', (failures/requests)*100, hostname=broker)
-        time.sleep(refresh_interval)
-
+# pylint: disable=no-value-for-parameter
 if __name__ == '__main__':
     main()
