@@ -1,5 +1,12 @@
 #!/usr/bin/python3
-""" Sofar 2 MQQT """
+""" Sofar 2 MQQT 
+  V1.0 Created by Matt Nichols 2021
+  V2.0 Updated by Richard Pearce 
+    * Added a a retry mechanism
+    * Added daemon mode
+    * Split the data from the Python code (requires: sofar-hyd-ep.json and sofar-me-3000.json)
+    * Added support the HYD-EP models. 
+"""
 import json
 import time
 import logging
