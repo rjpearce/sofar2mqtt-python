@@ -69,11 +69,11 @@ class Sofar():
                 logging.debug('%s:%s', register['name'], value)
                 publish.single(self.topic + register['name'], value, hostname=self.broker)
 
-            logging.info('Failures: %d/%d %s', self.failures, self.requests, (self.failures/self.requests)*100 + '%')
+            logging.info('Failures: %d/%d %s', self.failures, self.requests, str((self.failures/self.requests)*100) + '%')
             publish.single(self.topic + 'modbus_failures', self.failures, hostname=self.broker)
             publish.single(self.topic + 'modbus_requests', self.requests, hostname=self.broker)
             publish.single(self.topic + 'modbus_failure_rate',
-                        (self.failures/requests)*100, hostname=self.broker)
+                        (self.failures/self.requests)*100, hostname=self.broker)
             time.sleep(self.refresh_interval)
 
     def read_value(self, register):
