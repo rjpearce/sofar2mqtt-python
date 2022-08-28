@@ -24,8 +24,9 @@ class Sofar():
     """ Sofar """
 
     # pylint: disable=line-too-long,too-many-arguments
-    def __init__(self, config_file_path, retry, retry_delay, refresh_interval, broker, topic, log_level):
+    def __init__(self, config_file_path, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level):
         self.config = load_config(config_file_path)
+        self.daemon = daemon
         self.retry = retry
         self.retry_delay = retry_delay
         self.refresh_interval = refresh_interval
@@ -43,7 +44,7 @@ class Sofar():
 
     def main(self):
         """ Main method """
-        while True:
+        while self.daemon:
             for register in self.config['registers']:
                 value = self.read_value(int(register['register'], 16))
                 if value is None:
@@ -96,6 +97,12 @@ class Sofar():
     help='Configuration file to use',
 )
 @click.option(
+    '--daemon',
+    is_flag=True,
+    default=False,
+    help='Run as a daemon',
+)
+@click.option(
     '--retry',
     default=10,
     type=int,
@@ -130,9 +137,9 @@ class Sofar():
     required=False,
 )
 # pylint: disable=too-many-arguments
-def main(config_file, retry, retry_delay, refresh_interval, broker, topic, log_level):
+def main(config_file, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level):
     """Main"""
-    sofar = Sofar(config_file, retry, retry_delay, refresh_interval, broker, topic, log_level)
+    sofar = Sofar(config_file, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level)
     sofar.main()
 
 # pylint: disable=no-value-for-parameter
