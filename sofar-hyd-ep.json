@@ -1,0 +1,194 @@
+{
+    "registers": [ 
+        { 
+	    "name": "state",
+            "register": "0x0404",
+  	    "function": "mode",
+  	    "modes": {
+	        "0": "Waiting",
+	        "1": "Checking",
+	        "2": "On-grid",
+	        "3": "Emergency Mode",
+	        "4": "Recoverable Fault",
+	        "5": "Permanent Fault",
+	        "6": "Upgarding",
+	        "7": "Self-charging"
+            }
+        },
+        { 
+	    "name": "energy_storage_mode",
+            "register": "0x1110",
+  	    "function": "mode",
+  	    "modes": {
+	        "0": "Self use",
+	        "1": "Time of use",
+	        "2": "Timing mode",
+	        "3": "Passive mode",
+	        "4": "Peak cut mode"
+            }
+        },
+	{
+	    "name": "pv_1_voltage",
+	    "register": "0x0584",
+	    "function": "divide",
+	    "factor": 10
+	},
+	{
+	    "name": "pv_1_current",
+	    "register": "0x0585",
+	    "function": "multiply",
+	    "factor": 10
+	},
+	{
+	    "name": "pv_1_power",
+	    "register": "0x0586",
+	    "function": "multiply",
+	    "factor": 10
+	},
+	{
+	    "name": "pv_2_voltage",
+	    "register": "0x0587",
+	    "function": "divide",
+	    "factor": 10
+	},
+	{
+	    "name": "pv_2_current",
+	    "register": "0x0588",
+	    "function": "multiply",
+	    "factor": 10
+	},
+	{
+	    "name": "pv_2_power",
+	    "register": "0x0589",
+	    "function": "multiply",
+	    "factor": 10
+	},
+	{
+	    "name": "pv_total_power",
+	    "register": "0x0586",
+	    "function": "multiply",
+	    "factor": 10,
+	    "combine": "0x0589"
+	},
+	{
+	    "name": "active_power",
+	    "register": "0x0485",
+	    "function": "multiply",
+	    "factor": 10
+	},
+	{ 
+            "name": "load_power",
+	    "register": "0x04AF",
+	    "function": "multiply",
+	    "factor": 10
+	},
+	{
+	    "name": "insulation_resistance",
+	    "register": "0x042B"
+	},
+	{   "name": "ongrid_frequency",
+	    "register": "0x0484",
+	    "function": "divide",
+	    "factor": 100
+	},
+	{
+	    "name": "ongrid_voltage",
+	    "register": "0x048D",
+	    "function": "divide",
+	    "factor": 10
+	},
+	{
+	    "name": "inverter_temp_internal",
+	    "register": "0x0418"
+	},
+	{   "name": "inverter_temp_heatsink",
+	    "register": "0x041A"
+	},
+	{
+	    "name": "offgrid_active_power",
+	    "register": "0x0504",
+	    "function": "multiply",
+	    "factor": 10
+	},
+	{
+	    "name": "offgrid_frequency",
+	    "register": "0x0507",
+	    "function": "divide",
+	    "factor": 100
+	},
+	{
+	    "name": "offgrid_voltage",
+	    "register": "0x050A",
+	    "function": "divide",
+	    "factor": 10
+	},
+	{   "name": "today_generation",
+	    "register": "0x0685",
+	    "function": "divide",
+	    "factor": 100
+	},
+	{
+	    "name": "today_consumption",
+	    "register": "0x0689",
+	    "function": "divide",
+	    "factor": 100
+	},
+	{
+	    "name": "today_import",
+	    "register": "0x068D",
+	    "function": "divide",
+	    "factor": 100
+	},
+	{
+	    "name": "today_export",
+	    "register": "0x0691",
+	    "function": "divide",
+	    "factor": 100
+	},
+	{
+	    "name": "today_battery_discharge",
+	    "register": "0x0699",
+	    "function": "divide",
+	    "factor": 100
+	},
+	{
+	    "name": "today_battery_charge",
+	    "register": "0x0695",
+	    "function": "divide",
+	    "factor": 100
+	},
+	{ 
+	    "name": "battery_voltage",
+	    "register": "0x0604",
+	    "function": "divide",
+	    "factor": 10
+	},
+	{
+	    "name": "battery_current",
+	    "register": "0x0605",
+	    "function": "none",
+	    "factor": 10
+	},
+	{
+	    "name": "battery_power",
+	    "register": "0x0606",
+	    "function": "none",
+	    "factor": 10
+	},
+	{   
+	    "name": "battery_temp",
+	    "register": "0x0607"
+	},
+	{   
+	    "name": "battery_soc",
+	    "register": "0x0608"
+	},
+	{   
+	    "name": "battery_soh",
+	    "register": "0x0609"
+	},
+	{   "name": "battery_cycles",
+	    "register": "0x060A"
+	}
+    ]
+}
