@@ -11,6 +11,7 @@ import json
 import time
 import logging
 import click
+import traceback
 import minimalmodbus
 import serial
 from paho.mqtt import publish
@@ -67,14 +68,20 @@ class Sofar():
                     elif register['function'] == 'mode':
                         value = register['modes'][str(value)]
                 logging.debug('%s:%s', register['name'], value)
-                publish.single(self.topic + register['name'], value, hostname=self.broker)
+                self.publish(register['name'], value)
 
             logging.info('Failures: %d/%d %s', self.failures, self.requests, str((self.failures/self.requests)*100) + '%')
-            publish.single(self.topic + 'modbus_failures', self.failures, hostname=self.broker)
-            publish.single(self.topic + 'modbus_requests', self.requests, hostname=self.broker)
-            publish.single(self.topic + 'modbus_failure_rate',
+            self.publish('modbus_failures', self.failures)
+            self.publish('modbus_requests', self.requests)
+            self.publish('modbus_failure_rate',
                         (self.failures/self.requests)*100, hostname=self.broker)
             time.sleep(self.refresh_interval)
+
+    def publish(self, key, value):
+        try:
+            publish.single(self.topic + key, value, hostname=self.broker)
+        except Exception:
+            logging.debug(traceback.format_exc())
 
     def read_value(self, register):
         """ Read value from register with a retry mechanism """
@@ -86,10 +93,12 @@ class Sofar():
                 value = self.instrument.read_register(
                     register, 0, functioncode=3, signed=False)
             except minimalmodbus.NoResponseError:
+                logging.debug(traceback.format_exc())
                 retry = retry - 1
                 self.failures = self.failures + 1
                 time.sleep(self.retry_delay)
             except minimalmodbus.InvalidResponseError:
+                logging.debug(traceback.format_exc())
                 retry = retry - 1
                 self.failures = self.failures + 1
                 time.sleep(self.retry_delay)
