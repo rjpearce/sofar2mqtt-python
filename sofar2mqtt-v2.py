@@ -17,7 +17,7 @@ import serial
 from paho.mqtt import publish
 import requests
 
-logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 logging.info('Getting Consumption data')
 
 def load_config(config_file_path):
@@ -48,7 +48,7 @@ class Sofar():
         self.instrument.serial.bytesize = 8
         self.instrument.serial.parity = serial.PARITY_NONE
         self.instrument.serial.stopbits = 1
-        # self.instrument.serial.timeout  = 5   # seconds
+        self.instrument.serial.timeout  = 1   # seconds
 
     def main(self):
         """ Main method """
