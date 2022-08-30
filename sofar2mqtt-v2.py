@@ -70,11 +70,11 @@ class Sofar():
                 logging.debug('%s:%s', register['name'], value)
                 self.publish(register['name'], value)
 
-            logging.info('Failures: %d/%d %s', self.failures, self.requests, str((self.failures/self.requests)*100) + '%')
+            failure_percentage = round(self.failures/self.requests*100,2)
+            logging.info('Failures: %d/%d %s', self.failures, self.requests, str(failure_percentage) + '%')
             self.publish('modbus_failures', self.failures)
             self.publish('modbus_requests', self.requests)
-            self.publish('modbus_failure_rate',
-                        (self.failures/self.requests)*100, hostname=self.broker)
+            self.publish('modbus_failure_rate', failure_percentage)
             time.sleep(self.refresh_interval)
 
     def publish(self, key, value):
