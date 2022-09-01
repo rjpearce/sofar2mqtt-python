@@ -57,16 +57,18 @@ class Sofar():
                 value = self.read_value(int(register['register'], 16))
                 if value is None:
                     continue
-                if 'combine' in register:
-                    value = value + \
-                        self.read_value(int(register['combine'],16))
-                if 'function' in register:
-                    if register['function'] == 'multiply':
-                        value = value * register['factor']
-                    elif register['function'] == 'divide':
-                        value = value / register['factor']
-                    elif register['function'] == 'mode':
-                        value = register['modes'][str(value)]
+                else:
+                    if 'combine' in register:
+                        value2 = self.read_value(int(register['combine'],16))
+                        if value2 is not None:
+                            value = value + value2
+                    if 'function' in register:
+                        if register['function'] == 'multiply':
+                            value = value * register['factor']
+                        elif register['function'] == 'divide':
+                            value = value / register['factor']
+                        elif register['function'] == 'mode':
+                            value = register['modes'][str(value)]
                 logging.debug('%s:%s', register['name'], value)
                 self.publish(register['name'], value)
 
