@@ -50,34 +50,40 @@ class Sofar():
         self.instrument.serial.stopbits = 1
         self.instrument.serial.timeout  = 1   # seconds
 
+    def read_and_publish(self):
+        for register in self.config['registers']:
+            value = self.read_value(int(register['register'], 16))
+            if value is None:
+                continue
+            else:
+                if 'combine' in register:
+                    value2 = self.read_value(int(register['combine'],16))
+                    if value2 is not None:
+                        value = value + value2
+                if 'function' in register:
+                    if register['function'] == 'multiply':
+                        value = value * register['factor']
+                    elif register['function'] == 'divide':
+                        value = value / register['factor']
+                    elif register['function'] == 'mode':
+                        value = register['modes'][str(value)]
+            logging.debug('%s:%s', register['name'], value)
+            self.publish(register['name'], value)
+
+        failure_percentage = round(self.failures/self.requests*100,2)
+        logging.info('Failures: %d/%d %s', self.failures, self.requests, str(failure_percentage) + '%')
+        self.publish('modbus_failures', self.failures)
+        self.publish('modbus_requests', self.requests)
+        self.publish('modbus_failure_rate', failure_percentage)
+
     def main(self):
         """ Main method """
-        while self.daemon:
-            for register in self.config['registers']:
-                value = self.read_value(int(register['register'], 16))
-                if value is None:
-                    continue
-                else:
-                    if 'combine' in register:
-                        value2 = self.read_value(int(register['combine'],16))
-                        if value2 is not None:
-                            value = value + value2
-                    if 'function' in register:
-                        if register['function'] == 'multiply':
-                            value = value * register['factor']
-                        elif register['function'] == 'divide':
-                            value = value / register['factor']
-                        elif register['function'] == 'mode':
-                            value = register['modes'][str(value)]
-                logging.debug('%s:%s', register['name'], value)
-                self.publish(register['name'], value)
-
-            failure_percentage = round(self.failures/self.requests*100,2)
-            logging.info('Failures: %d/%d %s', self.failures, self.requests, str(failure_percentage) + '%')
-            self.publish('modbus_failures', self.failures)
-            self.publish('modbus_requests', self.requests)
-            self.publish('modbus_failure_rate', failure_percentage)
-            time.sleep(self.refresh_interval)
+        if not self.daemon:
+            self.read_and_publish()
+        else:
+            while self.daemon:
+                self.read_and_publish()
+                time.sleep(self.refresh_interval)
 
     def publish(self, key, value):
         try:
