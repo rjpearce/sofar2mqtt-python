@@ -140,6 +140,7 @@ class Sofar():
 )
 @click.option(
     '--broker',
+    default='localhost',
     required=True,
     help='MQTT broker address',
 )
