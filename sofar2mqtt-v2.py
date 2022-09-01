@@ -122,13 +122,13 @@ class Sofar():
 )
 @click.option(
     '--retry',
-    default=10,
+    default=1,
     type=int,
     help='Number of retries per register before giving up',
 )
 @click.option(
     '--retry-delay',
-    default=0.1,
+    default=0.5,
     type=float,
     help='Delay before retrying',
 )
