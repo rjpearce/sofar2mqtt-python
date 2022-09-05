@@ -43,6 +43,9 @@ class Sofar():
         self.log_level = log_level
         self.requests = 0
         self.failures = 0
+        self.instrument = None
+
+    def setup_instrument(self):
         self.instrument = minimalmodbus.Instrument('/dev/ttyUSB0', 1)
         self.instrument.serial.baudrate = 9600   # Baud
         self.instrument.serial.bytesize = 8
@@ -51,6 +54,7 @@ class Sofar():
         self.instrument.serial.timeout  = 1   # seconds
 
     def read_and_publish(self):
+        self.setup_instrument()
         for register in self.config['registers']:
             value = self.read_value(int(register['register'], 16))
             if value is None:
@@ -75,6 +79,7 @@ class Sofar():
         self.publish('modbus_failures', self.failures)
         self.publish('modbus_requests', self.requests)
         self.publish('modbus_failure_rate', failure_percentage)
+        self.instrument.serial.close()
 
     def main(self):
         """ Main method """
