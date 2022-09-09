@@ -59,10 +59,17 @@ class Sofar():
             value = self.read_value(int(register['register'], 16))
             if value is None:
                 continue
+
             else:
+                # Inverter will return maximum 16-bit integer value when data not available (eg. grid usage when grid down)
+                if value == 65535:
+                    value = 0
                 if 'combine' in register:
                     value2 = self.read_value(int(register['combine'],16))
                     if value2 is not None:
+                        # Inverter will return maximum 16-bit integer value when data not available (eg. grid usage when grid down)
+                        if value2 == 65535:
+                            value2 = 0
                         value = value + value2
                 if 'function' in register:
                     if register['function'] == 'multiply':
