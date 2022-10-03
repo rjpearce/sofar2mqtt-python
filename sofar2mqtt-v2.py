@@ -7,6 +7,7 @@
     * Split the data from the Python code (requires: sofar-hyd-ep.json and sofar-me-3000.json)
     * Added support the HYD-EP models. 
 """
+import datetime
 import json
 import time
 import logging
@@ -98,6 +99,11 @@ class Sofar():
             self.read_and_publish()
         else:
             while self.daemon:
+                now = datetime.datetime.now()
+                """ Sleep for 35 seconds to allow the inverter to reset the stats at 00:00 """
+                if (now.hour == 23 and now.minute == 59 and now.second >= 30):
+                    logging.info('Snoozing 35 seconds')
+                    time.sleep(35)
                 self.read_and_publish()
                 time.sleep(self.refresh_interval)
 
