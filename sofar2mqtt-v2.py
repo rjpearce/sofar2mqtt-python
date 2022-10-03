@@ -17,7 +17,7 @@ import serial
 from paho.mqtt import publish
 import requests
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 logging.info('Getting Consumption data')
 
 def load_config(config_file_path):
