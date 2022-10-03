@@ -125,6 +125,20 @@
 			"factor": 10
 		},
 		{
+			"name": "battery_current",
+			"register": "0x0605",
+			"function": "offset_divide",
+			"offset": 65535,
+			"factor": 100
+		},
+		{
+			"name": "battery_power",
+			"register": "0x0606",
+			"function": "offset_multiply",
+			"offset": 65535,
+			"factor": 10
+		},
+		{
 			"name": "today_generation",
 			"register": "0x0685",
 			"function": "divide",
@@ -164,18 +178,6 @@
 			"name": "battery_voltage",
 			"register": "0x0604",
 			"function": "divide",
-			"factor": 10
-		},
-		{
-			"name": "battery_current",
-			"register": "0x0605",
-			"function": "none",
-			"factor": 10
-		},
-		{
-			"name": "battery_power",
-			"register": "0x0606",
-			"function": "none",
 			"factor": 10
 		},
 		{
