@@ -80,9 +80,15 @@ class Sofar():
                     elif register['function'] == 'mode':
                         value = register['modes'][str(value)]
                     elif register['function'] == 'offset_multiply':
-                        value = (value - register['offset']) * register['factor']
+                        if value > register['offset'] / 2:
+                            value = (value - register['offset']) * register['factor']
+                        else:
+                            value = value * register['factor']
                     elif register['function'] == 'offset_divide':
-                        value = (value - register['offset']) / register['factor']
+                        if value > register['offset'] / 2:
+                            value = (value - register['offset']) / register['factor']
+                        else:
+                            value = value / register['factor']
             logging.debug('%s:%s', register['name'], value)
             self.publish(register['name'], value)
 
