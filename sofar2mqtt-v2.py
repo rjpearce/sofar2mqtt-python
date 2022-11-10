@@ -21,6 +21,7 @@ import requests
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 logging.info('Getting Consumption data')
 
+
 def load_config(config_file_path):
     """ Load configuration file """
     config = {}
@@ -45,6 +46,7 @@ class Sofar():
         self.requests = 0
         self.failures = 0
         self.instrument = None
+        self.data = {}
 
     def setup_instrument(self):
         self.instrument = minimalmodbus.Instrument('/dev/ttyUSB0', 1)
@@ -114,6 +116,7 @@ class Sofar():
                 time.sleep(self.refresh_interval)
 
     def publish(self, key, value):
+        self.data[key] = value
         try:
             publish.single(self.topic + key, value, hostname=self.broker, retain=True)
         except Exception:
