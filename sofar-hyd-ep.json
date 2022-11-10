@@ -28,6 +28,81 @@
 			}
 		},
 		{
+			"name": "charge_start_time",
+			"register": "0x1113"
+		},
+		{
+			"name": "charge_end_time",
+			"register": "0x1114"
+		},
+		{
+			"name": "discharge_start_time",
+			"register": "0x1115"
+		},
+		{
+			"name": "discharge_end_time",
+			"register": "0x1116"
+		},
+		{
+			"name": "charge_power",
+			"register": "0x1117",
+			"function": "multiply",
+			"factor": 10
+		},
+		{
+			"name": "discharge_power",
+			"register": "0x1118",
+			"function": "multiply",
+			"factor": 10
+		},
+		{
+			"name": "time_of_use",
+			"register": "0x1121",
+			"function": "mode",
+			"modes": {
+				"0": "Disabled",
+				"1": "Enabled"
+			}
+		},
+		{
+			"name": "time_of_use_charge_start_time",
+			"register": "0x1122"
+		},
+		{
+			"name": "time_of_use_charge_end_time",
+			"register": "0x1123"
+		},
+		{
+			"name": "time_of_use_charge_soc",
+			"register": "0x1124"
+		},
+		{
+			"name": "time_of_use_charge_power",
+			"register": "0x1125"
+		},
+		{
+			"name": "time_of_use_start_date",
+			"register": "0x1127"
+		},
+		{
+			"name": "time_of_use_end_date",
+			"register": "0x1128"
+		},
+		{
+			"name": "time_of_use_dow",
+			"register": "0x1129",
+			"function": "bit_field",
+			"fields": [ 
+			  "Sun",
+			  "Sat",
+			  "Fri",
+			  "Thu",
+			  "Wed",
+			  "Tue",
+			  "Mon"
+			]
+		},
+		{
 			"name": "pv_1_voltage",
 			"register": "0x0584",
 			"function": "divide",

@@ -91,6 +91,13 @@ class Sofar():
                             value = (value - register['offset']) / register['factor']
                         else:
                             value = value / register['factor']
+                    elif register['function'] == 'bit_field':
+                        length = len(register['fields'])
+                        fields = []
+                        for n in reversed(range(length)):
+                            if value & (1 << ((length-1)-n)):
+                                fields.append(register['fields'][n])
+                        value = (','.join(fields))
             logging.debug('%s:%s', register['name'], value)
             self.publish(register['name'], value)
 
