@@ -34,7 +34,7 @@ class Sofar():
     """ Sofar """
 
     # pylint: disable=line-too-long,too-many-arguments
-    def __init__(self, config_file_path, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level):
+    def __init__(self, config_file_path, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level, device):
         self.config = load_config(config_file_path)
         self.daemon = daemon
         self.retry = retry
@@ -46,10 +46,11 @@ class Sofar():
         self.requests = 0
         self.failures = 0
         self.instrument = None
+        self.device = device
         self.data = {}
 
     def setup_instrument(self):
-        self.instrument = minimalmodbus.Instrument('/dev/ttyUSB0', 1)
+        self.instrument = minimalmodbus.Instrument(self.device, 1)
         self.instrument.serial.baudrate = 9600   # Baud
         self.instrument.serial.bytesize = 8
         self.instrument.serial.parity = serial.PARITY_NONE
@@ -221,10 +222,15 @@ class Sofar():
     default='INFO',
     required=False,
 )
+@click.option(
+    '--device',
+    default='/dev/ttySofar',
+    required=True
+)
 # pylint: disable=too-many-arguments
-def main(config_file, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level):
+def main(config_file, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level, device):
     """Main"""
-    sofar = Sofar(config_file, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level)
+    sofar = Sofar(config_file, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level, device)
     sofar.main()
 
 # pylint: disable=no-value-for-parameter
