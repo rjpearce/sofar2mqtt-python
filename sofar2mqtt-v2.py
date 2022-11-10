@@ -121,6 +121,10 @@ class Sofar():
                             if value & (1 << ((length-1)-n)):
                                 fields.append(register['fields'][n])
                         value = (','.join(fields))
+                    elif register['function'] == 'high_bit_low_bit':
+                        high = value >> register['high_bit'] # shift right by x
+                        low = value & register['low_bit'] # apply bitmask y
+                        value = f"{high:02}:{low:02}" # combine and pad 2 zeros 
             logging.debug('%s:%s', register['name'], value)
             self.publish(register['name'], value)
 

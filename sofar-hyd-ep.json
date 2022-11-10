@@ -66,11 +66,17 @@
 		},
 		{
 			"name": "time_of_use_charge_start_time",
-			"register": "0x1122"
+			"register": "0x1122",
+			"function": "high_bit_low_bit",
+			"high_bit": 8, 
+			"low_bit": 255 
 		},
 		{
 			"name": "time_of_use_charge_end_time",
-			"register": "0x1123"
+			"register": "0x1123",
+			"function": "high_bit_low_bit",
+			"high_bit": 8, 
+			"low_bit": 255 
 		},
 		{
 			"name": "time_of_use_charge_soc",
