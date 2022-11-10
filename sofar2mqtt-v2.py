@@ -115,7 +115,7 @@ class Sofar():
 
     def publish(self, key, value):
         try:
-            publish.single(self.topic + key, value, hostname=self.broker)
+            publish.single(self.topic + key, value, hostname=self.broker, retain=True)
         except Exception:
             logging.debug(traceback.format_exc())
 
