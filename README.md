@@ -1,15 +1,15 @@
-# sofar-mqtt
-
 
 # Sofar2MQTT
 
 This project provides an integration between Sofar inverters over RS485 and MQTT.
 It required a RaspberryPi or some other nix device with USB ports that can run Python.
 
+If you want to do the same with ESP32 checkout the other [Sofar2Mqtt - Using an ESP32 device to read from the inverter and send to MQTT](https://github.com/cmcgerty/Sofar2mqtt) project
+
 This is currently compatible with:
 
 * Sofar ME3000
-* HYD-EP inverters. 
+* Sofar HYD 3~6 EP
 
 Note: It has only been tested on EP inverters.
 
@@ -36,13 +36,13 @@ sudo pip install -r requirements.txt
 
 ## Configuring persistent serial devices:
 
-1. Identify your USB serial devices. See: https://inegm.medium.com/persistent-names-for-usb-serial-devices-in-linux-dev-ttyusbx-dev-custom-name-fd49b5db9af1
-1. An example file is provided, see 99-usb-serial.rules
+1. Identify your USB serial devices. See this [post](https://inegm.medium.com/persistent-names-for-usb-serial-devices-in-linux-dev-ttyusbx-dev-custom-name-fd49b5db9af1)
+1. An example file is provided, see [99-usb-serial.rules](99-usb-serial.rules)
 1. Copy the udev rules: `sudo cp 99-usb-serial.rules /etc/udev/rules.d/99-usb-serial.rules`
 
 ## Configuring Home Assistant
 
-An example configuration file to configure Home Assistant can be found in the ha folder.
+An example configuration file to configure Home Assistant can be found in the [ha](ha/) folder.
 
 ## Usage (daemon mode):
 
@@ -75,7 +75,6 @@ Options:
 ## Support
 
 You can ping me directly on here or the awesome [Sofar Solar Inverter - Remote Control & Smart Home Integration](https://www.facebook.com/groups/2477195449252168) Facebook group
-
 
 ## Other interesting projects
 
