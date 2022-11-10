@@ -4,7 +4,7 @@
 This project provides an integration between Sofar inverters over RS485 and MQTT.
 It required a RaspberryPi or some other nix device with USB ports that can run Python.
 
-If you want to do the same with ESP32 checkout the other [Sofar2Mqtt - Using an ESP32 device to read from the inverter and send to MQTT](https://github.com/cmcgerty/Sofar2mqtt) project
+If you want to do the same with ESP32 checkout the other [Sofar2Mqtt](https://github.com/cmcgerty/Sofar2mqtt) project
 
 This is currently compatible with:
 
@@ -79,5 +79,5 @@ You can ping me directly on here or the awesome [Sofar Solar Inverter - Remote C
 ## Other interesting projects
 
 * [Sofar2Mqtt - Using an ESP32 device to read from the inverter and send to MQTT](https://github.com/cmcgerty/Sofar2mqtt)
-* [M5Stack Core2 MQTT Solar Display](DIY Solar display to show MQTT data](https://gitlab.com/rjpearce/m5stack-core2-mqtt-solar-display)
+* [M5Stack Core2 MQTT Solar Display - DIY Solar display to show MQTT data](https://gitlab.com/rjpearce/m5stack-core2-mqtt-solar-display)
 
