@@ -68,15 +68,13 @@
 			"name": "time_of_use_charge_start_time",
 			"register": "0x1122",
 			"function": "high_bit_low_bit",
-			"high_bit": 8, 
-			"low_bit": 255 
+			"join": ":"
 		},
 		{
 			"name": "time_of_use_charge_end_time",
 			"register": "0x1123",
 			"function": "high_bit_low_bit",
-			"high_bit": 8, 
-			"low_bit": 255 
+			"join": ":"
 		},
 		{
 			"name": "time_of_use_charge_soc",
@@ -84,15 +82,20 @@
 		},
 		{
 			"name": "time_of_use_charge_power",
-			"register": "0x1125"
+			"register": "0x1125",
+			"read_type": "long"
 		},
 		{
 			"name": "time_of_use_start_date",
-			"register": "0x1127"
+			"register": "0x1127",
+			"function": "high_bit_low_bit",
+			"join": "/"
 		},
 		{
 			"name": "time_of_use_end_date",
-			"register": "0x1128"
+			"register": "0x1128",
+			"function": "high_bit_low_bit",
+			"join": "/"
 		},
 		{
 			"name": "time_of_use_dow",

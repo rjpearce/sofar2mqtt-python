@@ -82,7 +82,13 @@ class Sofar():
 
                 logging.info('%s:%s', register['name'], value)
             else:
-                value = self.read_value(int(register['register'], 16))
+                read_type = 'register'
+                if 'read_type' in register:
+                    read_type = register['read_type']
+                value = self.read_value(
+                        int(register['register'], 16),
+                        read_type
+                )
             if value is None:
                 continue
 
@@ -115,9 +121,9 @@ class Sofar():
                                 fields.append(register['fields'][n])
                         value = (','.join(fields))
                     elif register['function'] == 'high_bit_low_bit':
-                        high = value >> register['high_bit'] # shift right by x
-                        low = value & register['low_bit'] # apply bitmask y
-                        value = f"{high:02}:{low:02}" # combine and pad 2 zeros 
+                        high = value >> 8 # shift right 
+                        low = value & 255 # apply bitmask 
+                        value = f"{high:02}{register['join']}{low:02}" # combine and pad 2 zeros 
             logging.debug('%s:%s', register['name'], value)
             self.publish(register['name'], value)
 
@@ -149,15 +155,19 @@ class Sofar():
         except Exception:
             logging.debug(traceback.format_exc())
 
-    def read_value(self, register):
+    def read_value(self, registeraddress, read_type):
         """ Read value from register with a retry mechanism """
         value = None
         retry = self.retry
         while retry > 0 and value is None:
             try:
                 self.requests +=1
-                value = self.instrument.read_register(
-                    register, 0, functioncode=3, signed=False)
+                if read_type == "register":
+                    value = self.instrument.read_register(
+                        registeraddress, 0, functioncode=3, signed=False)
+                elif read_type == "long":
+                    value = self.instrument.read_long(
+                        registeraddress, functioncode=3, signed=False)
             except minimalmodbus.NoResponseError:
                 logging.debug(traceback.format_exc())
                 retry = retry - 1
