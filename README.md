@@ -32,6 +32,8 @@ You will need:
 ```bash
 sudo apt-get install python-pip
 sudo pip install -r requirements.txt
+git clone https://gitlab.com/rjpearce/sofar2mqtt.git
+cd sofar2mqtt
 ```
 
 ## Configuring persistent serial devices:
@@ -44,19 +46,20 @@ sudo pip install -r requirements.txt
 
 An example configuration file to configure Home Assistant can be found in the [ha](ha/) folder.
 
-## Usage (daemon mode):
-
-```bash
-sudo cp systemd/sofar2mqtt.service /lib/systemd/system
-sudo chmod 644 /lib/systemd/system/sofar2mqtt.service
-sudo systemctl daemon-reload
-sudo systemctl enable sofar2mqtt
-sudo systemctl start sofar2mqtt
-```
-
 ## Usage
 
 ```bash
+# Run once and quit
+python3 sofar2mqtt-v2.py --broker localhost --device /dev/ttyUSB0
+```
+
+If you want to run it on a regular basis you can either use crontab, the systemd script or --daemon
+
+```bash
+# Run forever
+python3 sofar2mqtt-v2.py --broker localhost --device /dev/ttyUSB0 --daemon
+```
+
 Usage: sofar2mqtt-v2.py [OPTIONS]
 
 Options:
@@ -70,6 +73,18 @@ Options:
   --log-level TEXT
   --device TEXT               [required]
   --help                      Show this message and exit
+```
+## How to install it as a service using systemd
+
+Option 1 - Create a symlink from the /opt/sofar2mqtt to the directory where you git cloned sofar2mqtt
+Option 2 - Edit systemd/sofar2mqtt.service update the path 
+
+```bash
+sudo cp systemd/sofar2mqtt.service /lib/systemd/system
+sudo chmod 644 /lib/systemd/system/sofar2mqtt.service
+sudo systemctl daemon-reload
+sudo systemctl enable sofar2mqtt
+sudo systemctl start sofar2mqtt
 ```
 
 ## Support
