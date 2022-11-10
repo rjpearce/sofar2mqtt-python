@@ -140,10 +140,8 @@
 		},
 		{
 			"name": "pv_total_power",
-			"register": "0x0586",
-			"function": "multiply",
-			"factor": 10,
-			"combine": "0x0589"
+			"aggregate": ["pv_1_power", "pv_2_power"],
+			"agg_function": "add"
 		},
 		{
 			"name": "active_power",
@@ -156,6 +154,12 @@
 			"register": "0x04AF",
 			"function": "multiply",
 			"factor": 10
+		},
+		{
+			"name": "grid",
+			"aggregate": ["active_power", "load_power"],
+			"agg_function": "subtract",
+			"invert": true
 		},
 		{
 			"name": "insulation_resistance",

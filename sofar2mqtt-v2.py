@@ -58,8 +58,30 @@ class Sofar():
 
     def read_and_publish(self):
         self.setup_instrument()
+        value = None;
         for register in self.config['registers']:
-            value = self.read_value(int(register['register'], 16))
+            if 'aggregate' in register:
+                value = 0
+                for register_name in register['aggregate']:
+                    if register_name in self.data:
+                        if value == 0:
+                            value = self.data[register_name]
+                        else:
+                            if register['agg_function'] == 'add':
+                                value += self.data[register_name]
+                            elif register['agg_function'] == 'subtract':
+                                value -= self.data[register_name]
+                        logging.info('%s:%s', register_name, self.data[register_name])
+                if 'invert' in register:
+                    if register['invert']:
+                        if value > 0:
+                            value = -abs(value)
+                        else:
+                            value = abs(value)
+
+                logging.info('%s:%s', register['name'], value)
+            else:
+                value = self.read_value(int(register['register'], 16))
             if value is None:
                 continue
 
