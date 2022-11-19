@@ -34,13 +34,15 @@ class Sofar():
     """ Sofar """
 
     # pylint: disable=line-too-long,too-many-arguments
-    def __init__(self, config_file_path, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level, device):
+    def __init__(self, config_file_path, daemon, retry, retry_delay, refresh_interval, broker, username, password, topic, log_level, device):
         self.config = load_config(config_file_path)
         self.daemon = daemon
         self.retry = retry
         self.retry_delay = retry_delay
         self.refresh_interval = refresh_interval
         self.broker = broker
+        self.username = username
+        self.password = password
         self.topic = topic
         self.log_level = log_level
         self.requests = 0
@@ -150,8 +152,11 @@ class Sofar():
 
     def publish(self, key, value):
         self.data[key] = value
+        auth = None
+        if self.username is not None and self.password is not None:
+            auth = {"username": self.username, "password": self.password}
         try:
-            publish.single(self.topic + key, value, hostname=self.broker, retain=True)
+            publish.single(self.topic + key, value, hostname=self.broker, auth=auth, retain=True)
         except Exception:
             logging.debug(traceback.format_exc())
 
@@ -219,6 +224,20 @@ class Sofar():
     help='MQTT broker address',
 )
 @click.option(
+    '--username',
+    envvar='MQTT_USERNAME',
+    default=None,
+    required=False,
+    help='MQTT username'
+)
+@click.option(
+    '--password',
+    envvar='MQTT_PASSWORD',
+    default=None,
+    required=False,
+    help='MQTT password'
+)
+@click.option(
     '--topic',
     default='sofar/',
     required=True,
@@ -235,9 +254,9 @@ class Sofar():
     required=True
 )
 # pylint: disable=too-many-arguments
-def main(config_file, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level, device):
+def main(config_file, daemon, retry, retry_delay, refresh_interval, broker, username, password, topic, log_level, device):
     """Main"""
-    sofar = Sofar(config_file, daemon, retry, retry_delay, refresh_interval, broker, topic, log_level, device)
+    sofar = Sofar(config_file, daemon, retry, retry_delay, refresh_interval, broker, username, password, topic, log_level, device)
     sofar.main()
 
 # pylint: disable=no-value-for-parameter

@@ -60,6 +60,7 @@ If you want to run it on a regular basis you can either use crontab, the systemd
 python3 sofar2mqtt-v2.py --broker localhost --device /dev/ttyUSB0 --daemon
 ```
 
+```bash
 Usage: sofar2mqtt-v2.py [OPTIONS]
 
 Options:
@@ -69,11 +70,17 @@ Options:
   --retry-delay FLOAT         Delay before retrying
   --refresh-interval INTEGER  Refresh every n seconds
   --broker TEXT               MQTT broker address  [required]
+  --username TEXT             MQTT username
+  --password TEXT             MQTT password
   --topic TEXT                MQTT topic  [required]
   --log-level TEXT
   --device TEXT               [required]
-  --help                      Show this message and exit
+  --help                      Show this message and exit.
 ```
+
+To avoid passing sensitivie data on the command line you can also set the username and password using enviroment variables: `MQTT_USERNAME` and `MQTT_PASSWORD`
+
+
 ## How to install it as a service using systemd
 
 Option 1 - Create a symlink from the /opt/sofar2mqtt to the directory where you git cloned sofar2mqtt
