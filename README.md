@@ -1,33 +1,62 @@
-
 # Sofar2MQTT
 
+## Overview
+
 This project provides an integration between Sofar inverters over RS485 and MQTT.
-It required a RaspberryPi or some other nix device with USB ports that can run Python.
 
-If you want to do the same with ESP32 checkout the other [Sofar2Mqtt](https://github.com/cmcgerty/Sofar2mqtt) project
+It currently only support read operations.
 
-This is currently compatible with:
+```mermaid
+  graph TD;
+      Inverter["Sofar Inverter"]--RS485/usb-->Pi["Raspberry Pi"]
+      Pi--1833/tcp-->MQTT;
+```
+
+## Inverter Compatability
+
+This software is currently compatible with:
 
 * Sofar ME3000
 * Sofar HYD 3~6 EP
 
-Note: It has only been tested on EP inverters.
+**Note:** It has only been tested on EP inverters.
 
 There is no reason it cannot work with other Sofar inverters, the code and data have been seperately deliberately to support this you just need to provide the correct registers, see the following files:
-* sofar-hyd-ep.json 
-* sofar-me-3000.json
+* [sofar-hyd-ep.json](sofar-hyd-ep.json)
+* [sofar-me-3000.json](sofar-me-3000.json)
 
-Please do contribute changes and updates.
+Please do feel free to contribute changes and improvements.
 
-## Dependencies
+## Requirements
 
-You will need:
-1. A Raspberry Pi or similar with a *nix based operating system with Python 3 and pip installed
-1. A USB to RS485 adapter with 3 outputs (+/-/GND) connected to your inverter
-1. An MQTT broker/server
-1. Home Assistant (optional)
+1. RaspberryPi or some other nix device with Python 3.x installed.
+1. RS485 to USB adapter
+3. Existing MQTT server
 
-## Setup:
+If you want to do the same with ESP32 checkout the other [Sofar2Mqtt](https://github.com/cmcgerty/Sofar2mqtt) project
+
+## Connecting the RS485/USB adapter
+
+You will also need a RS485 to USB adapter, I use [this one](https://smile.amazon.co.uk/gp/product/B081NBCJRS) which is well built.  
+
+You will need to connect the `A(+)` and `B(-)` connections according to your inverter. 
+
+### Sofar ME3000SP and HYD 3~6k ES
+
+Connect to the 485s port
+
+![image](https://www.setfirelabs.com/wp-content/uploads/2022/04/IMG_9574D.jpg)
+Source: [setfirelabs.com](https://www.setfirelabs.com/green-energy/sofar-solar-me3000sp-firmware-upgrade-procedure)
+
+### Sofar HYD 3~6 EP 
+
+On the COM port you need to connect:
+- Port 5 `A(+)`
+- Port 6 `B(-)`
+- Port 7 `GND (optional)`
+![ep-ports.png](ep-ports.png)
+
+## Basic Installation
 
 ```bash
 sudo apt-get install python-pip
@@ -35,16 +64,6 @@ sudo pip install -r requirements.txt
 git clone https://gitlab.com/rjpearce/sofar2mqtt.git
 cd sofar2mqtt
 ```
-
-## Configuring persistent serial devices:
-
-1. Identify your USB serial devices. See this [post](https://inegm.medium.com/persistent-names-for-usb-serial-devices-in-linux-dev-ttyusbx-dev-custom-name-fd49b5db9af1)
-1. An example file is provided, see [99-usb-serial.rules](99-usb-serial.rules)
-1. Copy the udev rules: `sudo cp 99-usb-serial.rules /etc/udev/rules.d/99-usb-serial.rules`
-
-## Configuring Home Assistant
-
-An example configuration file to configure Home Assistant can be found in the [ha](ha/) folder.
 
 ## Usage
 
@@ -81,7 +100,19 @@ Options:
 To avoid passing sensitivie data on the command line you can also set the username and password using enviroment variables: `MQTT_USERNAME` and `MQTT_PASSWORD`
 
 
-## How to install it as a service using systemd
+## Advanced Installation 
+
+### Configuring persistent serial devices:
+
+1. Identify your USB serial devices. See this [post](https://inegm.medium.com/persistent-names-for-usb-serial-devices-in-linux-dev-ttyusbx-dev-custom-name-fd49b5db9af1)
+1. An example file is provided, see [99-usb-serial.rules](99-usb-serial.rules)
+1. Copy the udev rules: `sudo cp 99-usb-serial.rules /etc/udev/rules.d/99-usb-serial.rules`
+
+### Configuring Home Assistant
+
+An example configuration file to configure Home Assistant can be found in the [ha](ha/) folder.
+
+### Installing it as a service using systemd
 
 Option 1 - Create a symlink from the /opt/sofar2mqtt to the directory where you git cloned sofar2mqtt
 Option 2 - Edit systemd/sofar2mqtt.service update the path 
@@ -102,4 +133,3 @@ You can ping me directly on here or the awesome [Sofar Solar Inverter - Remote C
 
 * [Sofar2Mqtt - Using an ESP32 device to read from the inverter and send to MQTT](https://github.com/cmcgerty/Sofar2mqtt)
 * [M5Stack Core2 MQTT Solar Display - DIY Solar display to show MQTT data](https://gitlab.com/rjpearce/m5stack-core2-mqtt-solar-display)
-
