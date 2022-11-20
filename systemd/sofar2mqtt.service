@@ -4,6 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=idle
+KillMode=mixed
 ExecStart=/usr/bin/python3 /opt/sofar2mqtt/sofar2mqtt-v2.py --daemon --config-file /opt/sofar2mqtt/sofar-hyd-ep.json
 
 [Install]
