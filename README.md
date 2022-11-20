@@ -89,6 +89,7 @@ Options:
   --retry-delay FLOAT         Delay before retrying
   --refresh-interval INTEGER  Refresh every n seconds
   --broker TEXT               MQTT broker address  [required]
+  --port INTEGER              MQTT broker port  [required]
   --username TEXT             MQTT username
   --password TEXT             MQTT password
   --topic TEXT                MQTT topic  [required]
