@@ -18,9 +18,6 @@ import serial
 from paho.mqtt import publish
 import requests
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
-logging.info('Getting Consumption data')
-
 
 def load_config(config_file_path):
     """ Load configuration file """
@@ -44,14 +41,17 @@ class Sofar():
         self.username = username
         self.password = password
         self.topic = topic
-        self.log_level = log_level
         self.requests = 0
         self.failures = 0
         self.instrument = None
         self.device = device
         self.data = {}
+        self.log_level = logging.getLevelName(log_level)
+        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
+
 
     def setup_instrument(self):
+        logging.debug(f'Setting up instrument {self.device}')
         self.instrument = minimalmodbus.Instrument(self.device, 1)
         self.instrument.serial.baudrate = 9600   # Baud
         self.instrument.serial.bytesize = 8
@@ -63,6 +63,7 @@ class Sofar():
         self.setup_instrument()
         value = None;
         for register in self.config['registers']:
+            logging.debug('Reading %s', register['name'])
             if 'aggregate' in register:
                 value = 0
                 for register_name in register['aggregate']:
@@ -74,15 +75,12 @@ class Sofar():
                                 value += self.data[register_name]
                             elif register['agg_function'] == 'subtract':
                                 value -= self.data[register_name]
-                        logging.info('%s:%s', register_name, self.data[register_name])
                 if 'invert' in register:
                     if register['invert']:
                         if value > 0:
                             value = -abs(value)
                         else:
                             value = abs(value)
-
-                logging.info('%s:%s', register['name'], value)
             else:
                 read_type = 'register'
                 if 'read_type' in register:
@@ -126,7 +124,8 @@ class Sofar():
                         high = value >> 8 # shift right 
                         low = value & 255 # apply bitmask 
                         value = f"{high:02}{register['join']}{low:02}" # combine and pad 2 zeros 
-            logging.debug('%s:%s', register['name'], value)
+            logging.debug('Read %s:%s', register['name'], value)
+
             self.publish(register['name'], value)
 
         failure_percentage = round(self.failures/self.requests*100,2)
@@ -153,6 +152,7 @@ class Sofar():
     def publish(self, key, value):
         self.data[key] = value
         auth = None
+        logging.debug('Publishing %s:%s', self.topic + key, value)
         if self.username is not None and self.password is not None:
             auth = {"username": self.username, "password": self.password}
         try:
