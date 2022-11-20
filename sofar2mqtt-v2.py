@@ -187,11 +187,10 @@ class Sofar():
         return value
 
 
-@click.command()
+@click.command("cli", context_settings={'show_default': True})
 @click.option(
     '--config-file',
     default='sofar-hyd-ep.json',
-    required=True,
     help='Configuration file to use',
 )
 @click.option(
@@ -204,24 +203,23 @@ class Sofar():
     '--retry',
     default=1,
     type=int,
-    help='Number of retries per register before giving up',
+    help='Number of read retries per register before giving up',
 )
 @click.option(
     '--retry-delay',
     default=0.5,
     type=float,
-    help='Delay before retrying',
+    help='Delay before retrying read',
 )
 @click.option(
     '--refresh-interval',
     default=10,
     type=int,
-    help='Refresh every n seconds',
+    help='Refresh data every n seconds',
 )
 @click.option(
     '--broker',
     default='localhost',
-    required=True,
     help='MQTT broker address',
 )
 @click.option(
@@ -234,31 +232,29 @@ class Sofar():
     '--username',
     envvar='MQTT_USERNAME',
     default=None,
-    required=False,
     help='MQTT username'
 )
 @click.option(
     '--password',
     envvar='MQTT_PASSWORD',
     default=None,
-    required=False,
     help='MQTT password'
 )
 @click.option(
     '--topic',
     default='sofar/',
-    required=True,
     help='MQTT topic',
 )
 @click.option(
     '--log-level',
     default='INFO',
-    required=False,
+    type=click.Choice(['INFO', 'DEBUG'], case_sensitive=False),
+    help='Log Level'
 )
 @click.option(
     '--device',
-    default='/dev/ttySofar',
-    required=True
+    default='/dev/ttyUSB0',
+    help='RS485/USB Device'
 )
 # pylint: disable=too-many-arguments
 def main(config_file, daemon, retry, retry_delay, refresh_interval, broker, port, username, password, topic, log_level, device):

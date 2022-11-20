@@ -82,19 +82,23 @@ python3 sofar2mqtt-v2.py --broker localhost --device /dev/ttyUSB0 --daemon
 ```bash
 Usage: sofar2mqtt-v2.py [OPTIONS]
 
+  Main
+
 Options:
-  --config-file TEXT          Configuration file to use  [required]
+  --config-file TEXT          Configuration file to use  [default: sofar-hyd-
+                              ep.json]
   --daemon                    Run as a daemon
-  --retry INTEGER             Number of retries per register before giving up
-  --retry-delay FLOAT         Delay before retrying
-  --refresh-interval INTEGER  Refresh every n seconds
-  --broker TEXT               MQTT broker address  [required]
-  --port INTEGER              MQTT broker port  [required]
+  --retry INTEGER             Number of read retries per register before
+                              giving up  [default: 1]
+  --retry-delay FLOAT         Delay before retrying read  [default: 0.5]
+  --refresh-interval INTEGER  Refresh data every n seconds  [default: 10]
+  --broker TEXT               MQTT broker address  [default: localhost]
+  --port INTEGER              MQTT broker port  [default: 1883]
   --username TEXT             MQTT username
   --password TEXT             MQTT password
-  --topic TEXT                MQTT topic  [required]
-  --log-level TEXT
-  --device TEXT               [required]
+  --topic TEXT                MQTT topic  [default: sofar/]
+  --log-level [INFO|DEBUG]    Log Level  [default: INFO]
+  --device TEXT               RS485/USB Device  [default: /dev/ttyUSB0]
   --help                      Show this message and exit.
 ```
 
