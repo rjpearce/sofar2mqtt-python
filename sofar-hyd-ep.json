@@ -156,7 +156,8 @@
 			"name": "active_power",
 			"register": "0x0485",
 			"function": "multiply",
-			"factor": 10
+			"factor": 10,
+			"signed": true
 		},
 		{
 			"name": "load_power",
@@ -215,16 +216,16 @@
 		{
 			"name": "battery_current",
 			"register": "0x0605",
-			"function": "offset_divide",
-			"offset": 65535,
-			"factor": 100
+			"function": "divide",
+			"factor": 100,
+			"signed": true
 		},
 		{
 			"name": "battery_power",
 			"register": "0x0606",
-			"function": "offset_multiply",
-			"offset": 65535,
-			"factor": 10
+			"function": "multiply",
+			"factor": 10,
+			"signed": true
 		},
 		{
 			"name": "today_generation",
@@ -270,7 +271,8 @@
 		},
 		{
 			"name": "battery_temp",
-			"register": "0x0607"
+			"register": "0x0607",
+			"signed": true
 		},
 		{
 			"name": "battery_soc",

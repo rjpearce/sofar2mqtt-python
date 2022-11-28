@@ -62,9 +62,12 @@ class Sofar():
 
     def read_and_publish(self):
         self.setup_instrument()
-        value = None;
         for register in self.config['registers']:
+            value = None
+            signed = False
             logging.debug('Reading %s', register['name'])
+            if 'signed' in register:
+                signed = register['signed']
             if 'aggregate' in register:
                 value = 0
                 for register_name in register['aggregate']:
@@ -88,7 +91,8 @@ class Sofar():
                     read_type = register['read_type']
                 value = self.read_value(
                         int(register['register'], 16),
-                        read_type
+                        read_type,
+                        signed
                 )
             if value is None:
                 continue
@@ -104,16 +108,6 @@ class Sofar():
                         value = value / register['factor']
                     elif register['function'] == 'mode':
                         value = register['modes'][str(value)]
-                    elif register['function'] == 'offset_multiply':
-                        if value > register['offset'] / 2:
-                            value = (value - register['offset']) * register['factor']
-                        else:
-                            value = value * register['factor']
-                    elif register['function'] == 'offset_divide':
-                        if value > register['offset'] / 2:
-                            value = (value - register['offset']) / register['factor']
-                        else:
-                            value = value / register['factor']
                     elif register['function'] == 'bit_field':
                         length = len(register['fields'])
                         fields = []
@@ -161,7 +155,7 @@ class Sofar():
         except Exception:
             logging.debug(traceback.format_exc())
 
-    def read_value(self, registeraddress, read_type):
+    def read_value(self, registeraddress, read_type, signed):
         """ Read value from register with a retry mechanism """
         value = None
         retry = self.retry
@@ -170,10 +164,10 @@ class Sofar():
                 self.requests +=1
                 if read_type == "register":
                     value = self.instrument.read_register(
-                        registeraddress, 0, functioncode=3, signed=False)
+                        registeraddress, 0, functioncode=3, signed=signed)
                 elif read_type == "long":
                     value = self.instrument.read_long(
-                        registeraddress, functioncode=3, signed=False)
+                        registeraddress, functioncode=3, signed=signed)
             except minimalmodbus.NoResponseError:
                 logging.debug(traceback.format_exc())
                 retry = retry - 1
