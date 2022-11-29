@@ -142,6 +142,8 @@ class Sofar():
                     logging.info('Snoozing 35 seconds')
                     time.sleep(35)
                 self.read_and_publish()
+                self.requests = 0
+                self.failures = 0
                 time.sleep(self.refresh_interval)
 
     def publish(self, key, value):
