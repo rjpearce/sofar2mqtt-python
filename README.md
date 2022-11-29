@@ -115,7 +115,14 @@ To avoid passing sensitivie data on the command line you can also set the userna
 
 ### Configuring Home Assistant
 
-An example configuration file to configure Home Assistant can be found in the [ha](ha/) folder.
+I got annoyed with HA having it's own configuration and trying to keep the two files in sync so I have merged the HA elements into the JSON file making it the single source of truth. A new helper `generate-ha-cfg.py` which will consume the json configuration file eg. sofar-hyd-ep.json and split out a YAML file into the [ha](ha/) folder Home Assistant.
+
+You can then either create a symlink or copy the file into the Home Assistant config folder.
+Add the following to your configuration.yaml to include it.
+```bash
+mqtt: !include sofar-hyd-ep.yaml
+```
+This is not currently available for the `sofar-me-3000.json` configuration, if you want to copy it across from the sofar-hyd-ep.json please be my guest! :) 
 
 ### Installing it as a service using systemd
 
