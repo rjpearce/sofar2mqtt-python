@@ -187,8 +187,8 @@
 		{
 			"name": "pv_1_current",
 			"register": "0x0585",
-			"function": "multiply",
-			"factor": 10,
+			"function": "divide",
+			"factor": 100,
 			"ha": {
 				"name": "Sofar:Solar PV1 current now",
 				"unique_id": "sofar_pv1_current_now",
@@ -229,8 +229,8 @@
 		{
 			"name": "pv_2_current",
 			"register": "0x0588",
-			"function": "multiply",
-			"factor": 10,
+			"function": "divide",
+			"factor": 100,
 			"ha": {
 				"name": "Sofar:Solar PV2 current now",
 				"unique_id": "sofar_pv2_current_now",
