@@ -107,7 +107,10 @@ class Sofar():
                     elif register['function'] == 'divide':
                         value = value / register['factor']
                     elif register['function'] == 'mode':
-                        value = register['modes'][str(value)]
+                        try:
+                            value = register['modes'][str(value)]
+                        except KeyError:
+                            logging.error(f"Unknown mode value for {register['name']} value: {str(value)}")
                     elif register['function'] == 'bit_field':
                         length = len(register['fields'])
                         fields = []
