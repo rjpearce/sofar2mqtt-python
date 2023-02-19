@@ -54,7 +54,15 @@ On the COM port you need to connect:
 - Port 5 `A(+)`
 - Port 6 `B(-)`
 - Port 7 `GND (optional)`
-![ep-ports.png](ep-ports.png)
+
+#### Hardware Version 001
+
+![img/ep-ports.png](img/ep-ports.png)
+
+#### Hardware Version 003
+
+![img/ep-ports-hw-v3.png](img/ep-ports-hw-v3.png)
+Thanks for Pali.
 
 ## Basic Installation
 
