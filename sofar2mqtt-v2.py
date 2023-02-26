@@ -15,11 +15,8 @@ import click
 import traceback
 import minimalmodbus
 import serial
-from paho.mqtt import publish, subscribe
+import paho.mqtt.client as mqtt
 import requests
-
-def on_message_print(client, userdata, message):
-    logging.debug(f"{message.topic} {message.payload}")) 
 
 def load_config(config_file_path):
     """ Load configuration file """
@@ -27,6 +24,7 @@ def load_config(config_file_path):
     with open(config_file_path, mode='r', encoding='utf-8') as config_file:
         config = json.loads(config_file.read())
     return config
+
 
 # pylint: disable=too-many-instance-attributes
 class Sofar():
@@ -52,16 +50,48 @@ class Sofar():
         self.log_level = logging.getLevelName(log_level)
         self.passive_mode = False
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
-        self.subscribe()
+        self.client = mqtt.Client()
+        self.setup_mqtt()
         
-    def subscribe(self):
-        auth = None
-        if self.username is not None and self.password is not None:
-            auth = {"username": self.username, "password": self.password}
+    def on_connect(self, client, userdata, flags, rc):
         try:
-            subscribe.callback(on_message_print, f"{self.topic}/rw/energy_storage_mode",  hostname=self.broker, port=self.port, auth=auth)
+            for register in self.config['write_registers']:
+                logging.info(f"Subscribing to {self.topic}rw/{register['name']}")
+                client.subscribe(f"{self.topic}rw/{register['name']}")
         except Exception:
-            logging.debug(traceback.format_exc())
+            logging.info(traceback.format_exc())
+
+    def on_message(self, client, userdata, message):
+        found = False
+        valid = False
+        register_name = message.topic.split('/')[-1]
+        payload = message.payload.decode("utf-8") 
+        for register in self.config['write_registers']:
+            if register['name'] == register_name:
+                found = True
+                if 'function' in register:
+                    if register['function'] == 'mode':
+                        try:
+                            value = register['modes'][payload]
+                            valid = True
+                            logging.info(f"Received a request for {register['name']} to set value to: '{value}'")
+                        except KeyError:
+                            logging.error(f"Received a request for {register['name']} but value: {payload} is not a known mode. Ignoring")
+            else:
+                next
+
+        if not found:
+            logging.error(f"Received a request to set an unknown register: {register_name} to {payload}")
+
+
+    def setup_mqtt(self):
+        #self.client.enable_logger(logger=logging)
+        self.client.on_connect = self.on_connect
+        self.client.on_message = self.on_message
+        if self.username is not None and self.password is not None:
+            self.client.username_pw_set(self.username, self.password)
+        self.client.connect(self.broker, port=self.port)
+        self.client.loop_start()
 
     def setup_instrument(self):
         logging.debug(f'Setting up instrument {self.device}')
@@ -163,12 +193,9 @@ class Sofar():
 
     def publish(self, key, value):
         self.data[key] = value
-        auth = None
         logging.debug('Publishing %s:%s', self.topic + key, value)
-        if self.username is not None and self.password is not None:
-            auth = {"username": self.username, "password": self.password}
         try:
-            publish.single(self.topic + key, value, hostname=self.broker, port=self.port, auth=auth, retain=True)
+            self.client.publish(self.topic + key, value, retain=True)
         except Exception:
             logging.debug(traceback.format_exc())
 
