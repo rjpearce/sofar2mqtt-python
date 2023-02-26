@@ -1,4 +1,127 @@
 {
+	"write_registers": [
+		{
+			"name": "eps_control",
+			"register": "4137",
+			"desc": "EPS On/Off control",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Off",
+				"1": "On"
+			}
+		},
+		{
+			"name": "remote_on_off_control",
+			"register": "4356",
+			"desc": "Turn inverter on/off",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Off",
+				"1": "On"
+			}
+		},
+		{
+			"name": "power_control",
+			"register": "4357",
+			"desc": "AC power control settings (0 to 100%)",
+			"type": "U16"
+		},
+		{
+			"name": "active_power_output_limit",
+			"register": "4358",
+			"desc": "AC output active power maximum percentage (0 to 100%)",
+			"type": "U16"
+		},
+		{
+			"name": "active_power_input_limit",
+			"register": "4359",
+			"desc": "AC input active power maximum percentage (0 to 100%)",
+			"type": "U16"
+		},
+		{
+			"name": "reactive_power_setting",
+			"register": "4360",
+			"desc": "AC reactive power percentage (-100 to 100%)",
+			"type": "I16",
+			"signed": "true"
+		},
+		{
+			"name": "power_factor_setting",
+			"register": "4361",
+			"desc": "AC power factor (-1.00 to 1.00)",
+			"type": "I16",
+			"signed": "true"
+		},
+		{
+			"name": "active_power_limit_speed",
+			"register": "4362",
+			"desc": "The charge rate of active power (1 to 3000%)",
+			"type": "U16"
+		},
+		{
+			"name": "reactive_power_response_time",
+			"register": "4363",
+			"desc": "Reactive power response time in secs (0.1 to 600)",
+			"type": "U16"
+		},
+		{
+			"name": "energy_storage_mode",
+			"register": "4368",
+			"desc": "Storage mode",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Self use",
+				"1": "Time of use",
+				"2": "Timing mode",
+				"3": "Passive mode",
+				"4": "Peak cut mode"
+			}
+		},
+		{
+			"name": "passive_timeout",
+			"register": "4484",
+			"desc": "Passive mode timeout period in secons (0=Never)",
+			"desc2": "When the inverter does not receive any communication frame within time set in this register the inverter forces Passive_Timeout_Action",
+			"type": "U16"
+		},
+		{
+			"name": "passive_timeout_action",
+			"register": "4485",
+			"desc": "Passive mode timeout action",
+			"type": "U16",
+			"modes": {
+				"0": "Force to standby",
+				"1": "Force to last storage mode"
+			}
+		},
+		{
+			"name": "desired_power",
+			"register": "4487",
+			"desc": "Desired PCC power in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Export, Negative value=Import",
+			"type":"I32",
+			"signed": "true"
+		},
+		{
+			"name": "minimum_battery_power",
+			"register": "4489",
+			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Charging, Negative value=Discharging",
+			"type":"I32",
+			"signed": "true"
+		},
+		{
+			"name": "maximum_battery_power",
+			"register": "4491",
+			"desc": "Maximum battery power in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Charging, Negative value=Discharging",
+			"type":"I32",
+			"signed": "true"
+		}
+	],
 	"registers": [
 		{
 			"name": "state",
