@@ -72,9 +72,16 @@ class Sofar():
                 if 'function' in register:
                     if register['function'] == 'mode':
                         try:
-                            value = register['modes'][payload]
+                            mode = register['modes'][payload]
                             valid = True
-                            logging.info(f"Received a request for {register['name']} to set value to: '{value}'")
+                            logging.info(f"Received a request for {register['name']} to set value to: {payload}({mode})")
+                            if (register['name'] == 'energy_storage_mode'):
+                                logging.info(f"Writing {int(register['register'])} with {int(payload)}")
+                                self.instrument.write_register(int(register['register']), int(payload))
+                        except serial.serialutil.SerialException:
+                            logging.error(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                        except minimalmodbus.InvalidResponseError:
+                            logging.error(f"Failed to write_register {register['name']} {traceback.format_exc()}")
                         except KeyError:
                             logging.error(f"Received a request for {register['name']} but value: {payload} is not a known mode. Ignoring")
             else:
@@ -192,6 +199,10 @@ class Sofar():
                 time.sleep(self.refresh_interval)
 
     def publish(self, key, value):
+        if key == 'energy_storage_mode':
+            if key in self.data:
+                if value != self.data[key]:
+                    logging.info(f"energy_storage_mode has changed to: {value}")
         self.data[key] = value
         logging.debug('Publishing %s:%s', self.topic + key, value)
         try:
@@ -218,6 +229,11 @@ class Sofar():
                 self.failures = self.failures + 1
                 time.sleep(self.retry_delay)
             except minimalmodbus.InvalidResponseError:
+                logging.debug(traceback.format_exc())
+                retry = retry - 1
+                self.failures = self.failures + 1
+                time.sleep(self.retry_delay)
+            except serial.serialutil.SerialException:
                 logging.debug(traceback.format_exc())
                 retry = retry - 1
                 self.failures = self.failures + 1
