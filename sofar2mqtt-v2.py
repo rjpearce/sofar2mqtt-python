@@ -15,9 +15,11 @@ import click
 import traceback
 import minimalmodbus
 import serial
-from paho.mqtt import publish
+from paho.mqtt import publish, subscribe
 import requests
 
+def on_message_print(client, userdata, message):
+    logging.debug(f"{message.topic} {message.payload}")) 
 
 def load_config(config_file_path):
     """ Load configuration file """
@@ -48,8 +50,18 @@ class Sofar():
         self.device = device
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
+        self.passive_mode = False
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
-
+        self.subscribe()
+        
+    def subscribe(self):
+        auth = None
+        if self.username is not None and self.password is not None:
+            auth = {"username": self.username, "password": self.password}
+        try:
+            subscribe.callback(on_message_print, f"{self.topic}/rw/energy_storage_mode",  hostname=self.broker, port=self.port, auth=auth)
+        except Exception:
+            logging.debug(traceback.format_exc())
 
     def setup_instrument(self):
         logging.debug(f'Setting up instrument {self.device}')
