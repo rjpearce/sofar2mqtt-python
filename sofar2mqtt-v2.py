@@ -72,17 +72,20 @@ class Sofar():
                 if 'function' in register:
                     if register['function'] == 'mode':
                         try:
-                            mode = register['modes'][payload]
+                            new_mode = False
+                            for key in register['modes']:
+                                if register['modes'][key] == payload:
+                                  new_mode = key
                             valid = True
-                            logging.info(f"Received a request for {register['name']} to set value to: {payload}({mode})")
+                            logging.info(f"Received a request for {register['name']} to set value to: {payload}({new_mode})")
                             if (register['name'] == 'energy_storage_mode'):
-                                logging.info(f"Writing {int(register['register'])} with {int(payload)}")
-                                self.instrument.write_register(int(register['register']), int(payload))
+                                logging.info(f"Writing {int(register['register'])} with {int(new_mode)}")
+                                self.instrument.write_register(int(register['register']), int(new_mode))
                         except serial.serialutil.SerialException:
                             logging.error(f"Failed to write_register {register['name']} {traceback.format_exc()}")
                         except minimalmodbus.InvalidResponseError:
                             logging.error(f"Failed to write_register {register['name']} {traceback.format_exc()}")
-                        except KeyError:
+                        if not new_mode:
                             logging.error(f"Received a request for {register['name']} but value: {payload} is not a known mode. Ignoring")
             else:
                 next
