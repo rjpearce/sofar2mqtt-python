@@ -44,6 +44,8 @@ class Sofar():
         self.topic = topic
         self.requests = 0
         self.failures = 0
+        self.failed = []
+        self.retries = 0
         self.instrument = None
         self.device = device
         self.data = {}
@@ -110,7 +112,7 @@ class Sofar():
         self.instrument.serial.bytesize = 8
         self.instrument.serial.parity = serial.PARITY_NONE
         self.instrument.serial.stopbits = 1
-        self.instrument.serial.timeout  = 1   # seconds
+        self.instrument.serial.timeout  = 0.1   # seconds
 
     def read_and_publish(self):
         self.setup_instrument()
@@ -178,11 +180,14 @@ class Sofar():
 
             self.publish(register['name'], value)
 
-        failure_percentage = round(self.failures/self.requests*100,2)
-        logging.info('Failures: %d/%d %s', self.failures, self.requests, str(failure_percentage) + '%')
+        failure_percentage = str(round(self.failures / (self.requests+self.retries)*100,2))+'%'
+        retry_percentage = str(round(self.retries / (self.requests)*100,2))+'%'
+        logging.info('Modbus Requests: %d Retries: %d (%s) Failures: %d (%s)', self.requests, self.retries, retry_percentage, self.failures, failure_percentage)
         self.publish('modbus_failures', self.failures)
         self.publish('modbus_requests', self.requests)
+        self.publish('modbus_retries', self.retries)
         self.publish('modbus_failure_rate', failure_percentage)
+        self.publish('modbus_retry_rate', retry_percentage)
         self.instrument.serial.close()
 
     def main(self):
@@ -199,6 +204,8 @@ class Sofar():
                 self.read_and_publish()
                 self.requests = 0
                 self.failures = 0
+                self.failed = []
+                self.retries = 0
                 time.sleep(self.refresh_interval)
 
     def publish(self, key, value):
@@ -229,18 +236,21 @@ class Sofar():
             except minimalmodbus.NoResponseError:
                 logging.debug(traceback.format_exc())
                 retry = retry - 1
-                self.failures = self.failures + 1
+                self.retries = self.retries + 1
                 time.sleep(self.retry_delay)
             except minimalmodbus.InvalidResponseError:
                 logging.debug(traceback.format_exc())
                 retry = retry - 1
-                self.failures = self.failures + 1
+                self.retries = self.retries + 1
                 time.sleep(self.retry_delay)
             except serial.serialutil.SerialException:
                 logging.debug(traceback.format_exc())
                 retry = retry - 1
-                self.failures = self.failures + 1
+                self.retries = self.retries + 1
                 time.sleep(self.retry_delay)
+        if retry == 0:
+            self.failures = self.failures + 1
+            self.failed.append(registeraddress)
         return value
 
 
@@ -258,19 +268,19 @@ class Sofar():
 )
 @click.option(
     '--retry',
-    default=1,
+    default=2,
     type=int,
     help='Number of read retries per register before giving up',
 )
 @click.option(
     '--retry-delay',
-    default=0.5,
+    default=0.1,
     type=float,
     help='Delay before retrying read',
 )
 @click.option(
     '--refresh-interval',
-    default=10,
+    default=5,
     type=int,
     help='Refresh data every n seconds',
 )
