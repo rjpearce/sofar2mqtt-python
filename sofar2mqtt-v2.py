@@ -15,6 +15,7 @@ import click
 import traceback
 import minimalmodbus
 import serial
+import struct
 import paho.mqtt.client as mqtt
 import requests
 
@@ -33,9 +34,16 @@ class Sofar():
     # pylint: disable=line-too-long,too-many-arguments
     def __init__(self, config_file_path, daemon, retry, retry_delay, refresh_interval, broker, port, username, password, topic, log_level, device):
         self.config = load_config(config_file_path)
+        self.write_registers = []
+        for register in self.config['registers']:
+            if "write" in register:
+                if register["write"]:
+                    self.write_registers.append(register)
         self.daemon = daemon
         self.retry = retry
         self.retry_delay = retry_delay
+        self.write_retry = retry
+        self.write_retry_delay = 5
         self.refresh_interval = refresh_interval
         self.broker = broker
         self.port = port
@@ -50,7 +58,6 @@ class Sofar():
         self.device = device
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
-        self.passive_mode = False
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
         self.client = mqtt.Client()
         self.setup_mqtt()
@@ -58,7 +65,7 @@ class Sofar():
     def on_connect(self, client, userdata, flags, rc):
         logging.info("MQTT connected")
         try:
-            for register in self.config['write_registers']:
+            for register in self.write_registers:
                 logging.info(f"Subscribing to {self.topic}rw/{register['name']}")
                 client.subscribe(f"{self.topic}rw/{register['name']}")
         except Exception:
@@ -73,29 +80,34 @@ class Sofar():
         valid = False
         register_name = message.topic.split('/')[-1]
         payload = message.payload.decode("utf-8") 
-        for register in self.config['write_registers']:
+        for register in self.write_registers:
             if register['name'] == register_name:
                 found = True
                 if 'function' in register:
                     if register['function'] == 'mode':
-                        try:
-                            new_mode = False
-                            for key in register['modes']:
-                                if register['modes'][key] == payload:
-                                  new_mode = key
-                            valid = True
-                            logging.info(f"Received a request for {register['name']} to set value to: {payload}({new_mode})")
-                            if (register['name'] == 'energy_storage_mode'):
-                                logging.info(f"Writing {int(register['register'])} with {int(new_mode)}")
-                                self.instrument.write_register(int(register['register']), int(new_mode))
-                        except serial.serialutil.SerialException:
-                            logging.error(f"Failed to write_register {register['name']} {traceback.format_exc()}")
-                        except minimalmodbus.InvalidResponseError:
-                            logging.error(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                        new_mode = False
+                        for key in register['modes']:
+                            if register['modes'][key] == payload:
+                              new_mode = key
+                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({new_mode})")
+                        self.write_value(register, int(new_mode))
                         if not new_mode:
                             logging.error(f"Received a request for {register['name']} but value: {payload} is not a known mode. Ignoring")
-            else:
-                next
+                    elif register['function'] == 'int':
+                        value = int(payload)
+                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({value})")
+                        if value < register['min']:
+                            logging.error(f"Received a request for {register['name']} but value: {value} is lesse than the min value: {register['min']}. Ignoring")
+                        elif value > register['max']:
+                            logging.error(f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
+                        else:
+                            if 'passive' in register:
+                                if register['passive']:
+                                    if 'energy_storage_mode' in self.data:
+                                        if not self.data['energy_storage_mode'] == 'Passive mode':
+                                          self.write_value({"name":"energy_storage_mode", "register":'0x1110', "type": 'U16'}, 3)
+                                          time.sleep(2)
+                                self.write_value(register, value)
 
         if not found:
             logging.error(f"Received a request to set an unknown register: {register_name} to {payload}")
@@ -115,7 +127,6 @@ class Sofar():
 
     def setup_instrument(self):
         logging.debug(f'Setting up instrument {self.device}')
-        #minimalmodbus.BYTEORDER_BIG= 1
         self.instrument = minimalmodbus.Instrument(self.device, 1)
         self.instrument.serial.baudrate = 9600   # Baud
         self.instrument.serial.bytesize = 8
@@ -197,7 +208,7 @@ class Sofar():
         self.publish('modbus_retries', self.retries)
         self.publish('modbus_failure_rate', failure_percentage)
         self.publish('modbus_retry_rate', retry_percentage)
-        self.instrument.serial.close()
+        #self.instrument.serial.close()
 
     def main(self):
         """ Main method """
@@ -228,6 +239,49 @@ class Sofar():
             self.client.publish(self.topic + key, value, retain=True)
         except Exception:
             logging.debug(traceback.format_exc())
+
+    def write_value(self, register, value):
+        """ Read value from register with a retry mechanism """
+        retry = self.write_retry
+        logging.info(f"Writing {int(register['register'], 16)} with {value}({value})")
+        signed = False
+        success = False
+        retries = 0
+        failed = 0 
+        if 'signed' in register:
+            signed = register['signed']
+        while retry > 0 and not success:
+            try:
+                if register['type'] == 'U16':
+                    self.instrument.write_register(int(register['register'],16), int(value))
+                elif register['type'] == 'I32':
+                    # split the value to a byte
+                    values = struct.pack(">l", value)
+                    # split low and high byte
+                    low = struct.unpack(">H", bytearray([values[0], values[1]]))[0]
+                    high = struct.unpack(">H", bytearray([values[2], values[3]]))[0]
+                    # send the registers
+                    self.instrument.write_registers(int(register['register'],16), [0, 0, low, high, low, high])
+            except minimalmodbus.NoResponseError:
+                logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                retry = retry - 1
+                retries = retries + 1
+                time.sleep(self.write_retry_delay)
+            except minimalmodbus.InvalidResponseError:
+                logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                retry = retry - 1
+                retries = retries + 1
+                time.sleep(self.write_retry_delay)
+            except serial.serialutil.SerialException:
+                logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                retry = retry - 1
+                retries = retries + 1
+                time.sleep(self.write_retry_delay)
+            success = True
+        if success:
+            logging.info('Modbus Write Request: %s successful. Retries: %d', register['name'], retries)
+        else:
+            logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
 
     def read_value(self, registeraddress, read_type, signed):
         """ Read value from register with a retry mechanism """

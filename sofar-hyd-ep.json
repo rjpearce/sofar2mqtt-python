@@ -1,74 +1,99 @@
 {
-	"write_registers": [
+	"registers": [
 		{
 			"name": "eps_control",
-			"register": "4137",
+			"register": "0x1029",
 			"desc": "EPS On/Off control",
 			"type": "U16",
 			"function": "mode",
 			"modes": {
 				"0": "Off",
 				"1": "On"
-			}
+			},
+		        "write": true
 		},
 		{
 			"name": "remote_on_off_control",
-			"register": "4356",
+			"register": "0x1104",
 			"desc": "Turn inverter on/off",
 			"type": "U16",
 			"function": "mode",
 			"modes": {
 				"0": "Off",
 				"1": "On"
-			}
+			},
+		        "write": true
 		},
 		{
 			"name": "power_control",
-			"register": "4357",
+			"register": "0x1105",
 			"desc": "AC power control settings (0 to 100%)",
-			"type": "U16"
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+		        "write": true
 		},
 		{
-			"name": "active_power_output_limit",
-			"register": "4358",
+			"name": "active_power_export_limit",
+			"register": "0x1106",
 			"desc": "AC output active power maximum percentage (0 to 100%)",
-			"type": "U16"
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+		        "write": true
 		},
 		{
-			"name": "active_power_input_limit",
-			"register": "4359",
+			"name": "active_power_import_limit",
+			"register": "0x1107",
 			"desc": "AC input active power maximum percentage (0 to 100%)",
-			"type": "U16"
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+		        "write": true
 		},
 		{
 			"name": "reactive_power_setting",
-			"register": "4360",
+			"register": "0x1108",
 			"desc": "AC reactive power percentage (-100 to 100%)",
 			"type": "I16",
-			"signed": "true"
+			"min": -100,
+			"max": 100,
+			"signed": true,
+		        "write": true
 		},
 		{
 			"name": "power_factor_setting",
-			"register": "4361",
+			"register": "0x1109",
 			"desc": "AC power factor (-1.00 to 1.00)",
 			"type": "I16",
-			"signed": "true"
+			"min": -1.00,
+			"max": 1.0,
+			"signed": true,
+		        "write": true
 		},
 		{
 			"name": "active_power_limit_speed",
-			"register": "4362",
+			"register": "0x110a",
 			"desc": "The charge rate of active power (1 to 3000%)",
-			"type": "U16"
+			"type": "U16",
+			"min": 1,
+			"max": 3000,
+			"signed": true,
+		        "write": true
 		},
 		{
 			"name": "reactive_power_response_time",
-			"register": "4363",
+			"register": "0x110b",
 			"desc": "Reactive power response time in secs (0.1 to 600)",
-			"type": "U16"
+			"type": "U16",
+			"min": 0.1,
+			"max": 600,
+			"signed": true,
+		        "write": true
 		},
 		{
 			"name": "energy_storage_mode",
-			"register": "4368",
+			"register": "0x1110",
 			"desc": "Storage mode",
 			"type": "U16",
 			"function": "mode",
@@ -78,71 +103,8 @@
 				"2": "Timing mode",
 				"3": "Passive mode",
 				"4": "Peak cut mode"
-			}
-		},
-		{
-			"name": "passive_timeout",
-			"register": "4484",
-			"desc": "Passive mode timeout period in secons (0=Never)",
-			"desc2": "When the inverter does not receive any communication frame within time set in this register the inverter forces Passive_Timeout_Action",
-			"type": "U16"
-		},
-		{
-			"name": "passive_timeout_action",
-			"register": "4485",
-			"desc": "Passive mode timeout action",
-			"type": "U16",
-			"modes": {
-				"0": "Force to standby",
-				"1": "Force to last storage mode"
-			}
-		},
-		{
-			"name": "desired_power",
-			"register": "4487",
-			"desc": "Desired PCC power in passive mode(-999999 to 999999) in watts",
-			"desc2":"Positive value=Export, Negative value=Import",
-			"type":"I32",
-			"signed": "true"
-		},
-		{
-			"name": "minimum_battery_power",
-			"register": "4489",
-			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
-			"desc2":"Positive value=Charging, Negative value=Discharging",
-			"type":"I32",
-			"signed": "true"
-		},
-		{
-			"name": "maximum_battery_power",
-			"register": "4491",
-			"desc": "Maximum battery power in passive mode(-999999 to 999999) in watts",
-			"desc2":"Positive value=Charging, Negative value=Discharging",
-			"type":"I32",
-			"signed": "true"
-		}
-	],
-	"registers": [
-		{
-			"name": "state",
-			"register": "0x0404",
-			"function": "mode",
-			"modes": {
-				"0": "Waiting",
-				"1": "Checking",
-				"2": "On-grid",
-				"3": "Emergency Mode",
-				"4": "Recoverable Fault",
-				"5": "Permanent Fault",
-				"6": "Upgarding",
-				"7": "Self-charging"
 			},
-			"ha": {
-				"name": "Sofar:Inverter state",
-				"unique_id": "Sofar_inverter_state",
-				"state_class": "measurement",
-				"icon": "mdi:power-standby"
-			}
+		        "write": true
 		},
 		{
 			"name": "energy_storage_mode",
@@ -214,7 +176,7 @@
 				"unique_id": "Sofar_time_of_use_start_time",
 				"state_class": "measurement",
 				"icon": "mdi:battery-clock-outline"
-		    }
+		        }
 		},
 		{
 			"name": "time_of_use_charge_end_time",
@@ -231,6 +193,11 @@
 		{
 			"name": "time_of_use_charge_soc",
 			"register": "0x1124",
+			"desc": "Time of use SOC (30 to 100)",
+			"function": "int",
+			"min": 30,
+			"max": 100,
+		        "write": true,
 			"ha": {
 				"name": "Sofar:Time of use - SOC",
 				"unique_id": "Sofar_time_of_use_soc",
@@ -291,6 +258,97 @@
 				"unique_id": "Sofar_time_of_use_dow",
 				"state_class": "measurement",
 				"icon": "mdi:calendar-today-outline"
+			}
+		},
+		{
+			"name": "passive_timeout",
+			"register": "0x1184",
+			"desc": "Passive mode timeout period in secs (0=Never)",
+			"desc2": "When the inverter does not receive any communication frame within time set in this register the inverter forces Passive_Timeout_Action",
+			"type": "U16",
+		        "write": true
+		},
+		{
+			"name": "passive_timeout_action",
+			"register": "0x1185",
+			"desc": "Passive mode timeout action",
+			"function": "mode",
+			"type": "U16",
+			"modes": {
+				"0": "Force to standby",
+				"1": "Force to last storage mode"
+			},
+		        "write": true
+		},
+		{
+			"name": "desired_power",
+			"register": "0x1187",
+			"desc": "Desired PCC power in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Export, Negative value=Import",
+			"type":"I32",
+			"function": "int",
+			"signed": true,
+			"passive": true,
+			"min": -999999,
+			"max": 999999,
+		        "write": true
+		},
+		{
+			"name": "minimum_battery_power",
+			"register": "0x1189",
+			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Charging, Negative value=Discharging",
+			"type":"I32",
+			"signed": true,
+			"passive": true,
+			"min": -999999,
+			"max": 999999,
+		        "write": true
+		},
+		{
+			"name": "maximum_battery_power",
+			"register": "0x118B",
+			"desc": "Maximum battery power in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Charging, Negative value=Discharging",
+			"type":"I32",
+			"signed": true,
+			"passive": true,
+			"min": -999999,
+			"max": 999999,
+		        "write": true
+		},
+		{
+			"name": "desired_power_grid",
+			"register": "0x118D",
+			"desc": "Maximum power to grid in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Charging, Negative value=Discharging",
+			"type":"I32",
+			"function": "int",
+			"signed": true,
+			"passive": true,
+			"min": -999999,
+			"max": 999999,
+		        "write": true
+		},
+		{
+			"name": "state",
+			"register": "0x0404",
+			"function": "mode",
+			"modes": {
+				"0": "Waiting",
+				"1": "Checking",
+				"2": "On-grid",
+				"3": "Emergency Mode",
+				"4": "Recoverable Fault",
+				"5": "Permanent Fault",
+				"6": "Upgarding",
+				"7": "Self-charging"
+			},
+			"ha": {
+				"name": "Sofar:Inverter state",
+				"unique_id": "Sofar_inverter_state",
+				"state_class": "measurement",
+				"icon": "mdi:power-standby"
 			}
 		},
 		{
