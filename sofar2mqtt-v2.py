@@ -56,12 +56,17 @@ class Sofar():
         self.setup_mqtt()
         
     def on_connect(self, client, userdata, flags, rc):
+        logging.info("MQTT connected")
         try:
             for register in self.config['write_registers']:
                 logging.info(f"Subscribing to {self.topic}rw/{register['name']}")
                 client.subscribe(f"{self.topic}rw/{register['name']}")
         except Exception:
             logging.info(traceback.format_exc())
+
+    def on_disconnect(client, userdata, rc):
+      if rc != 0:
+        logging.info("MQTT un-expected disconnect")
 
     def on_message(self, client, userdata, message):
         found = False
@@ -99,14 +104,18 @@ class Sofar():
     def setup_mqtt(self):
         #self.client.enable_logger(logger=logging)
         self.client.on_connect = self.on_connect
+        self.client.on_disconnect = self.on_disconnect
         self.client.on_message = self.on_message
         if self.username is not None and self.password is not None:
             self.client.username_pw_set(self.username, self.password)
+        self.client.reconnect_delay_set(min_delay=1, max_delay=300)
+        logging.info("MQTT connecting to broker")
         self.client.connect(self.broker, port=self.port)
         self.client.loop_start()
 
     def setup_instrument(self):
         logging.debug(f'Setting up instrument {self.device}')
+        #minimalmodbus.BYTEORDER_BIG= 1
         self.instrument = minimalmodbus.Instrument(self.device, 1)
         self.instrument.serial.baudrate = 9600   # Baud
         self.instrument.serial.bytesize = 8
