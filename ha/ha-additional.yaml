@@ -1,7 +1,6 @@
-# Define input_select
 input_select:
   sofar_energy_storage_mode:
-    name: Sofar Energy Storage Mode 
+    name: Sofar Energy Storage Mode
     options:
       - "Self use"
       - "Time of use"
@@ -9,56 +8,38 @@ input_select:
       - "Passive mode"
       - "Peak cut mode"
     icon: mdi:target
+input_number:
   desired_power:
-    name: Sofar Desired Power
-    options:
-      - "-5000"
-      - "-4500"
-      - "-4000"
-      - "-3500"
-      - "-3000"
-      - "-2500"
-      - "-2000"
-      - "-1500"
-      - "-1000"
-      - "-500"
-      - "0"
-      - "500"
-      - "1000"
-      - "1500"
-      - "2000"
-      - "2500"
-      - "3000"
-      - "3500"
-      - "4000"
-      - "4500"
-      - "5000"
+    name: Sofar Desired Power (-discharge/+charge)
     icon: mdi:target
+    min: -5000
+    max: 5000
+    step: 1
+    unit_of_measurement: "w"
+    mode: box
 
 # Automation.
-automation: 
+automation:
 - alias: "Set Sofar Energy Storage Mode Selector"
   trigger:
     platform: mqtt
     topic: "sofar/energy_storage_mode"
-    entity_id: input_select.sofar_energy_storage_mode
   action:
     - service: input_select.select_option
       target:
         entity_id: input_select.sofar_energy_storage_mode
       data:
         option: "{{ trigger.payload }}"
-- alias: "Set Sofar Desired Power Selector"
-  trigger:
-    platform: mqtt
-    topic: "sofar/desired_power"
-    entity_id: input_select.desired_power
-  action:
-    - service: input_select.select_option
-      target:
-        entity_id: input_select.desired_power
-      data:
-        option: "{{ trigger.payload }}"
+ #- alias: "Set Sofar Desired Power Selector"
+ #trigger:
+ #  platform: mqtt
+ #  topic: "sofar/desired_power"
+ #action:
+ #  - service: input_number.set_value
+ #    target:
+ #      entity_id: input_number.desired_power
+ #    data:
+ #      value: "{{ trigger.payload | int }}"
 - alias: "Set Sofar Energy Storage Mode"
   trigger:
     platform: state
@@ -72,10 +53,10 @@ automation:
 - alias: "Set Sofar Desired power"
   trigger:
     platform: state
-    entity_id: input_select.desired_power
+    entity_id: input_number.desired_power
   action:
     - service: mqtt.publish
       data:
         topic: "sofar/rw/desired_power"
         retain: false
-        payload: "{{ states('input_select.desired_power') }}"
+        payload: "{{ states('input_number.desired_power') | int }}"
