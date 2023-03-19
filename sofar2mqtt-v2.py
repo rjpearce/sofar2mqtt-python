@@ -16,6 +16,7 @@ import traceback
 import minimalmodbus
 import serial
 import struct
+import threading
 import paho.mqtt.client as mqtt
 import requests
 
@@ -60,8 +61,10 @@ class Sofar():
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
+        self.mutex = threading.Lock()
         self.client = mqtt.Client()
         self.setup_mqtt()
+        self.setup_instrument()
         
     def on_connect(self, client, userdata, flags, rc):
         logging.info("MQTT connected")
@@ -127,18 +130,18 @@ class Sofar():
         self.client.loop_start()
 
     def setup_instrument(self):
-        logging.debug(f'Setting up instrument {self.device}')
-        self.instrument = minimalmodbus.Instrument(self.device, 1)
-        self.instrument.serial.baudrate = 9600   # Baud
-        self.instrument.serial.bytesize = 8
-        self.instrument.serial.parity = serial.PARITY_NONE
-        self.instrument.serial.stopbits = 1
-        self.instrument.serial.timeout  = 0.1   # seconds
-        self.instrument.clear_buffers_before_each_transaction = True
-        self.instrument.close_port_after_each_call = True
+        with self.mutex:
+            logging.debug(f'Setting up instrument {self.device}')
+            self.instrument = minimalmodbus.Instrument(self.device, 1)
+            self.instrument.serial.baudrate = 9600   # Baud
+            self.instrument.serial.bytesize = 8
+            self.instrument.serial.parity = serial.PARITY_NONE
+            self.instrument.serial.stopbits = 1
+            self.instrument.serial.timeout  = 0.1   # seconds
+            self.instrument.clear_buffers_before_each_transaction = True
+            self.instrument.close_port_after_each_call = True
 
     def read_and_publish(self):
-        self.setup_instrument()
         for register in self.config['registers']:
             value = None
             signed = False
@@ -245,79 +248,84 @@ class Sofar():
 
     def write_value(self, register, value):
         """ Read value from register with a retry mechanism """
-        retry = self.write_retry
-        logging.info(f"Writing {int(register['register'], 16)} with {value}({value})")
-        signed = False
-        success = False
-        retries = 0
-        failed = 0 
-        if 'signed' in register:
-            signed = register['signed']
-        while retry > 0 and not success:
-            try:
-                if register['type'] == 'U16':
-                    self.instrument.write_register(int(register['register'],16), int(value))
-                elif register['type'] == 'I32':
-                    # split the value to a byte
-                    values = struct.pack(">l", value)
-                    # split low and high byte
-                    low = struct.unpack(">H", bytearray([values[0], values[1]]))[0]
-                    high = struct.unpack(">H", bytearray([values[2], values[3]]))[0]
-                    # send the registers
-                    self.instrument.write_registers(int(register['register'],16), [0, 0, low, high, low, high])
-            except minimalmodbus.NoResponseError:
-                logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
-                retry = retry - 1
-                retries = retries + 1
-                time.sleep(self.write_retry_delay)
-            except minimalmodbus.InvalidResponseError:
-                logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
-                retry = retry - 1
-                retries = retries + 1
-                time.sleep(self.write_retry_delay)
-            except serial.serialutil.SerialException:
-                logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
-                retry = retry - 1
-                retries = retries + 1
-                time.sleep(self.write_retry_delay)
-            success = True
-        if success:
-            logging.info('Modbus Write Request: %s successful. Retries: %d', register['name'], retries)
-        else:
-            logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
+        with self.mutex:
+            retry = self.write_retry
+            logging.info(f"Writing {int(register['register'], 16)} with {value}({value})")
+            signed = False
+            success = False
+            retries = 0
+            failed = 0 
+            if 'signed' in register:
+                signed = register['signed']
+            while retry > 0 and not success:
+                try:
+                    if register['type'] == 'U16':
+                        logging.info(f"{register['register']} {value}")
+                        logging.info(f"{int(register['register'],16)} {int(value)}")
+                        self.instrument.write_register(int(register['register'],16), int(value))
+                    elif register['type'] == 'I32':
+                        # split the value to a byte
+                        values = struct.pack(">l", value)
+                        # split low and high byte
+                        low = struct.unpack(">H", bytearray([values[0], values[1]]))[0]
+                        high = struct.unpack(">H", bytearray([values[2], values[3]]))[0]
+                        # send the registers
+                        self.instrument.write_registers(int(register['register'],16), [0, 0, low, high, low, high])
+                except minimalmodbus.NoResponseError:
+                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                except minimalmodbus.InvalidResponseError:
+                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                except serial.serialutil.SerialException:
+                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                success = True
+            if success:
+                logging.info('Modbus Write Request: %s successful. Retries: %d', register['name'], retries)
+            else:
+                logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
 
     def read_value(self, registeraddress, read_type, signed):
         """ Read value from register with a retry mechanism """
-        value = None
-        retry = self.retry
-        while retry > 0 and value is None:
-            try:
-                self.requests +=1
-                if read_type == "register":
-                    value = self.instrument.read_register(
-                        registeraddress, 0, functioncode=3, signed=signed)
-                elif read_type == "long":
-                    value = self.instrument.read_long(
-                        registeraddress, functioncode=3, signed=signed)
-            except minimalmodbus.NoResponseError:
-                logging.debug(traceback.format_exc())
-                retry = retry - 1
-                self.retries = self.retries + 1
-                time.sleep(self.retry_delay)
-            except minimalmodbus.InvalidResponseError:
-                logging.debug(traceback.format_exc())
-                retry = retry - 1
-                self.retries = self.retries + 1
-                time.sleep(self.retry_delay)
-            except serial.serialutil.SerialException:
-                logging.debug(traceback.format_exc())
-                retry = retry - 1
-                self.retries = self.retries + 1
-                time.sleep(self.retry_delay)
-        if retry == 0:
-            self.failures = self.failures + 1
-            self.failed.append(registeraddress)
-        return value
+        with self.mutex:
+            value = None
+            retry = self.retry
+            while retry > 0 and value is None:
+                try:
+                    self.requests +=1
+                    if read_type == "register":
+                        value = self.instrument.read_register(
+                            registeraddress, 0, functioncode=3, signed=signed)
+                    elif read_type == "long":
+                        value = self.instrument.read_long(
+                            registeraddress, functioncode=3, signed=signed)
+                except minimalmodbus.NoResponseError:
+                    logging.debug(traceback.format_exc())
+                    retry = retry - 1
+                    self.retries = self.retries + 1
+                    time.sleep(self.retry_delay)
+                except minimalmodbus.InvalidResponseError:
+                    logging.debug(traceback.format_exc())
+                    retry = retry - 1
+                    self.retries = self.retries + 1
+                    time.sleep(self.retry_delay)
+                except serial.serialutil.SerialException:
+                    logging.debug(traceback.format_exc())
+                    retry = retry - 1
+                    self.retries = self.retries + 1
+                    time.sleep(self.retry_delay)
+
+            if retry == 0:
+                self.failures = self.failures + 1
+                self.failed.append(registeraddress)
+            return value
 
 
 @click.command("cli", context_settings={'show_default': True})
