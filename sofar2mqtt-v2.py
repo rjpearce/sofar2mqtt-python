@@ -32,7 +32,7 @@ class Sofar():
     """ Sofar """
 
     # pylint: disable=line-too-long,too-many-arguments
-    def __init__(self, config_file_path, daemon, retry, retry_delay, refresh_interval, broker, port, username, password, topic, log_level, device):
+    def __init__(self, config_file_path, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device):
         self.config = load_config(config_file_path)
         self.write_registers = []
         for register in self.config['registers']:
@@ -43,13 +43,14 @@ class Sofar():
         self.retry = retry
         self.retry_delay = retry_delay
         self.write_retry = retry
-        self.write_retry_delay = 5
+        self.write_retry_delay = write_retry_delay
         self.refresh_interval = refresh_interval
         self.broker = broker
         self.port = port
         self.username = username
         self.password = password
         self.topic = topic
+        self.write_topic = write_topic
         self.requests = 0
         self.failures = 0
         self.failed = []
@@ -66,8 +67,8 @@ class Sofar():
         logging.info("MQTT connected")
         try:
             for register in self.write_registers:
-                logging.info(f"Subscribing to {self.topic}rw/{register['name']}")
-                client.subscribe(f"{self.topic}rw/{register['name']}")
+                logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
+                client.subscribe(f"{self.write_topic}/{register['name']}")
         except Exception:
             logging.info(traceback.format_exc())
 
@@ -97,7 +98,7 @@ class Sofar():
                         value = int(payload)
                         logging.info(f"Received a request for {register['name']} to set value to: {payload}({value})")
                         if value < register['min']:
-                            logging.error(f"Received a request for {register['name']} but value: {value} is lesse than the min value: {register['min']}. Ignoring")
+                            logging.error(f"Received a request for {register['name']} but value: {value} is less than the min value: {register['min']}. Ignoring")
                         elif value > register['max']:
                             logging.error(f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
                         else:
@@ -342,6 +343,18 @@ class Sofar():
     help='Delay before retrying read',
 )
 @click.option(
+    '--write-retry',
+    default=5,
+    type=int,
+    help='Number of write retries per register before giving up',
+)
+@click.option(
+    '--write-retry-delay',
+    default=2,
+    type=float,
+    help='Delay before retrying write',
+)
+@click.option(
     '--refresh-interval',
     default=5,
     type=int,
@@ -373,7 +386,12 @@ class Sofar():
 @click.option(
     '--topic',
     default='sofar/',
-    help='MQTT topic',
+    help='MQTT topic for reading',
+)
+@click.option(
+    '--write-topic',
+    default='sofar/rw',
+    help='MQTT topic for writing',
 )
 @click.option(
     '--log-level',
@@ -387,9 +405,9 @@ class Sofar():
     help='RS485/USB Device'
 )
 # pylint: disable=too-many-arguments
-def main(config_file, daemon, retry, retry_delay, refresh_interval, broker, port, username, password, topic, log_level, device):
+def main(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device):
     """Main"""
-    sofar = Sofar(config_file, daemon, retry, retry_delay, refresh_interval, broker, port, username, password, topic, log_level, device)
+    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device)
     sofar.main()
 
 # pylint: disable=no-value-for-parameter
