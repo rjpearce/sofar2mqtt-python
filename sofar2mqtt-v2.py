@@ -250,7 +250,7 @@ class Sofar():
         """ Read value from register with a retry mechanism """
         with self.mutex:
             retry = self.write_retry
-            logging.info(f"Writing {int(register['register'], 16)} with {value}({value})")
+            logging.info(f"Writing {register['register']}({int(register['register'], 16)}) with {value}({value})")
             signed = False
             success = False
             retries = 0
