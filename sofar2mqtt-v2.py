@@ -260,8 +260,6 @@ class Sofar():
             while retry > 0 and not success:
                 try:
                     if register['type'] == 'U16':
-                        logging.info(f"{register['register']} {value}")
-                        logging.info(f"{int(register['register'],16)} {int(value)}")
                         self.instrument.write_register(int(register['register'],16), int(value))
                     elif register['type'] == 'I32':
                         # split the value to a byte
