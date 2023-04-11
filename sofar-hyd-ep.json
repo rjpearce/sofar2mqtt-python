@@ -541,7 +541,7 @@
 			"name": "inverter_temp_internal",
 			"register": "0x0418",
 			"ha": {
-				"name": "Sofar:Inverter temp (internal)",
+				"name": "Sofar:Inverter temp internal",
 				"unique_id": "Sofar_inverter_temp_internal",
 				"device_class": "temperature",
 				"unit_of_measurement": "C",
@@ -553,7 +553,7 @@
 			"name": "inverter_temp_heatsink",
 			"register": "0x041A",
 			"ha": {
-				"name": "Sofar:Inverter temp (heatsink)",
+				"name": "Sofar:Inverter temp heatsink",
 				"unique_id": "Sofar_inverter_temp_heatsink",
 				"device_class": "temperature",
 				"unit_of_measurement": "C",
@@ -639,7 +639,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Solar generation (today)",
+				"name": "Sofar:Solar generation",
 				"unique_id": "sofar_solar_generation_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
@@ -653,7 +653,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Consumption (today)",
+				"name": "Sofar:Consumption",
 				"unique_id": "Sofar_consumption_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
@@ -667,7 +667,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Import (today)",
+				"name": "Sofar:Import",
 				"unique_id": "Sofar_import_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
@@ -681,7 +681,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": { 
-				"name": "Sofar:Export (today)",
+				"name": "Sofar:Export",
 				"unique_id": "Sofar_export_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
@@ -695,7 +695,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Battery discharge (today)",
+				"name": "Sofar:Battery discharge",
 				"unique_id": "sofar_battery_discharge_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
@@ -709,7 +709,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": { 
-				"name": "Sofar:Battery charge (today)",
+				"name": "Sofar:Battery charge",
 				"unique_id": "sofar_battery_charge_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
