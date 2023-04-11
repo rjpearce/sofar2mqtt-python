@@ -200,15 +200,14 @@ class Sofar():
 
             self.publish(register['name'], value)
 
-        failure_percentage = str(round(self.failures / (self.requests+self.retries)*100,2))+'%'
-        retry_percentage = str(round(self.retries / (self.requests)*100,2))+'%'
-        logging.info('Modbus Requests: %d Retries: %d (%s) Failures: %d (%s)', self.requests, self.retries, retry_percentage, self.failures, failure_percentage)
+        failure_percentage = round(self.failures / (self.requests+self.retries)*100,2)
+        retry_percentage = round(self.retries / (self.requests)*100,2)
+        logging.info('Modbus Requests: %d Retries: %d (%s) Failures: %d (%s)', self.requests, self.retries, retry_percentage +'%', self.failures, failure_percentage + '%')
         self.publish('modbus_failures', self.failures)
         self.publish('modbus_requests', self.requests)
         self.publish('modbus_retries', self.retries)
         self.publish('modbus_failure_rate', failure_percentage)
         self.publish('modbus_retry_rate', retry_percentage)
-        #self.instrument.serial.close()
 
     def main(self):
         """ Main method """
