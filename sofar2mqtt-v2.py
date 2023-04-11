@@ -1,12 +1,5 @@
 #!/usr/bin/python3
-""" Sofar 2 MQQT 
-  V1.0 Created by Matt Nichols 2021
-  V2.0 Updated by Richard Pearce 
-    * Added a a retry mechanism
-    * Added daemon mode
-    * Split the data from the Python code (requires: sofar-hyd-ep.json and sofar-me-3000.json)
-    * Added support the HYD-EP models. 
-"""
+""" Sofar 2 MQQT """
 import datetime
 import json
 import time
@@ -112,7 +105,6 @@ class Sofar():
 
 
     def setup_mqtt(self):
-        #self.client.enable_logger(logger=logging)
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
         self.client.on_message = self.on_message
