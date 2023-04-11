@@ -502,7 +502,7 @@
 			"register": "0x042B",
 			"ha": {
 				"name": "Sofar:Insulation Resistance",
-				"unique_id": "sofar_insultation_resistance",
+				"unique_id": "sofar_insulation_resistance",
 				"device_class": "energy",
 				"unit_of_measurement": "Ohms",
 				"state_class": "measurement",
