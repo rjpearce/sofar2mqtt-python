@@ -1,4 +1,33 @@
+button:
+  - unique_id: sofar_rw_energy_storage_mode_self_use_btn
+    name: "Sofar:Turn on self use mode"
+    command_topic: "sofar/rw/energy_storage_mode"
+    payload_press: "0"
+    qos: 0
+    retain: false
+    entity_category: "config"
+    device_class: "restart"
+  - unique_id: sofar_rw_energy_storage_mode_time_of_use_btn
+    name: "Sofar:Turn on time of use mode"
+    command_topic: "sofar/rw/energy_storage_mode"
+    payload_press: "1"
+    qos: 0
+    retain: false
+    entity_category: "config"
+    device_class: "restart"
+  - unique_id: sofar_rw_energy_storage_mode_passive_btn
+    name: "Sofar:Turn on passive mode"
+    command_topic: "sofar/rw/energy_storage_mode"
+    payload_press: "3"
+    qos: 0
+    retain: false
+    entity_category: "config"
+    device_class: "restart"
 sensor:
+- name: Sofar:Desired power
+  state_class: measurement
+  state_topic: sofar/desired_power
+  unique_id: sofar_desired_power
 - name: Sofar:Modbus failures
   state_class: measurement
   state_topic: sofar/modbus_failures
@@ -203,42 +232,42 @@ sensor:
   unit_of_measurement: W
 - device_class: energy
   icon: mdi:solar-power
-  name: Sofar:Solar generation (today)
+  name: Sofar:Solar generation 
   state_class: total_increasing
   state_topic: sofar/today_generation
   unique_id: sofar_solar_generation_today
   unit_of_measurement: kWh
 - device_class: energy
   icon: mdi:home-import-outline
-  name: Sofar:Consumption (today)
+  name: Sofar:Consumption
   state_class: total_increasing
   state_topic: sofar/today_consumption
   unique_id: Sofar_consumption_today
   unit_of_measurement: kWh
 - device_class: energy
   icon: mdi:home-import-outline
-  name: Sofar:Import (today)
+  name: Sofar:Import
   state_class: total_increasing
   state_topic: sofar/today_import
   unique_id: Sofar_import_today
   unit_of_measurement: kWh
 - device_class: energy
   icon: mdi:home-export-outline
-  name: Sofar:Export (today)
+  name: Sofar:Export
   state_class: total_increasing
   state_topic: sofar/today_export
   unique_id: Sofar_export_today
   unit_of_measurement: kWh
 - device_class: energy
   icon: mdi:battery-charging-50
-  name: Sofar:Battery discharge (today)
+  name: Sofar:Battery discharge
   state_class: total_increasing
   state_topic: sofar/today_battery_discharge
   unique_id: sofar_battery_discharge_today
   unit_of_measurement: kWh
 - device_class: energy
   icon: mdi:battery-charging
-  name: Sofar:Battery charge (today)
+  name: Sofar:Battery charge
   state_class: total_increasing
   state_topic: sofar/today_battery_charge
   unique_id: sofar_battery_charge_today

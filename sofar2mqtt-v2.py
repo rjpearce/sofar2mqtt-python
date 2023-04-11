@@ -1,12 +1,5 @@
 #!/usr/bin/python3
-""" Sofar 2 MQQT 
-  V1.0 Created by Matt Nichols 2021
-  V2.0 Updated by Richard Pearce 
-    * Added a a retry mechanism
-    * Added daemon mode
-    * Split the data from the Python code (requires: sofar-hyd-ep.json and sofar-me-3000.json)
-    * Added support the HYD-EP models. 
-"""
+""" Sofar 2 MQQT """
 import datetime
 import json
 import time
@@ -15,9 +8,10 @@ import click
 import traceback
 import minimalmodbus
 import serial
-from paho.mqtt import publish
+import struct
+import threading
+import paho.mqtt.client as mqtt
 import requests
-
 
 def load_config(config_file_path):
     """ Load configuration file """
@@ -26,22 +20,31 @@ def load_config(config_file_path):
         config = json.loads(config_file.read())
     return config
 
+
 # pylint: disable=too-many-instance-attributes
 class Sofar():
     """ Sofar """
 
     # pylint: disable=line-too-long,too-many-arguments
-    def __init__(self, config_file_path, daemon, retry, retry_delay, refresh_interval, broker, port, username, password, topic, log_level, device):
+    def __init__(self, config_file_path, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device):
         self.config = load_config(config_file_path)
+        self.write_registers = []
+        for register in self.config['registers']:
+            if "write" in register:
+                if register["write"]:
+                    self.write_registers.append(register)
         self.daemon = daemon
         self.retry = retry
         self.retry_delay = retry_delay
+        self.write_retry = retry
+        self.write_retry_delay = write_retry_delay
         self.refresh_interval = refresh_interval
         self.broker = broker
         self.port = port
         self.username = username
         self.password = password
         self.topic = topic
+        self.write_topic = write_topic
         self.requests = 0
         self.failures = 0
         self.failed = []
@@ -51,21 +54,80 @@ class Sofar():
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
+        self.mutex = threading.Lock()
+        self.client = mqtt.Client()
+        self.setup_mqtt()
+        self.setup_instrument()
+        
+    def on_connect(self, client, userdata, flags, rc):
+        logging.info("MQTT connected")
+        try:
+            for register in self.write_registers:
+                logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
+                client.subscribe(f"{self.write_topic}/{register['name']}")
+        except Exception:
+            logging.info(traceback.format_exc())
 
+    def on_disconnect(client, userdata, rc):
+      if rc != 0:
+        logging.info("MQTT un-expected disconnect")
+
+    def on_message(self, client, userdata, message):
+        found = False
+        valid = False
+        register_name = message.topic.split('/')[-1]
+        payload = message.payload.decode("utf-8") 
+        for register in self.write_registers:
+            if register['name'] == register_name:
+                found = True
+                if 'function' in register:
+                    if register['function'] == 'mode':
+                        new_mode = False
+                        for key in register['modes']:
+                            if register['modes'][key] == payload:
+                              new_mode = key
+                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({new_mode})")
+                        self.write_value(register, int(new_mode))
+                        if not new_mode:
+                            logging.error(f"Received a request for {register['name']} but value: {payload} is not a known mode. Ignoring")
+                    elif register['function'] == 'int':
+                        value = int(payload)
+                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({value})")
+                        if value < register['min']:
+                            logging.error(f"Received a request for {register['name']} but value: {value} is less than the min value: {register['min']}. Ignoring")
+                        elif value > register['max']:
+                            logging.error(f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
+                        else:
+                            self.write_value(register, value)
+
+        if not found:
+            logging.error(f"Received a request to set an unknown register: {register_name} to {payload}")
+
+
+    def setup_mqtt(self):
+        self.client.on_connect = self.on_connect
+        self.client.on_disconnect = self.on_disconnect
+        self.client.on_message = self.on_message
+        if self.username is not None and self.password is not None:
+            self.client.username_pw_set(self.username, self.password)
+        self.client.reconnect_delay_set(min_delay=1, max_delay=300)
+        logging.info("MQTT connecting to broker")
+        self.client.connect(self.broker, port=self.port)
+        self.client.loop_start()
 
     def setup_instrument(self):
-        logging.debug(f'Setting up instrument {self.device}')
-        self.instrument = minimalmodbus.Instrument(self.device, 1)
-        self.instrument.serial.baudrate = 9600   # Baud
-        self.instrument.serial.bytesize = 8
-        self.instrument.serial.parity = serial.PARITY_NONE
-        self.instrument.serial.stopbits = 1
-        self.instrument.serial.timeout  = 0.1   # seconds
-        self.instrument.clear_buffers_before_each_transaction = True
-        self.instrument.close_port_after_each_call = True
+        with self.mutex:
+            logging.debug(f'Setting up instrument {self.device}')
+            self.instrument = minimalmodbus.Instrument(self.device, 1)
+            self.instrument.serial.baudrate = 9600   # Baud
+            self.instrument.serial.bytesize = 8
+            self.instrument.serial.parity = serial.PARITY_NONE
+            self.instrument.serial.stopbits = 1
+            self.instrument.serial.timeout  = 0.1   # seconds
+            self.instrument.clear_buffers_before_each_transaction = True
+            self.instrument.close_port_after_each_call = True
 
     def read_and_publish(self):
-        self.setup_instrument()
         for register in self.config['registers']:
             value = None
             signed = False
@@ -130,15 +192,18 @@ class Sofar():
 
             self.publish(register['name'], value)
 
-        failure_percentage = str(round(self.failures / (self.requests+self.retries)*100,2))+'%'
-        retry_percentage = str(round(self.retries / (self.requests)*100,2))+'%'
-        logging.info('Modbus Requests: %d Retries: %d (%s) Failures: %d (%s)', self.requests, self.retries, retry_percentage, self.failures, failure_percentage)
+        failure_percentage = round(self.failures / (self.requests+self.retries)*100,2)
+        retry_percentage = round(self.retries / (self.requests)*100,2)
+        logging.info(f"Modbus Requests: {self.requests} Retries: {self.retries} ({retry_percentage}%) Failures: {self.failures} ({failure_percentage}%)")
         self.publish('modbus_failures', self.failures)
         self.publish('modbus_requests', self.requests)
         self.publish('modbus_retries', self.retries)
         self.publish('modbus_failure_rate', failure_percentage)
         self.publish('modbus_retry_rate', retry_percentage)
+<<<<<<< HEAD
         self.instrument.serial.close()
+=======
+>>>>>>> write_support
 
     def main(self):
         """ Main method """
@@ -159,18 +224,64 @@ class Sofar():
                 time.sleep(self.refresh_interval)
 
     def publish(self, key, value):
+        if key == 'energy_storage_mode':
+            if key in self.data:
+                if value != self.data[key]:
+                    logging.info(f"energy_storage_mode has changed to: {value}")
         self.data[key] = value
-        auth = None
         logging.debug('Publishing %s:%s', self.topic + key, value)
-        if self.username is not None and self.password is not None:
-            auth = {"username": self.username, "password": self.password}
         try:
-            publish.single(self.topic + key, value, hostname=self.broker, port=self.port, auth=auth, retain=True)
+            self.client.publish(self.topic + key, value, retain=True)
         except Exception:
             logging.debug(traceback.format_exc())
 
+    def write_value(self, register, value):
+        """ Read value from register with a retry mechanism """
+        with self.mutex:
+            retry = self.write_retry
+            logging.info(f"Writing {register['register']}({int(register['register'], 16)}) with {value}({value})")
+            signed = False
+            success = False
+            retries = 0
+            failed = 0 
+            if 'signed' in register:
+                signed = register['signed']
+            while retry > 0 and not success:
+                try:
+                    if register['type'] == 'U16':
+                        self.instrument.write_register(int(register['register'],16), int(value))
+                    elif register['type'] == 'I32':
+                        # split the value to a byte
+                        values = struct.pack(">l", value)
+                        # split low and high byte
+                        low = struct.unpack(">H", bytearray([values[0], values[1]]))[0]
+                        high = struct.unpack(">H", bytearray([values[2], values[3]]))[0]
+                        # send the registers
+                        self.instrument.write_registers(int(register['register'],16), [0, 0, low, high, low, high])
+                except minimalmodbus.NoResponseError:
+                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                except minimalmodbus.InvalidResponseError:
+                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                except serial.serialutil.SerialException:
+                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                success = True
+            if success:
+                logging.info('Modbus Write Request: %s successful. Retries: %d', register['name'], retries)
+            else:
+                logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
+
     def read_value(self, registeraddress, read_type, signed):
         """ Read value from register with a retry mechanism """
+<<<<<<< HEAD
         value = None
         retry = self.retry
         while retry > 0 and value is None:
@@ -201,6 +312,40 @@ class Sofar():
             self.failures = self.failures + 1
             self.failed.append(registeraddress)
         return value
+=======
+        with self.mutex:
+            value = None
+            retry = self.retry
+            while retry > 0 and value is None:
+                try:
+                    self.requests +=1
+                    if read_type == "register":
+                        value = self.instrument.read_register(
+                            registeraddress, 0, functioncode=3, signed=signed)
+                    elif read_type == "long":
+                        value = self.instrument.read_long(
+                            registeraddress, functioncode=3, signed=signed)
+                except minimalmodbus.NoResponseError:
+                    logging.debug(traceback.format_exc())
+                    retry = retry - 1
+                    self.retries = self.retries + 1
+                    time.sleep(self.retry_delay)
+                except minimalmodbus.InvalidResponseError:
+                    logging.debug(traceback.format_exc())
+                    retry = retry - 1
+                    self.retries = self.retries + 1
+                    time.sleep(self.retry_delay)
+                except serial.serialutil.SerialException:
+                    logging.debug(traceback.format_exc())
+                    retry = retry - 1
+                    self.retries = self.retries + 1
+                    time.sleep(self.retry_delay)
+
+            if retry == 0:
+                self.failures = self.failures + 1
+                self.failed.append(registeraddress)
+            return value
+>>>>>>> write_support
 
 
 @click.command("cli", context_settings={'show_default': True})
@@ -226,6 +371,18 @@ class Sofar():
     default=0.1,
     type=float,
     help='Delay before retrying read',
+)
+@click.option(
+    '--write-retry',
+    default=5,
+    type=int,
+    help='Number of write retries per register before giving up',
+)
+@click.option(
+    '--write-retry-delay',
+    default=2,
+    type=float,
+    help='Delay before retrying write',
 )
 @click.option(
     '--refresh-interval',
@@ -259,7 +416,12 @@ class Sofar():
 @click.option(
     '--topic',
     default='sofar/',
-    help='MQTT topic',
+    help='MQTT topic for reading',
+)
+@click.option(
+    '--write-topic',
+    default='sofar/rw',
+    help='MQTT topic for writing',
 )
 @click.option(
     '--log-level',
@@ -273,9 +435,9 @@ class Sofar():
     help='RS485/USB Device'
 )
 # pylint: disable=too-many-arguments
-def main(config_file, daemon, retry, retry_delay, refresh_interval, broker, port, username, password, topic, log_level, device):
+def main(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device):
     """Main"""
-    sofar = Sofar(config_file, daemon, retry, retry_delay, refresh_interval, broker, port, username, password, topic, log_level, device)
+    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device)
     sofar.main()
 
 # pylint: disable=no-value-for-parameter

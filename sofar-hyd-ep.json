@@ -1,25 +1,110 @@
 {
 	"registers": [
 		{
-			"name": "state",
-			"register": "0x0404",
+			"name": "eps_control",
+			"register": "0x1029",
+			"desc": "EPS On/Off control",
+			"type": "U16",
 			"function": "mode",
 			"modes": {
-				"0": "Waiting",
-				"1": "Checking",
-				"2": "On-grid",
-				"3": "Emergency Mode",
-				"4": "Recoverable Fault",
-				"5": "Permanent Fault",
-				"6": "Upgarding",
-				"7": "Self-charging"
+				"0": "Off",
+				"1": "On"
 			},
-			"ha": {
-				"name": "Sofar:Inverter state",
-				"unique_id": "Sofar_inverter_state",
-				"state_class": "measurement",
-				"icon": "mdi:power-standby"
-			}
+		        "write": true
+		},
+		{
+			"name": "remote_on_off_control",
+			"register": "0x1104",
+			"desc": "Turn inverter on/off",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Off",
+				"1": "On"
+			},
+		        "write": true
+		},
+		{
+			"name": "power_control",
+			"register": "0x1105",
+			"desc": "AC power control settings (0 to 100%)",
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+		        "write": true
+		},
+		{
+			"name": "active_power_export_limit",
+			"register": "0x1106",
+			"desc": "AC output active power maximum percentage (0 to 100%)",
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+		        "write": true
+		},
+		{
+			"name": "active_power_import_limit",
+			"register": "0x1107",
+			"desc": "AC input active power maximum percentage (0 to 100%)",
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+		        "write": true
+		},
+		{
+			"name": "reactive_power_setting",
+			"register": "0x1108",
+			"desc": "AC reactive power percentage (-100 to 100%)",
+			"type": "I16",
+			"min": -100,
+			"max": 100,
+			"signed": true,
+		        "write": true
+		},
+		{
+			"name": "power_factor_setting",
+			"register": "0x1109",
+			"desc": "AC power factor (-1.00 to 1.00)",
+			"type": "I16",
+			"min": -1.00,
+			"max": 1.0,
+			"signed": true,
+		        "write": true
+		},
+		{
+			"name": "active_power_limit_speed",
+			"register": "0x110a",
+			"desc": "The charge rate of active power (1 to 3000%)",
+			"type": "U16",
+			"min": 1,
+			"max": 3000,
+			"signed": true,
+		        "write": true
+		},
+		{
+			"name": "reactive_power_response_time",
+			"register": "0x110b",
+			"desc": "Reactive power response time in secs (0.1 to 600)",
+			"type": "U16",
+			"min": 0.1,
+			"max": 600,
+			"signed": true,
+		        "write": true
+		},
+		{
+			"name": "energy_storage_mode",
+			"register": "0x1110",
+			"desc": "Storage mode",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Self use",
+				"1": "Time of use",
+				"2": "Timing mode",
+				"3": "Passive mode",
+				"4": "Peak cut mode"
+			},
+		        "write": true
 		},
 		{
 			"name": "energy_storage_mode",
@@ -91,7 +176,7 @@
 				"unique_id": "Sofar_time_of_use_start_time",
 				"state_class": "measurement",
 				"icon": "mdi:battery-clock-outline"
-		    }
+		        }
 		},
 		{
 			"name": "time_of_use_charge_end_time",
@@ -108,6 +193,11 @@
 		{
 			"name": "time_of_use_charge_soc",
 			"register": "0x1124",
+			"desc": "Time of use SOC (30 to 100)",
+			"function": "int",
+			"min": 30,
+			"max": 100,
+		        "write": true,
 			"ha": {
 				"name": "Sofar:Time of use - SOC",
 				"unique_id": "Sofar_time_of_use_soc",
@@ -168,6 +258,97 @@
 				"unique_id": "Sofar_time_of_use_dow",
 				"state_class": "measurement",
 				"icon": "mdi:calendar-today-outline"
+			}
+		},
+		{
+			"name": "passive_timeout",
+			"register": "0x1184",
+			"desc": "Passive mode timeout period in secs (0=Never)",
+			"desc2": "When the inverter does not receive any communication frame within time set in this register the inverter forces Passive_Timeout_Action",
+			"type": "U16",
+		        "write": true
+		},
+		{
+			"name": "passive_timeout_action",
+			"register": "0x1185",
+			"desc": "Passive mode timeout action",
+			"function": "mode",
+			"type": "U16",
+			"modes": {
+				"0": "Force to standby",
+				"1": "Force to last storage mode"
+			},
+		        "write": true
+		},
+		{
+			"name": "desired_power",
+			"register": "0x1187",
+			"desc": "Desired PCC power in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Export, Negative value=Import",
+			"type":"I32",
+			"function": "int",
+			"signed": true,
+			"passive": true,
+			"min": -999999,
+			"max": 999999,
+		        "write": true
+		},
+		{
+			"name": "minimum_battery_power",
+			"register": "0x1189",
+			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Charging, Negative value=Discharging",
+			"type":"I32",
+			"signed": true,
+			"passive": true,
+			"min": -999999,
+			"max": 999999,
+		        "write": true
+		},
+		{
+			"name": "maximum_battery_power",
+			"register": "0x118B",
+			"desc": "Maximum battery power in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Charging, Negative value=Discharging",
+			"type":"I32",
+			"signed": true,
+			"passive": true,
+			"min": -999999,
+			"max": 999999,
+		        "write": true
+		},
+		{
+			"name": "desired_power_grid",
+			"register": "0x118D",
+			"desc": "Maximum power to grid in passive mode(-999999 to 999999) in watts",
+			"desc2":"Positive value=Charging, Negative value=Discharging",
+			"type":"I32",
+			"function": "int",
+			"signed": true,
+			"passive": true,
+			"min": -999999,
+			"max": 999999,
+		        "write": true
+		},
+		{
+			"name": "state",
+			"register": "0x0404",
+			"function": "mode",
+			"modes": {
+				"0": "Waiting",
+				"1": "Checking",
+				"2": "On-grid",
+				"3": "Emergency Mode",
+				"4": "Recoverable Fault",
+				"5": "Permanent Fault",
+				"6": "Upgarding",
+				"7": "Self-charging"
+			},
+			"ha": {
+				"name": "Sofar:Inverter state",
+				"unique_id": "Sofar_inverter_state",
+				"state_class": "measurement",
+				"icon": "mdi:power-standby"
 			}
 		},
 		{
@@ -321,7 +502,7 @@
 			"register": "0x042B",
 			"ha": {
 				"name": "Sofar:Insulation Resistance",
-				"unique_id": "sofar_insultation_resistance",
+				"unique_id": "sofar_insulation_resistance",
 				"device_class": "energy",
 				"unit_of_measurement": "Ohms",
 				"state_class": "measurement",
@@ -360,7 +541,7 @@
 			"name": "inverter_temp_internal",
 			"register": "0x0418",
 			"ha": {
-				"name": "Sofar:Inverter temp (internal)",
+				"name": "Sofar:Inverter temp internal",
 				"unique_id": "Sofar_inverter_temp_internal",
 				"device_class": "temperature",
 				"unit_of_measurement": "C",
@@ -372,7 +553,7 @@
 			"name": "inverter_temp_heatsink",
 			"register": "0x041A",
 			"ha": {
-				"name": "Sofar:Inverter temp (heatsink)",
+				"name": "Sofar:Inverter temp heatsink",
 				"unique_id": "Sofar_inverter_temp_heatsink",
 				"device_class": "temperature",
 				"unit_of_measurement": "C",
@@ -458,7 +639,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Solar generation (today)",
+				"name": "Sofar:Solar generation",
 				"unique_id": "sofar_solar_generation_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
@@ -472,7 +653,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Consumption (today)",
+				"name": "Sofar:Consumption",
 				"unique_id": "Sofar_consumption_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
@@ -486,7 +667,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Import (today)",
+				"name": "Sofar:Import",
 				"unique_id": "Sofar_import_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
@@ -500,7 +681,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": { 
-				"name": "Sofar:Export (today)",
+				"name": "Sofar:Export",
 				"unique_id": "Sofar_export_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
@@ -514,7 +695,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Battery discharge (today)",
+				"name": "Sofar:Battery discharge",
 				"unique_id": "sofar_battery_discharge_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
@@ -528,7 +709,7 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": { 
-				"name": "Sofar:Battery charge (today)",
+				"name": "Sofar:Battery charge",
 				"unique_id": "sofar_battery_charge_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",

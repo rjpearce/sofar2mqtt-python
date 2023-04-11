@@ -1,0 +1,40 @@
+- alias: "Set Sofar Energy Storage Mode Selector"
+  trigger:
+    platform: mqtt
+    topic: "sofar/energy_storage_mode"
+  action:
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.sofar_energy_storage_mode
+      data:
+        option: "{{ trigger.payload }}"
+ #- alias: "Set Sofar Desired Power Selector"
+ #trigger:
+ #  platform: mqtt
+ #  topic: "sofar/desired_power"
+ #action:
+ #  - service: input_number.set_value
+ #    target:
+ #      entity_id: input_number.desired_power
+ #    data:
+ #      value: "{{ trigger.payload | int }}"
+- alias: "Set Sofar Energy Storage Mode"
+  trigger:
+    platform: state
+    entity_id: input_select.sofar_energy_storage_mode
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "sofar/rw/energy_storage_mode"
+        retain: false
+        payload: "{{ states('input_select.sofar_energy_storage_mode') }}"
+- alias: "Set Sofar Desired power"
+  trigger:
+    platform: state
+    entity_id: input_select.sofar_desired_power
+  action:
+    - service: mqtt.publish
+      data:
+        topic: "sofar/rw/desired_power"
+        retain: false
+        payload: "{{ states('input_select.sofar_desired_power') | int }}"
