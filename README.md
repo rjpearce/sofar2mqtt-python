@@ -408,6 +408,11 @@ mode: single
 The inverter always returns 0 and I don't know why.
 2. There are other modbus addresses that should be writable eg. Time of use SOC but they are not. I need to follow up with Sofar support to find out why.
 
+## Credits
+
+Based on a script originally created by Matt Nichols in 2021.
+Thank you to Andre Wagner to his example write python code.
+Thank you everyone on the [Sofar Solar Inverter - Remote Control & Smart Home Integration](https://www.facebook.com/groups/2477195449252168) Facebook group.
 
 ## Support
 
