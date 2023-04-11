@@ -200,10 +200,6 @@ class Sofar():
         self.publish('modbus_retries', self.retries)
         self.publish('modbus_failure_rate', failure_percentage)
         self.publish('modbus_retry_rate', retry_percentage)
-<<<<<<< HEAD
-        self.instrument.serial.close()
-=======
->>>>>>> write_support
 
     def main(self):
         """ Main method """
@@ -281,38 +277,6 @@ class Sofar():
 
     def read_value(self, registeraddress, read_type, signed):
         """ Read value from register with a retry mechanism """
-<<<<<<< HEAD
-        value = None
-        retry = self.retry
-        while retry > 0 and value is None:
-            try:
-                self.requests +=1
-                if read_type == "register":
-                    value = self.instrument.read_register(
-                        registeraddress, 0, functioncode=3, signed=signed)
-                elif read_type == "long":
-                    value = self.instrument.read_long(
-                        registeraddress, functioncode=3, signed=signed)
-            except minimalmodbus.NoResponseError:
-                logging.debug(traceback.format_exc())
-                retry = retry - 1
-                self.retries = self.retries + 1
-                time.sleep(self.retry_delay)
-            except minimalmodbus.InvalidResponseError:
-                logging.debug(traceback.format_exc())
-                retry = retry - 1
-                self.retries = self.retries + 1
-                time.sleep(self.retry_delay)
-            except serial.serialutil.SerialException:
-                logging.debug(traceback.format_exc())
-                retry = retry - 1
-                self.retries = self.retries + 1
-                time.sleep(self.retry_delay)
-        if retry == 0:
-            self.failures = self.failures + 1
-            self.failed.append(registeraddress)
-        return value
-=======
         with self.mutex:
             value = None
             retry = self.retry
@@ -345,8 +309,6 @@ class Sofar():
                 self.failures = self.failures + 1
                 self.failed.append(registeraddress)
             return value
->>>>>>> write_support
-
 
 @click.command("cli", context_settings={'show_default': True})
 @click.option(
