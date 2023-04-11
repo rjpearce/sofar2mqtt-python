@@ -292,6 +292,8 @@ Note: This is not currently available for the `sofar-me-3000.json` configuration
 ### Example usage
 
 <video src="img/ha-integration.webm" width="510" height="590" controls></video>
+Watch this [screen capture](img/ha-integration.webm)
+
 
 NOTE: The slightly weird behaviour of desired power when in `Self use`, it is probably best to only change it when you are in `Passive mode`.
 
