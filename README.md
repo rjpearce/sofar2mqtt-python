@@ -8,9 +8,10 @@ It currently only support read and write operations.
 
 ```mermaid
   graph TD;
-      Inverter["Sofar Inverter"]--RS485/usb-->Pi["Raspberry Pi"]
-      Pi--1833/tcp-->MQTT
-      MQTT-->Pi--1833/tcp--RS485/usb-->Inverter;
+      Inverter["Sofar Inverter"]--"USB:RS485/modbus (read register)"-->Pi["Raspberry Pi"]
+      Pi--"1833/tcp (publish: sofar/)"-->MQTT
+      MQTT--"1833/tcp (subcribe: sofar/rw)"-->Pi
+      Pi--"USB:RS485/modbus (write register)"-->Inverter;
 ```
 
 ## Inverter Compatability
