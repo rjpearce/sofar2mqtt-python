@@ -194,7 +194,7 @@ class Sofar():
 
         failure_percentage = round(self.failures / (self.requests+self.retries)*100,2)
         retry_percentage = round(self.retries / (self.requests)*100,2)
-        logging.info('Modbus Requests: %d Retries: %d (%s) Failures: %d (%s)', self.requests, self.retries, retry_percentage +'%', self.failures, failure_percentage + '%')
+        logging.info(f"Modbus Requests: {self.requests} Retries: {self.retries} ({retry_percentage}%) Failures: {self.failures} ({failure_percentage}%)")
         self.publish('modbus_failures', self.failures)
         self.publish('modbus_requests', self.requests)
         self.publish('modbus_retries', self.retries)
