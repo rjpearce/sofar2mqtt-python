@@ -10,7 +10,7 @@
 				"0": "Off",
 				"1": "On"
 			},
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "remote_on_off_control",
@@ -22,7 +22,7 @@
 				"0": "Off",
 				"1": "On"
 			},
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "power_control",
@@ -31,7 +31,7 @@
 			"type": "U16",
 			"min": 0,
 			"max": 100,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "active_power_export_limit",
@@ -40,7 +40,7 @@
 			"type": "U16",
 			"min": 0,
 			"max": 100,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "active_power_import_limit",
@@ -49,7 +49,7 @@
 			"type": "U16",
 			"min": 0,
 			"max": 100,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "reactive_power_setting",
@@ -59,7 +59,7 @@
 			"min": -100,
 			"max": 100,
 			"signed": true,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "power_factor_setting",
@@ -69,7 +69,7 @@
 			"min": -1.00,
 			"max": 1.0,
 			"signed": true,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "active_power_limit_speed",
@@ -79,7 +79,7 @@
 			"min": 1,
 			"max": 3000,
 			"signed": true,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "reactive_power_response_time",
@@ -89,7 +89,7 @@
 			"min": 0.1,
 			"max": 600,
 			"signed": true,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "energy_storage_mode",
@@ -104,7 +104,7 @@
 				"3": "Passive mode",
 				"4": "Peak cut mode"
 			},
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "energy_storage_mode",
@@ -176,7 +176,7 @@
 				"unique_id": "Sofar_time_of_use_start_time",
 				"state_class": "measurement",
 				"icon": "mdi:battery-clock-outline"
-		        }
+			}
 		},
 		{
 			"name": "time_of_use_charge_end_time",
@@ -197,7 +197,7 @@
 			"function": "int",
 			"min": 30,
 			"max": 100,
-		        "write": true,
+			"write": true,
 			"ha": {
 				"name": "Sofar:Time of use - SOC",
 				"unique_id": "Sofar_time_of_use_soc",
@@ -266,7 +266,7 @@
 			"desc": "Passive mode timeout period in secs (0=Never)",
 			"desc2": "When the inverter does not receive any communication frame within time set in this register the inverter forces Passive_Timeout_Action",
 			"type": "U16",
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "passive_timeout_action",
@@ -278,57 +278,57 @@
 				"0": "Force to standby",
 				"1": "Force to last storage mode"
 			},
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "desired_power",
 			"register": "0x1187",
 			"desc": "Desired PCC power in passive mode(-999999 to 999999) in watts",
-			"desc2":"Positive value=Export, Negative value=Import",
-			"type":"I32",
+			"desc2": "Positive value=Export, Negative value=Import",
+			"type": "I32",
 			"function": "int",
 			"signed": true,
 			"passive": true,
 			"min": -999999,
 			"max": 999999,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "minimum_battery_power",
 			"register": "0x1189",
 			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
-			"desc2":"Positive value=Charging, Negative value=Discharging",
-			"type":"I32",
+			"desc2": "Positive value=Charging, Negative value=Discharging",
+			"type": "I32",
 			"signed": true,
 			"passive": true,
 			"min": -999999,
 			"max": 999999,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "maximum_battery_power",
 			"register": "0x118B",
 			"desc": "Maximum battery power in passive mode(-999999 to 999999) in watts",
-			"desc2":"Positive value=Charging, Negative value=Discharging",
-			"type":"I32",
+			"desc2": "Positive value=Charging, Negative value=Discharging",
+			"type": "I32",
 			"signed": true,
 			"passive": true,
 			"min": -999999,
 			"max": 999999,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "desired_power_grid",
 			"register": "0x118D",
 			"desc": "Maximum power to grid in passive mode(-999999 to 999999) in watts",
-			"desc2":"Positive value=Charging, Negative value=Discharging",
-			"type":"I32",
+			"desc2": "Positive value=Charging, Negative value=Discharging",
+			"type": "I32",
 			"function": "int",
 			"signed": true,
 			"passive": true,
 			"min": -999999,
 			"max": 999999,
-		        "write": true
+			"write": true
 		},
 		{
 			"name": "state",
@@ -680,14 +680,14 @@
 			"register": "0x0691",
 			"function": "divide",
 			"factor": 100,
-			"ha": { 
+			"ha": {
 				"name": "Sofar:Export",
 				"unique_id": "Sofar_export_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
 				"state_class": "total_increasing",
 				"icon": "mdi:home-export-outline"
-		    }
+			}
 		},
 		{
 			"name": "today_battery_discharge",
@@ -708,14 +708,14 @@
 			"register": "0x0695",
 			"function": "divide",
 			"factor": 100,
-			"ha": { 
+			"ha": {
 				"name": "Sofar:Battery charge",
 				"unique_id": "sofar_battery_charge_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
 				"state_class": "total_increasing",
 				"icon": "mdi:battery-charging"
-		    }
+			}
 		},
 		{
 			"name": "battery_voltage",
