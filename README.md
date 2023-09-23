@@ -79,6 +79,19 @@ docker run -d \
   registry.gitlab.com/rjpearce/sofar2mqtt:2.1
 ```
 
+You can also use Docker compose:
+
+```bash
+ sofar2mqtt:
+    container_name: sofar2mqtt
+    image: registry.gitlab.com/rjpearce/sofar2mqtt:2.1
+    restart: unless-stopped
+    environment:
+      - MQTT_HOST=192.168.1.0
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+```
+
 ## Installation - Manual
 
 1. Clone the repo
