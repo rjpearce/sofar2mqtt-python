@@ -313,52 +313,61 @@ class Sofar():
 @click.command("cli", context_settings={'show_default': True})
 @click.option(
     '--config-file',
+    envvar='CONFIG_FILE',
     default='sofar-hyd-ep.json',
     help='Configuration file to use',
 )
 @click.option(
     '--daemon',
+    envvar='DAEMON',
     is_flag=True,
     default=False,
     help='Run as a daemon',
 )
 @click.option(
     '--retry',
+    envvar='RETRY_ATTEMPT',
     default=2,
     type=int,
     help='Number of read retries per register before giving up',
 )
 @click.option(
     '--retry-delay',
+    envvar='RETRY_DELAY',
     default=0.1,
     type=float,
     help='Delay before retrying read',
 )
 @click.option(
     '--write-retry',
+    envvar='WRITE_RETRY_ATTEMPTS',
     default=5,
     type=int,
     help='Number of write retries per register before giving up',
 )
 @click.option(
     '--write-retry-delay',
+    envvar='WRITE_RETRY_DELAY',
     default=2,
     type=float,
     help='Delay before retrying write',
 )
 @click.option(
     '--refresh-interval',
+    envvar='REFRESH_INTERVAL',
     default=5,
     type=int,
     help='Refresh data every n seconds',
 )
 @click.option(
     '--broker',
+    envvar='MQTT_HOST',
     default='localhost',
     help='MQTT broker address',
 )
 @click.option(
     '--port',
+    envvar='MQTT_PORT',
     default=1883,
     type=int,
     help='MQTT broker port',
@@ -377,22 +386,26 @@ class Sofar():
 )
 @click.option(
     '--topic',
+    envvar='MQTT_TOPIC',
     default='sofar/',
     help='MQTT topic for reading',
 )
 @click.option(
     '--write-topic',
+    envvar='MQTT_WRITE_TOPIC',
     default='sofar/rw',
     help='MQTT topic for writing',
 )
 @click.option(
     '--log-level',
+    envvar='LOG_LEVEL',
     default='INFO',
     type=click.Choice(['INFO', 'DEBUG'], case_sensitive=False),
     help='Log Level'
 )
 @click.option(
     '--device',
+    envvar='TTY_DEVICE',
     default='/dev/ttyUSB0',
     help='RS485/USB Device'
 )

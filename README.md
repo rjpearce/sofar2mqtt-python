@@ -66,7 +66,20 @@ On the COM port you need to connect:
 ![img/ep-ports-hw-v3.png](img/ep-ports-hw-v3.png)
 Thanks for Pali.
 
-## Installation
+
+## Installation - Docker (recommended)
+
+```bash 
+docker run -d \
+  --name sofar2mqtt \
+  -e MQTT_HOST=192.168.0.x \
+  -e CONFIG_FILE=sofar-hyd-ep.json \
+  -e TTY_DEVICE=/dev/ttyUSB0 \
+  --device=/dev/ttyUSB0
+  registry.gitlab.com/rjpearce/sofar2mqtt:2.1
+```
+
+## Installation - Manual
 
 1. Clone the repo
 
