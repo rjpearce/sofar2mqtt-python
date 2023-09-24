@@ -56,6 +56,7 @@ class Sofar():
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
         self.mutex = threading.Lock()
         self.client = mqtt.Client()
+        self.client.enable_logger()
         self.setup_mqtt()
         self.setup_instrument()
         
