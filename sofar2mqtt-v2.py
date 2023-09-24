@@ -314,7 +314,7 @@ class Sofar():
                             registeraddress, 0, functioncode=3, signed=signed)
                     elif read_type == "long":
                         value = self.instrument.read_long(
-                            registeraddress, functioncode=3, signed=signed)
+                            registeraddress, functioncode=3, signed=True, number_of_registers=2)
                 except minimalmodbus.NoResponseError:
                     logging.debug(traceback.format_exc())
                     retry = retry - 1

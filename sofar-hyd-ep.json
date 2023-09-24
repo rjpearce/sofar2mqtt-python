@@ -294,6 +294,12 @@
 			"write": true
 		},
 		{
+			"name": "desired_power",
+			"register": "0x1187",
+			"signed": true,
+			"read_type": "long"
+		},
+		{
 			"name": "minimum_battery_power",
 			"register": "0x1189",
 			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
