@@ -87,7 +87,7 @@ class Sofar():
                         if not new_mode:
                             logging.error(f"Received a request for {register['name']} but mode value: {payload} is not a known mode. Ignoring")
                         if register['name'] in self.data:
-                            retry = 5
+                            retry = self.write_retry
                             while retry > 0:
                                 if self.data[register['name']] == payload:
                                     logging.info(f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {payload}. Ignoring")
@@ -95,8 +95,10 @@ class Sofar():
                                 else:
                                     logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to: {payload}. Retries remaining: {retry}")
                                     self.write_value(register, int(new_mode))
-                                    time.sleep(5)
+                                    time.sleep(self.write_retry_delay)
                                     retry = retry - 1
+                        else: 
+                            logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
 
                     elif register['function'] == 'int':
                         value = int(payload)
@@ -112,7 +114,7 @@ class Sofar():
                                          logging.info(f"Received a request for {register['name']} but not not in Passive mode. Ignoring")
                                          continue
                             if register['name'] in self.data:
-                                retry = 5 
+                                retry = self.write_retry
                                 while retry > 0:
                                     if self.data[register['name']] == value:
                                         logging.info(f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {value}. Ignoring")
@@ -120,8 +122,10 @@ class Sofar():
                                     else:
                                         logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to {value}. Retries remaining: {retry}")
                                         self.write_value(register, value)
-                                        time.sleep(5)
+                                        time.sleep(self.write_retry_delay)
                                         retry = retry - 1
+                            else: 
+                                logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
 
         if not found:
             logging.error(f"Received a request to set an unknown register: {register_name} to {payload}")
