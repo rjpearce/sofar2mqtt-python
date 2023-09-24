@@ -381,7 +381,7 @@ class Sofar():
 @click.option(
     '--refresh-interval',
     envvar='REFRESH_INTERVAL',
-    default=5,
+    default=1,
     type=int,
     help='Refresh data every n seconds',
 )
