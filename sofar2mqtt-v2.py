@@ -69,10 +69,6 @@ class Sofar():
         except Exception:
             logging.info(traceback.format_exc())
 
-    def on_disconnect(client, userdata, rc):
-      if rc != 0:
-        logging.info("MQTT un-expected disconnect")
-
     def on_message(self, client, userdata, message):
         found = False
         valid = False
@@ -133,7 +129,6 @@ class Sofar():
 
     def setup_mqtt(self):
         self.client.on_connect = self.on_connect
-        self.client.on_disconnect = self.on_disconnect
         self.client.on_message = self.on_message
         if self.username is not None and self.password is not None:
             self.client.username_pw_set(self.username, self.password)
