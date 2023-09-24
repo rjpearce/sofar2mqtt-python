@@ -86,10 +86,21 @@ class Sofar():
                         for key in register['modes']:
                             if register['modes'][key] == payload:
                               new_mode = key
-                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({new_mode})")
-                        self.write_value(register, int(new_mode))
+                        logging.info(f"Received a request for {register['name']} to set mode value to: {payload}({new_mode})")
                         if not new_mode:
-                            logging.error(f"Received a request for {register['name']} but value: {payload} is not a known mode. Ignoring")
+                            logging.error(f"Received a request for {register['name']} but mode value: {payload} is not a known mode. Ignoring")
+                        if register['name'] in self.data:
+                            retry = 5
+                            while retry > 0:
+                                if self.data[register['name']] == payload:
+                                    logging.info(f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {payload}. Ignoring")
+                                    retry = 0
+                                else:
+                                    logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to: {payload}. Retries remaining: {retry}")
+                                    self.write_value(register, int(new_mode))
+                                    time.sleep(5)
+                                    retry = retry - 1
+
                     elif register['function'] == 'int':
                         value = int(payload)
                         logging.info(f"Received a request for {register['name']} to set value to: {payload}({value})")
@@ -98,7 +109,22 @@ class Sofar():
                         elif value > register['max']:
                             logging.error(f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
                         else:
-                            self.write_value(register, value)
+                            if register['name'] == 'desired_power':
+                                 if 'energy_storage_mode' in self.data:
+                                     if 'Passive mode' != self.data['energy_storage_mode']:
+                                         logging.info(f"Received a request for {register['name']} but not not in Passive mode. Ignoring")
+                                         continue
+                            if register['name'] in self.data:
+                                retry = 5 
+                                while retry > 0:
+                                    if self.data[register['name']] == value:
+                                        logging.info(f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {value}. Ignoring")
+                                        retry = 0
+                                    else:
+                                        logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to {value}. Retries remaining: {retry}")
+                                        self.write_value(register, value)
+                                        time.sleep(5)
+                                        retry = retry - 1
 
         if not found:
             logging.error(f"Received a request to set an unknown register: {register_name} to {payload}")
