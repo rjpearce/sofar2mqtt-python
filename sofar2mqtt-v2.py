@@ -55,21 +55,26 @@ class Sofar():
         self.log_level = logging.getLevelName(log_level)
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
         self.mutex = threading.Lock()
-        self.client = mqtt.Client()
-        self.client.enable_logger()
+        self.client = mqtt.Client(client_id="sofar2mqtt", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
+        self.client.enable_logger(logger=logging)
         self.setup_mqtt()
         self.setup_instrument()
         
-    def on_connect(self, client, userdata, flags, rc):
-        logging.info("MQTT connected")
-        try:
-            for register in self.write_registers:
-                logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
-                client.subscribe(f"{self.write_topic}/{register['name']}")
-        except Exception:
-            logging.info(traceback.format_exc())
+    def on_connect(self, client, userdata, flags, rc, properties=None):
+        logging.info("MQTT "+mqtt.connack_string(rc))
+        if rc == 0:
+            try:
+                for register in self.write_registers:
+                    logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
+                    client.subscribe(f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
+            except Exception:
+                logging.info(traceback.format_exc())
 
-    def on_message(self, client, userdata, message):
+    def on_disconnect(client, userdata, rc, properties=None):
+        if rc != 0:
+            logging.info("MQTT un-expected disconnect")
+
+    def on_message(self, client, userdata, message, properties=None):
         found = False
         valid = False
         register_name = message.topic.split('/')[-1]
@@ -136,9 +141,12 @@ class Sofar():
         self.client.on_message = self.on_message
         if self.username is not None and self.password is not None:
             self.client.username_pw_set(self.username, self.password)
+            logging.info(f"MQTT connecting to broker {self.broker} port {self.port} with auth user {self.username}")
+        else:
+            logging.info(f"MQTT connecting to broker {self.broker} port {self.port} without auth")
         self.client.reconnect_delay_set(min_delay=1, max_delay=300)
-        logging.info("MQTT connecting to broker")
-        self.client.connect(self.broker, port=self.port)
+        self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
+
         self.client.loop_start()
 
     def setup_instrument(self):
