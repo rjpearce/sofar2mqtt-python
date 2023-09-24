@@ -76,7 +76,7 @@ docker run -d \
   -e CONFIG_FILE=sofar-hyd-ep.json \
   -e TTY_DEVICE=/dev/ttyUSB0 \
   --device=/dev/ttyUSB0
-  registry.gitlab.com/rjpearce/sofar2mqtt:2.1
+  registry.gitlab.com/rjpearce/sofar2mqtt:latest
 ```
 
 You can also use Docker compose:
@@ -84,10 +84,14 @@ You can also use Docker compose:
 ```bash
  sofar2mqtt:
     container_name: sofar2mqtt
-    image: registry.gitlab.com/rjpearce/sofar2mqtt:2.1
+    image: registry.gitlab.com/rjpearce/sofar2mqtt:latest
     restart: unless-stopped
     environment:
       - MQTT_HOST=192.168.1.0
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=mqtt
+      - MQTT_PASSWORD=redacted
+      - TTY_DEVICE=/dev/ttyUSB0
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
 ```
