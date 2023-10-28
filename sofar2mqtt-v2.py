@@ -382,7 +382,7 @@ class Sofar():
 @click.option(
     '--write-retry-delay',
     envvar='WRITE_RETRY_DELAY',
-    default=2,
+    default=5,
     type=float,
     help='Delay before retrying write',
 )

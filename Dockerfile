@@ -19,8 +19,8 @@ ENV CONFIG_FILE=sofar-hyd-ep.json \
     RETRY_ATTEMPT=2 \
     RETRY_DELAY=0.1 \
     TTY_DEVICE= \
-    WRITE_RETRY_ATTEMPTS=2 \
-    WRITE_RETRY_DELAY=2 
+    WRITE_RETRY_ATTEMPTS=5 \
+    WRITE_RETRY_DELAY=5 
 
 CMD [ "python", "sofar2mqtt-v2.py" ]
 
