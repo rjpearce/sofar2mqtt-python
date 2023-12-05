@@ -1,10 +1,11 @@
-# Sofar2MQTT
+# Sofar2MQTT - Python
 
 ## Overview
 
-This project provides an integration between Sofar inverters over RS485 and MQTT.
+This project provides an integration between Sofar inverters over RS485 and MQTT using Python
 
-It currently only support read and write operations.
+It allows you to read and write data to Sofar inverters using a prebuilt Docker image or Python script. 
+
 
 ```mermaid
   graph TD;
@@ -31,7 +32,7 @@ Please do feel free to contribute changes and improvements.
 
 ## Requirements
 
-1. RaspberryPi or some other nix device with Python 3.x installed.
+1. Docker / RaspberryPi / other nix device with Python 3.x installed.
 1. RS485 to USB adapter
 3. Existing MQTT server
 
@@ -69,14 +70,18 @@ Thanks for Pali.
 
 ## Installation - Docker (recommended)
 
+[View sofar2mqtt-python on Dockerhub](https://hub.docker.com/repository/docker/rpearce/sofar2mqtt-python)
+
+
 ```bash 
+docker pull rpearce/sofar2mqtt-python:latest
 docker run -d \
   --name sofar2mqtt \
   -e MQTT_HOST=192.168.0.x \
   -e CONFIG_FILE=sofar-hyd-ep.json \
   -e TTY_DEVICE=/dev/ttyUSB0 \
   --device=/dev/ttyUSB0
-  registry.gitlab.com/rjpearce/sofar2mqtt:latest
+  rpearce/sofar2mqtt-python:latest
 ```
 
 You can also use Docker compose:
@@ -84,7 +89,7 @@ You can also use Docker compose:
 ```bash
  sofar2mqtt:
     container_name: sofar2mqtt
-    image: registry.gitlab.com/rjpearce/sofar2mqtt:latest
+    image: rpearce/sofar2mqtt-python:latest
     restart: unless-stopped
     environment:
       - MQTT_HOST=192.168.1.0
@@ -103,8 +108,8 @@ You can also use Docker compose:
     ```bash
     sudo apt-get install python-pip
     sudo pip install -r requirements.txt
-    git clone https://gitlab.com/rjpearce/sofar2mqtt.git
-    cd sofar2mqtt
+    git clone https://github.com/rjpearce/sofar2mqtt-python.git
+    cd sofar2mqtt-python
     ```
 
 1. Test you can communicate with your inverter
@@ -209,7 +214,7 @@ Options:
 
 To avoid passing sensitive data on the command line you can also set the username and password using enviroment variables: `MQTT_USERNAME` and `MQTT_PASSWORD`
 
-## Write Support (BETA)
+## Write Support
 
 Note: This is still of a work in progress I have only tested `desired_power` and  `energy_storage_mode`.
 
