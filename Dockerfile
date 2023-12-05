@@ -1,10 +1,13 @@
-FROM python:3.9.18-slim-bullseye@sha256:25a976dc387d01af6cb8c419a03e4b553d88ac5152d250920c94553e24cad3c7
+FROM --platform=$BUILDPLATFORM python:3.9.18-slim-bullseye
 
 WORKDIR /opt/sofar2mqtt
 
 COPY requirements.txt sofar2mqtt-v2.py *.json ./
 
-RUN pip install --no-cache-dir -r requirements.txt
+ARG TARGETOS
+ARG TARGETARCH
+
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} pip install --no-cache-dir -r requirements.txt
 
 ENV CONFIG_FILE=sofar-hyd-ep.json \
     DAEMON=True \
