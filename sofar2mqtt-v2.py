@@ -36,7 +36,7 @@ class Sofar():
         self.daemon = daemon
         self.retry = retry
         self.retry_delay = retry_delay
-        self.write_retry = retry
+        self.write_retry = write_retry
         self.write_retry_delay = write_retry_delay
         self.refresh_interval = refresh_interval
         self.broker = broker
