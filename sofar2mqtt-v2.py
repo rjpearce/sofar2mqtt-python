@@ -179,6 +179,8 @@ class Sofar():
                                 value += self.data[register_name]
                             elif register['agg_function'] == 'subtract':
                                 value -= self.data[register_name]
+                            elif register['agg_function'] == 'avg':
+                                value = int((value + self.data[register_name]) / 2)
                 if 'invert' in register:
                     if register['invert']:
                         if value > 0:

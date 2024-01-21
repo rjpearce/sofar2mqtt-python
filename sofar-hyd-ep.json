@@ -294,34 +294,29 @@
 			"write": true
 		},
 		{
-			"name": "desired_power",
-			"register": "0x1187",
-			"signed": true,
-			"read_type": "long"
-		},
+                        "name": "desired_power",
+                        "aggregate": [
+                                "minimum_battery_power",
+                                "maximum_battery_power"
+                        ],
+                        "agg_function": "avg",
+                        "desc": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189"
+                },
 		{
 			"name": "minimum_battery_power",
 			"register": "0x1189",
 			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Charging, Negative value=Discharging",
-			"type": "I32",
 			"signed": true,
-			"passive": true,
-			"min": -999999,
-			"max": 999999,
-			"write": true
+                        "read_type": "long"
 		},
 		{
 			"name": "maximum_battery_power",
 			"register": "0x118B",
 			"desc": "Maximum battery power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Charging, Negative value=Discharging",
-			"type": "I32",
 			"signed": true,
-			"passive": true,
-			"min": -999999,
-			"max": 999999,
-			"write": true
+                        "read_type": "long"
 		},
 		{
 			"name": "desired_power_grid",
