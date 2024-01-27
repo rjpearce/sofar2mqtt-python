@@ -231,11 +231,33 @@ class Sofar():
         failure_percentage = round(self.failures / (self.requests+self.retries)*100,2)
         retry_percentage = round(self.retries / (self.requests)*100,2)
         logging.info(f"Modbus Requests: {self.requests} Retries: {self.retries} ({retry_percentage}%) Failures: {self.failures} ({failure_percentage}%)")
-        self.publish('modbus_failures', self.failures)
-        self.publish('modbus_requests', self.requests)
-        self.publish('modbus_retries', self.retries)
-        self.publish('modbus_failure_rate', failure_percentage)
-        self.publish('modbus_retry_rate', retry_percentage)
+        self.data['modbus_failures'] = self.failures
+        self.data['modbus_requests'] = self.requests
+        self.data['modbus_retries'] = self.retries
+        self.data['modbus_failure_rate'] = failure_percentage
+        self.data['modbus_retry_rate'] = retry_percentage
+
+    def read(self):
+        now = datetime.datetime.now()
+        """ Sleep for 35 seconds to allow the inverter to reset the stats at 00:00 """
+        if (now.hour == 23 and now.minute == 59 and now.second >= 30):
+            logging.info('Snoozing 35 seconds')
+            time.sleep(35)
+        self.read_and_publish()
+        self.requests = 0
+        self.failures = 0
+        self.failed = []
+        self.retries = 0
+
+    def publish_state(self):
+        try:
+            data = json.dumps(self.data, indent=2)
+            self.client.publish(self.topic + "state", data, retain=True)
+            with open("data.json", "w") as write_file:
+                write_file.write(data)
+        except Exception:
+            logging.info(traceback.format_exc())
+        time.sleep(self.refresh_interval)
 
     def main(self):
         """ Main method """
@@ -243,16 +265,8 @@ class Sofar():
             self.read_and_publish()
         else:
             while self.daemon:
-                now = datetime.datetime.now()
-                """ Sleep for 35 seconds to allow the inverter to reset the stats at 00:00 """
-                if (now.hour == 23 and now.minute == 59 and now.second >= 30):
-                    logging.info('Snoozing 35 seconds')
-                    time.sleep(35)
-                self.read_and_publish()
-                self.requests = 0
-                self.failures = 0
-                self.failed = []
-                self.retries = 0
+                self.read()
+                self.publish_state()
                 time.sleep(self.refresh_interval)
 
     def publish(self, key, value):
