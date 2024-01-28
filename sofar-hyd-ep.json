@@ -5,45 +5,60 @@
 			"register": "0x0445",
 			"read_type": "string",
 			"registers": 7,
-			"icon": "mdi:information",
-			"entity_category": "diagnostic",
-			"value_template": "{{ value_json.serial_number }}"
+                        "ha": {
+                            "name": "Serial Number",
+                            "icon": "mdi:information",
+                            "entity_category": "diagnostic",
+                            "value_template": "{{ value_json.serial_number }}"
+                        }
 		},
 		{
 			"name": "hw_version",
 			"register": "0x044D",
 			"read_type": "string",
 			"registers": 2,
-			"icon": "mdi:information",
-			"entity_category": "diagnostic",
-			"value_template": "{{ value_json.hw_version }}"
+                        "ha": {
+			    "name": "Hardware Version",
+                            "icon": "mdi:information",
+                            "entity_category": "diagnostic",
+                            "value_template": "{{ value_json.hw_version }}"
+                        }
 		},
 		{
 			"name": "sw_version_com",
 			"register": "0x044F",
 			"read_type": "string",
 			"registers": 4,
-			"icon": "mdi:information",
-			"entity_category": "diagnostic",
-			"value_template": "{{ value_json.sw_version_com }}"
+                        "ha": {
+			    "name": "Software Version COM",
+                            "icon": "mdi:information",
+                            "entity_category": "diagnostic",
+                            "value_template": "{{ value_json.sw_version_com }}"
+                        }
 		},
 		{
 			"name": "sw_version_master",
 			"register": "0x0454",
 			"read_type": "string",
 			"registers": 4,
-			"icon": "mdi:information",
-			"entity_category": "diagnostic",
-			"value_template": "{{ value_json.sw_version_master }}"
+                        "ha": {
+			    "name": "Software Version Master",
+                            "icon": "mdi:information",
+                            "entity_category": "diagnostic",
+                            "value_template": "{{ value_json.sw_version_master }}"
+                        }
 		},
 		{
 			"name": "sw_version_slave",
 			"register": "0x0457",
 			"read_type": "string",
 			"registers": 4,
-			"icon": "mdi:information",
-			"entity_category": "diagnostic",
-			"value_template": "{{ value_json.sw_version_slave }}"
+                        "ha": {
+			    "name": "Software Version Slave",
+                            "icon": "mdi:information",
+                            "entity_category": "diagnostic",
+                            "value_template": "{{ value_json.sw_version_slave }}"
+                        }
 		},
 		{
 			"name": "energy_storage_mode",
@@ -112,8 +127,7 @@
 				"1": "Enabled"
 			},
 			"ha": {
-				"name": "Sofar:Time of use",
-				"state_class": "measurement",
+				"name": "Time of use",
 				"icon": "mdi:battery-clock-outline"
 			}
 		},
@@ -123,8 +137,7 @@
 			"function": "high_bit_low_bit",
 			"join": ":",
 			"ha": {
-				"name": "Sofar:Time of use - Start time",
-				"state_class": "measurement",
+				"name": "Time of use - Start time",
 				"icon": "mdi:battery-clock-outline"
 			}
 		},
@@ -134,8 +147,7 @@
 			"function": "high_bit_low_bit",
 			"join": ":",
 			"ha": {
-				"name": "Sofar:Time of use - End time",
-				"state_class": "measurement",
+				"name": "Time of use - End time",
 				"icon": "mdi:battery-clock-outline"
 			}
 		},
@@ -148,8 +160,7 @@
 			"max": 100,
 			"write": true,
 			"ha": {
-				"name": "Sofar:Time of use - SOC",
-				"state_class": "measurement",
+				"name": "Time of use - SOC",
 				"icon": "mdi:battery-clock-outline"
 			}
 		},
@@ -158,8 +169,7 @@
 			"register": "0x1125",
 			"read_type": "long",
 			"ha": {
-				"name": "Sofar:Time of use - Power",
-				"state_class": "measurement",
+				"name": "Time of use - Power",
 				"icon": "mdi:battery-clock-outline"
 			}
 		},
@@ -169,8 +179,7 @@
 			"function": "high_bit_low_bit",
 			"join": "/",
 			"ha": {
-				"name": "Sofar:Time of use - Start date",
-				"state_class": "measurement",
+				"name": "Time of use - Start date",
 				"icon": "mdi:battery-clock-outline"
 			}
 		},
@@ -180,8 +189,7 @@
 			"function": "high_bit_low_bit",
 			"join": "/",
 			"ha": {
-				"name": "Sofar:Time of use - End date",
-				"state_class": "measurement",
+				"name": "Time of use - End date",
 				"icon": "mdi:battery-clock-outline"
 			}
 		},
@@ -199,7 +207,7 @@
 				"Mon"
 			],
 			"ha": {
-				"name": "Sofar:Time of use - DoW",
+				"name": "Time of use - DoW",
 				"state_class": "measurement",
 				"icon": "mdi:calendar-today-outline"
 			}
@@ -269,7 +277,6 @@
 			"ha": {
 				"name": "State",
 				"icon": "mdi:power-standby",
-				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.state }}"
 			}

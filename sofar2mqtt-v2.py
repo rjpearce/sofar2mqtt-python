@@ -292,7 +292,7 @@ class Sofar():
             logging.info(traceback.format_exc())
         for register in self.config['registers']:
             if 'ha' not in register:
-                next
+                continue
             try:
                 default_payload = {
                     "availability": [
@@ -309,15 +309,15 @@ class Sofar():
                         "identifiers": [f"sofar2mqtt_python_{sn}"],
                     },
                     "state_topic": "sofar/state_all",
-                    "unique_id": f"sofar_{sn}_pv_total_power",
+                    "unique_id": f"sofar_{register['name']}",
                     "enabled_by_default": "true",
                     "availability_mode": "all",
                 }
                 payload = default_payload | register['ha']
-                payload.delete('control')
                 control = 'sensor'
                 if 'control' in register['ha']:
                     control = register['ha']['control']
+                    payload.pop('control')
                 topic = f"homeassistant/{control}/sofar_{register['name']}/config"
                 self.client.publish(topic, json.dumps(payload), retain=False)
             except Exception:
