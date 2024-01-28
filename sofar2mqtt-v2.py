@@ -29,9 +29,12 @@ class Sofar():
     def __init__(self, config_file_path, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device):
         self.config = load_config(config_file_path)
         self.write_registers = []
+        untested = False
         for register in self.config['registers']:
+            if "untested" in register:
+                untested = register["untested"]
             if "write" in register:
-                if register["write"]:
+                if register["write"] and not untested:
                     self.write_registers.append(register)
         self.daemon = daemon
         self.retry = retry

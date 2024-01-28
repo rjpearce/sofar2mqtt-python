@@ -73,19 +73,7 @@
 				"3": "Passive mode",
 				"4": "Peak cut mode"
 			},
-			"write": true
-		},
-		{
-			"name": "energy_storage_mode",
-			"register": "0x1110",
-			"function": "mode",
-			"modes": {
-				"0": "Self use",
-				"1": "Time of use",
-				"2": "Timing mode",
-				"3": "Passive mode",
-				"4": "Peak cut mode"
-			},
+			"write": true,
 			"ha": {
 				"availability_mode": "all",
 				"command_topic": "sofar/rw/energy_storage_mode",
@@ -242,46 +230,23 @@
 			}
 		},
 		{
-			"name": "passive_timeout",
-			"register": "0x1184",
-			"desc": "Passive mode timeout period in secs (0=Never)",
-			"desc2": "When the inverter does not receive any communication frame within time set in this register the inverter forces Passive_Timeout_Action",
-			"type": "U16",
-			"write": true
-		},
-		{
-			"name": "passive_timeout_action",
-			"register": "0x1185",
-			"desc": "Passive mode timeout action",
-			"function": "mode",
-			"type": "U16",
-			"modes": {
-				"0": "Force to standby",
-				"1": "Force to last storage mode"
-			},
-			"write": true
-		},
-		{
 			"name": "desired_power",
 			"register": "0x1187",
 			"desc": "Desired PCC power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Export, Negative value=Import",
+			"desc3": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189",
 			"type": "I32",
 			"function": "int",
 			"signed": true,
 			"passive": true,
 			"min": -999999,
 			"max": 999999,
-			"write": true
-		},
-		{
-			"name": "desired_power",
+			"write": true,
 			"aggregate": [
 				"minimum_battery_power",
 				"maximum_battery_power"
 			],
 			"agg_function": "avg",
-			"desc": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189",
 			"ha": {
 				"availability_mode": "all",
 				"command_topic": "sofar/rw/desired_power",
@@ -313,19 +278,6 @@
 			"desc2": "Positive value=Charging, Negative value=Discharging",
 			"signed": true,
 			"read_type": "long"
-		},
-		{
-			"name": "desired_power_grid",
-			"register": "0x118D",
-			"desc": "Maximum power to grid in passive mode(-999999 to 999999) in watts",
-			"desc2": "Positive value=Charging, Negative value=Discharging",
-			"type": "I32",
-			"function": "int",
-			"signed": true,
-			"passive": true,
-			"min": -999999,
-			"max": 999999,
-			"write": true
 		},
 		{
 			"name": "state",
@@ -1005,5 +957,41 @@
 			"write": true,
 			"untested": true
 		},
+		{
+			"name": "passive_timeout",
+			"register": "0x1184",
+			"desc": "Passive mode timeout period in secs (0=Never)",
+			"desc2": "When the inverter does not receive any communication frame within time set in this register the inverter forces Passive_Timeout_Action",
+			"type": "U16",
+			"write": true,
+			"untested": true
+		},
+		{
+			"name": "passive_timeout_action",
+			"register": "0x1185",
+			"desc": "Passive mode timeout action",
+			"function": "mode",
+			"type": "U16",
+			"modes": {
+				"0": "Force to standby",
+				"1": "Force to last storage mode"
+			},
+			"write": true,
+			"untested": true
+		},
+		{
+			"name": "desired_power_grid",
+			"register": "0x118D",
+			"desc": "Maximum power to grid in passive mode(-999999 to 999999) in watts",
+			"desc2": "Positive value=Charging, Negative value=Discharging",
+			"type": "I32",
+			"function": "int",
+			"signed": true,
+			"passive": true,
+			"min": -999999,
+			"max": 999999,
+			"write": true,
+			"untested": true
+		}
 	]
 }
