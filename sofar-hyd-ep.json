@@ -6,10 +6,7 @@
 			"read_type": "string",
 			"registers": 7,
 			"icon": "mdi:information",
-			"state_topic": "sofar/state_all",
-			"enabled_by_default": "true",
 			"entity_category": "diagnostic",
-			"availability_mode": "all",
 			"value_template": "{{ value_json.serial_number }}"
 		},
 		{
@@ -18,10 +15,7 @@
 			"read_type": "string",
 			"registers": 2,
 			"icon": "mdi:information",
-			"state_topic": "sofar/state_all",
-			"enabled_by_default": "true",
 			"entity_category": "diagnostic",
-			"availability_mode": "all",
 			"value_template": "{{ value_json.hw_version }}"
 		},
 		{
@@ -30,10 +24,7 @@
 			"read_type": "string",
 			"registers": 4,
 			"icon": "mdi:information",
-			"state_topic": "sofar/state_all",
-			"enabled_by_default": "true",
 			"entity_category": "diagnostic",
-			"availability_mode": "all",
 			"value_template": "{{ value_json.sw_version_com }}"
 		},
 		{
@@ -42,10 +33,7 @@
 			"read_type": "string",
 			"registers": 4,
 			"icon": "mdi:information",
-			"state_topic": "sofar/state_all",
-			"enabled_by_default": "true",
 			"entity_category": "diagnostic",
-			"availability_mode": "all",
 			"value_template": "{{ value_json.sw_version_master }}"
 		},
 		{
@@ -54,10 +42,7 @@
 			"read_type": "string",
 			"registers": 4,
 			"icon": "mdi:information",
-			"state_topic": "sofar/state_all",
-			"enabled_by_default": "true",
 			"entity_category": "diagnostic",
-			"availability_mode": "all",
 			"value_template": "{{ value_json.sw_version_slave }}"
 		},
 		{
@@ -75,7 +60,6 @@
 			},
 			"write": true,
 			"ha": {
-				"availability_mode": "all",
 				"command_topic": "sofar/rw/energy_storage_mode",
 				"entity_category": "config",
 				"name": "Mode",
@@ -86,7 +70,6 @@
 					"Passive mode",
 					"Peak cut mode"
 				],
-				"state_topic": "sofar/state_all",
 				"value_template": "{{ value_json.energy_storage_mode }}",
 				"icon": "mdi:home-switch",
 				"control": "select"
@@ -130,7 +113,6 @@
 			},
 			"ha": {
 				"name": "Sofar:Time of use",
-				"unique_id": "Sofar_time_of_use",
 				"state_class": "measurement",
 				"icon": "mdi:battery-clock-outline"
 			}
@@ -142,7 +124,6 @@
 			"join": ":",
 			"ha": {
 				"name": "Sofar:Time of use - Start time",
-				"unique_id": "Sofar_time_of_use_start_time",
 				"state_class": "measurement",
 				"icon": "mdi:battery-clock-outline"
 			}
@@ -154,7 +135,6 @@
 			"join": ":",
 			"ha": {
 				"name": "Sofar:Time of use - End time",
-				"unique_id": "Sofar_time_of_use_end_time",
 				"state_class": "measurement",
 				"icon": "mdi:battery-clock-outline"
 			}
@@ -169,7 +149,6 @@
 			"write": true,
 			"ha": {
 				"name": "Sofar:Time of use - SOC",
-				"unique_id": "Sofar_time_of_use_soc",
 				"state_class": "measurement",
 				"icon": "mdi:battery-clock-outline"
 			}
@@ -180,7 +159,6 @@
 			"read_type": "long",
 			"ha": {
 				"name": "Sofar:Time of use - Power",
-				"unique_id": "Sofar_time_of_use_power",
 				"state_class": "measurement",
 				"icon": "mdi:battery-clock-outline"
 			}
@@ -192,7 +170,6 @@
 			"join": "/",
 			"ha": {
 				"name": "Sofar:Time of use - Start date",
-				"unique_id": "Sofar_time_of_use_start_date",
 				"state_class": "measurement",
 				"icon": "mdi:battery-clock-outline"
 			}
@@ -204,7 +181,6 @@
 			"join": "/",
 			"ha": {
 				"name": "Sofar:Time of use - End date",
-				"unique_id": "Sofar_time_of_use_end_date",
 				"state_class": "measurement",
 				"icon": "mdi:battery-clock-outline"
 			}
@@ -224,7 +200,6 @@
 			],
 			"ha": {
 				"name": "Sofar:Time of use - DoW",
-				"unique_id": "Sofar_time_of_use_dow",
 				"state_class": "measurement",
 				"icon": "mdi:calendar-today-outline"
 			}
@@ -248,7 +223,6 @@
 			],
 			"agg_function": "avg",
 			"ha": {
-				"availability_mode": "all",
 				"command_topic": "sofar/rw/desired_power",
 				"entity_category": "config",
 				"name": "Desired Power",
@@ -257,7 +231,6 @@
 				"step": 50,
 				"initial": 0,
 				"mode": "slider",
-				"state_topic": "sofar/state_all",
 				"value_template": "{{ value_json.desired_power }}",
 				"icon": "mdi:battery-charging",
 				"control": "number"
@@ -297,10 +270,7 @@
 				"name": "State",
 				"icon": "mdi:power-standby",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.state }}"
 			}
 		},
@@ -315,10 +285,7 @@
 				"name": "PV1 Voltage",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.pv_1_voltage }}"
 			}
 		},
@@ -333,10 +300,7 @@
 				"name": "PV1 Current",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.pv_1_current }}"
 			}
 		},
@@ -351,10 +315,7 @@
 				"name": "PV1 Power",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.pv_1_power }}"
 			}
 		},
@@ -369,10 +330,7 @@
 				"name": "PV2 Voltage",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.pv_2_voltage }}"
 			}
 		},
@@ -387,10 +345,7 @@
 				"name": "PV2 Current",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.pv_2_current }}"
 			}
 		},
@@ -405,10 +360,7 @@
 				"name": "PV2 Power",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.pv_2_power }}"
 			}
 		},
@@ -425,10 +377,7 @@
 				"name": "PV Total Power",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.pv_total_power }}"
 			}
 		},
@@ -443,11 +392,8 @@
 				"name": "Active Power",
 				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
 				"unit_of_measurement": "W",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.active_power }}"
 			}
 		},
@@ -461,11 +407,8 @@
 				"name": "Load Power",
 				"icon": "mdi:home-import-outline",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
 				"unit_of_measurement": "W",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.load_power }}"
 			}
 		},
@@ -482,11 +425,8 @@
 				"name": "On-Grid Power",
 				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
 				"unit_of_measurement": "W",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.grid }}"
 			}
 		},
@@ -498,11 +438,8 @@
 				"name": "Insulation Resistance",
 				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
 				"unit_of_measurement": "Ohms",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.insulation_resistance }}"
 			}
 		},
@@ -516,11 +453,8 @@
 				"name": "On-grid Frequency",
 				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
 				"unit_of_measurement": "Hz",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.ongrid_frequency }}"
 			}
 		},
@@ -535,10 +469,7 @@
 				"name": "On-grid Voltage",
 				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.ongrid_voltage }}"
 			}
 		},
@@ -551,10 +482,7 @@
 				"name": "Internal Temperature",
 				"icon": "mdi:thermometer",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.inverter_temp_internal }}"
 			}
 		},
@@ -567,10 +495,7 @@
 				"name": "Heatsink Temperature",
 				"icon": "mdi:thermometer",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.inverter_temp_heatsink }}"
 			}
 		},
@@ -585,10 +510,7 @@
 				"name": "Off-Grid Power",
 				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.offgrid_active_power }}"
 			}
 		},
@@ -603,10 +525,7 @@
 				"name": "Off-Grid Frequency",
 				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.offgrid_frequency }}"
 			}
 		},
@@ -621,10 +540,7 @@
 				"name": "Off-Grid Voltage",
 				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.offgrid_voltage }}"
 			}
 		},
@@ -640,10 +556,7 @@
 				"name": "Battery Current",
 				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.battery_current }}"
 			}
 		},
@@ -659,10 +572,7 @@
 				"name": "Battery Power",
 				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.battery_power }}"
 			}
 		},
@@ -677,10 +587,7 @@
 				"name": "Generation",
 				"icon": "mdi:solar-power",
 				"state_class": "total_increasing",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.today_generation }}"
 			}
 		},
@@ -695,10 +602,7 @@
 				"name": "Consumption",
 				"icon": "mdi:home-import-outline",
 				"state_class": "total_increasing",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.today_consumption }}"
 			}
 		},
@@ -713,10 +617,7 @@
 				"name": "Import",
 				"icon": "mdi:home-import-outline",
 				"state_class": "total_increasing",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.today_import }}"
 			}
 		},
@@ -731,10 +632,7 @@
 				"name": "Export",
 				"icon": "mdi:home-export-outline",
 				"state_class": "total_increasing",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.today_export }}"
 			}
 		},
@@ -749,10 +647,7 @@
 				"name": "Battery Discharge",
 				"icon": "mdi:battery-charging-50",
 				"state_class": "total_increasing",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.today_battery_discharge }}"
 			}
 		},
@@ -767,10 +662,7 @@
 				"name": "Battery Charge",
 				"icon": "mdi:battery-charging",
 				"state_class": "total_increasing",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.today_battery_charge }}"
 			}
 		},
@@ -785,10 +677,7 @@
 				"name": "Battery Voltage",
 				"icon": "mdi:battery-charging-high",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.battery_voltage }}"
 			}
 		},
@@ -802,10 +691,7 @@
 				"name": "Battery Temperature",
 				"icon": "mdi:thermometer",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.battery_voltage }}"
 			}
 		},
@@ -818,10 +704,7 @@
 				"name": "Battery SOC",
 				"icon": "mdi:battery-charging-outline",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.battery_soc }}"
 			}
 		},
@@ -834,10 +717,7 @@
 				"name": "Battery SOH",
 				"icon": "mdi:battery-charging-outline",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.battery_soh }}"
 			}
 		},
@@ -850,10 +730,7 @@
 				"name": "Battery Cycles",
 				"icon": "mdi:battery-clock-outline",
 				"state_class": "measurement",
-				"state_topic": "sofar/state_all",
-				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
-				"availability_mode": "all",
 				"value_template": "{{ value_json.battery_cycles }}"
 			}
 		},

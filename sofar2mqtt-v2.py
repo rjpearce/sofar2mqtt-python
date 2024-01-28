@@ -266,7 +266,7 @@ class Sofar():
         time.sleep(self.refresh_interval)
 
     def publish_mqtt_discovery(self):
-        sn = self.data['serialno']
+        sn = self.data['serial_number']
         payload = {
             "device": {
                "identifiers": [f"sofar2mqtt_python_bridge_{sn}"],
@@ -286,95 +286,46 @@ class Sofar():
             "value_template": "{{ value_json.bridge }}"
         }
         topic = f"homeassistant/binary_sensor/{sn}/connection_state/config"
-        payload2 = {
-            "device_class": "power",
-            "availability": [
-                {
-                    "topic": "sofar/state_all",
-                    "value_template": "{{ value_json.bridge }}"
-                }
-            ],
-            "device": {
-                "name": sn,
-                "sw_version": "1.35.1",
-                "manufacturer": "SOFAR",
-                "model": "HYD-6000-EP",
-                "identifiers": [f"sofar2mqtt_python_{sn}"],
-            },
-            "name": "PV Total",
-            "icon": "mdi:solar-power-variant",
-            "state_class": "measurement",
-            "state_topic": "sofar/state_all",
-            "unique_id": f"sofar_{sn}_pv_total_power",
-            "unit_of_measurement": "W",
-            "enabled_by_default": "true",
-            "entity_category": "diagnostic",
-            "availability_mode": "all",
-            "value_template": "{{ value_json.pv_total_power }}"
-        }
-        topic2 = f"homeassistant/sensor/sofar_{sn}_pv_total_power/config"
-        payload3 = {
-            "availability_mode": "all",
-            "command_topic": "sofar/rw/energy_storage_mode",
-            "entity_category": "config",
-            "name": "Mode",
-            "options": ["Self use", "Time of use", "Timing mode", "Passive mode", "Peak cut mode"],
-            "state_topic": "sofar/state_all",
-            "value_template": "{{ value_json.energy_storage_mode }}",
-            "availability": [
-                {
-                    "topic": "sofar/state_all",
-                    "value_template": "{{ value_json.bridge }}"
-                }
-            ],
-            "device": {
-                "identifiers": [f"sofar2mqtt_python_{sn}"],
-            },
-            "icon": "mdi:home-switch",
-            "unique_id": f"sofar_{sn}_mode",
-            "value_template": "{{ value_json.energy_storage_mode }}"
-        }
-        topic3 = f"homeassistant/select/sofar_{sn}/mode/config"
-        payload4 = {
-            "availability_mode": "all",
-            "command_topic": "sofar/rw/desired_power",
-            "entity_category": "config",
-            "name": "Desired Power",
-            "min": -6000,
-            "max": 6000,
-            "step": 50,
-            "initial": 0,
-            "mode": "slider",
-            "state_topic": "sofar/state_all",
-            "value_template": "{{ value_json.desired_power }}",
-            "availability": [
-                {
-                    "topic": "sofar/state_all",
-                    "value_template": "{{ value_json.bridge }}"
-                }
-            ],
-            "device": {
-                "identifiers": [f"sofar2mqtt_python_{sn}"],
-            },
-            "icon": "mdi:battery-charging",
-            "unique_id": f"sofar_{sn}_desired_power",
-            "value_template": "{{ value_json.desired_power }}"
-        }
-        topic4 = f"homeassistant/number/sofar_{sn}/desired_power/config"
         try:
             self.client.publish(topic, json.dumps(payload), retain=False)
-            self.client.publish(topic2, json.dumps(payload2), retain=False)
-            self.client.publish(topic3, json.dumps(payload3), retain=False)
-            self.client.publish(topic4, json.dumps(payload4), retain=False)
         except Exception:
             logging.info(traceback.format_exc())
-
+        for register in self.config['registers']:
+            if 'ha' not in register:
+                next
+            try:
+                default_payload = {
+                    "availability": [
+                        {
+                            "topic": "sofar/state_all",
+                            "value_template": "{{ value_json.bridge }}"
+                        }
+                    ],
+                    "device": {
+                        "name": sn,
+                        "sw_version": "1.35.1",
+                        "manufacturer": "SOFAR",
+                        "model": "HYD-6000-EP",
+                        "identifiers": [f"sofar2mqtt_python_{sn}"],
+                    },
+                    "state_topic": "sofar/state_all",
+                    "unique_id": f"sofar_{sn}_pv_total_power",
+                    "enabled_by_default": "true",
+                    "availability_mode": "all",
+                }
+                payload = default_payload | register['ha']
+                payload.delete('control')
+                control = 'sensor'
+                if 'control' in register['ha']:
+                    control = register['ha']['control']
+                topic = f"homeassistant/{control}/sofar_{register['name']}/config"
+                self.client.publish(topic, json.dumps(payload), retain=False)
+            except Exception:
+                logging.info(traceback.format_exc())
 
     def main(self):
         """ Main method """
-        self.data['serialno'] = self.instrument.read_string(registeraddress=int("0x0445",16), functioncode=3, number_of_registers=7)
-        self.data['bridge'] = "online"
-        self.publish_mqtt_discovery()
+        iteration = 0
 
         if not self.daemon:
             self.read_and_publish()
@@ -382,6 +333,9 @@ class Sofar():
             while self.daemon:
                 self.read()
                 self.publish_state()
+                if iteration == 0:
+                    self.data['bridge'] = "online"
+                    self.publish_mqtt_discovery()
                 time.sleep(self.refresh_interval)
 
     def publish(self, key, value):
