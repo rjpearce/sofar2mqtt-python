@@ -118,9 +118,21 @@
 				"4": "Peak cut mode"
 			},
 			"ha": {
-				"name": "Sofar:Mode",
-				"unique_id": "Sofar_mode",
-				"icon": "mdi:home-battery"
+				"availability_mode": "all",
+				"command_topic": "sofar/rw/energy_storage_mode",
+				"entity_category": "config",
+				"name": "Mode",
+				"options": [
+					"Self use",
+					"Time of use",
+					"Timing mode",
+					"Passive mode",
+					"Peak cut mode"
+				],
+				"state_topic": "sofar/state_all",
+				"value_template": "{{ value_json.energy_storage_mode }}",
+				"icon": "mdi:home-switch",
+				"control": "select"
 			}
 		},
 		{
@@ -294,21 +306,36 @@
 			"write": true
 		},
 		{
-                        "name": "desired_power",
-                        "aggregate": [
-                                "minimum_battery_power",
-                                "maximum_battery_power"
-                        ],
-                        "agg_function": "avg",
-                        "desc": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189"
-                },
+			"name": "desired_power",
+			"aggregate": [
+				"minimum_battery_power",
+				"maximum_battery_power"
+			],
+			"agg_function": "avg",
+			"desc": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189",
+			"ha": {
+				"availability_mode": "all",
+				"command_topic": "sofar/rw/desired_power",
+				"entity_category": "config",
+				"name": "Desired Power",
+				"min": -6000,
+				"max": 6000,
+				"step": 50,
+				"initial": 0,
+				"mode": "slider",
+				"state_topic": "sofar/state_all",
+				"value_template": "{{ value_json.desired_power }}",
+				"icon": "mdi:battery-charging",
+				"control": "number"
+			}
+		},
 		{
 			"name": "minimum_battery_power",
 			"register": "0x1189",
 			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Charging, Negative value=Discharging",
 			"signed": true,
-                        "read_type": "long"
+			"read_type": "long"
 		},
 		{
 			"name": "maximum_battery_power",
@@ -316,7 +343,7 @@
 			"desc": "Maximum battery power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Charging, Negative value=Discharging",
 			"signed": true,
-                        "read_type": "long"
+			"read_type": "long"
 		},
 		{
 			"name": "desired_power_grid",
@@ -444,12 +471,16 @@
 			],
 			"agg_function": "add",
 			"ha": {
-				"name": "Sofar:Solar power now",
-				"unique_id": "sofar_solar_power_now",
 				"device_class": "power",
-				"unit_of_measurement": "W",
+				"name": "PV Total",
+				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"state_topic": "sofar/state_all",
+				"unit_of_measurement": "W",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.pv_total_power }}"
 			}
 		},
 		{
