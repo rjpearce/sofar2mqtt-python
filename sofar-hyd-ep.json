@@ -1,6 +1,66 @@
 {
 	"registers": [
 		{
+			"name": "serial_number",
+			"register": "0x0445",
+			"type": "string",
+			"registers": 7,
+			"icon": "mdi:information",
+			"state_topic": "sofar/state_all",
+			"enabled_by_default": "true",
+			"entity_category": "diagnostic",
+			"availability_mode": "all",
+			"value_template": "{{ value_json.serial_number }}"
+		},
+		{
+			"name": "hw_version",
+			"register": "0x044D",
+			"type": "string",
+			"registers": 2,
+			"icon": "mdi:information",
+			"state_topic": "sofar/state_all",
+			"enabled_by_default": "true",
+			"entity_category": "diagnostic",
+			"availability_mode": "all",
+			"value_template": "{{ value_json.hw_version }}"
+		},
+		{
+			"name": "sw_version_com",
+			"register": "0x044F",
+			"type": "string",
+			"registers": 4,
+			"icon": "mdi:information",
+			"state_topic": "sofar/state_all",
+			"enabled_by_default": "true",
+			"entity_category": "diagnostic",
+			"availability_mode": "all",
+			"value_template": "{{ value_json.sw_version_com }}"
+		},
+		{
+			"name": "sw_version_master",
+			"register": "0x0454",
+			"type": "string",
+			"registers": 4,
+			"icon": "mdi:information",
+			"state_topic": "sofar/state_all",
+			"enabled_by_default": "true",
+			"entity_category": "diagnostic",
+			"availability_mode": "all",
+			"value_template": "{{ value_json.sw_version_master }}"
+		},
+		{
+			"name": "sw_version_slave",
+			"register": "0x0457",
+			"type": "string",
+			"registers": 4,
+			"icon": "mdi:information",
+			"state_topic": "sofar/state_all",
+			"enabled_by_default": "true",
+			"entity_category": "diagnostic",
+			"availability_mode": "all",
+			"value_template": "{{ value_json.sw_version_slave }}"
+		},
+		{
 			"name": "eps_control",
 			"register": "0x1029",
 			"desc": "EPS On/Off control",
@@ -318,8 +378,8 @@
 				"command_topic": "sofar/rw/desired_power",
 				"entity_category": "config",
 				"name": "Desired Power",
-				"min": -6000,
-				"max": 6000,
+				"min": -5000,
+				"max": 5000,
 				"step": 50,
 				"initial": 0,
 				"mode": "slider",
@@ -373,10 +433,14 @@
 				"7": "Self-charging"
 			},
 			"ha": {
-				"name": "Sofar:Inverter state",
-				"unique_id": "Sofar_inverter_state",
+				"name": "State",
+				"icon": "mdi:power-standby",
 				"state_class": "measurement",
-				"icon": "mdi:power-standby"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.state }}"
 			}
 		},
 		{
@@ -385,12 +449,16 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Solar PV1 voltage now",
-				"unique_id": "sofar_pv1_voltage_now",
-				"device_class": "power",
+				"device_class": "voltage",
 				"unit_of_measurement": "V",
+				"name": "PV1 Voltage",
+				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.pv_1_voltage }}"
 			}
 		},
 		{
@@ -399,12 +467,16 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Solar PV1 current now",
-				"unique_id": "sofar_pv1_current_now",
 				"device_class": "current",
 				"unit_of_measurement": "A",
+				"name": "PV1 Current",
+				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.pv_1_current }}"
 			}
 		},
 		{
@@ -413,12 +485,16 @@
 			"function": "multiply",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Solar PV1 power now",
-				"unique_id": "sofar_pv1_power_now",
 				"device_class": "power",
 				"unit_of_measurement": "W",
+				"name": "PV1 Power",
+				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.pv_1_power }}"
 			}
 		},
 		{
@@ -427,12 +503,16 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Solar PV2 voltage now",
-				"unique_id": "sofar_pv2_voltage_now",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
+				"name": "PV2 Voltage",
+				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.pv_2_voltage }}"
 			}
 		},
 		{
@@ -441,12 +521,16 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Solar PV2 current now",
-				"unique_id": "sofar_pv2_current_now",
 				"device_class": "current",
 				"unit_of_measurement": "A",
+				"name": "PV2 Current",
+				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.pv_2_current }}"
 			}
 		},
 		{
@@ -455,12 +539,16 @@
 			"function": "multiply",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Solar PV2 power now",
-				"unique_id": "sofar_pv2_power_now",
 				"device_class": "power",
 				"unit_of_measurement": "W",
+				"name": "PV2 Power",
+				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.pv_2_power }}"
 			}
 		},
 		{
@@ -472,11 +560,11 @@
 			"agg_function": "add",
 			"ha": {
 				"device_class": "power",
-				"name": "PV Total",
+				"unit_of_measurement": "W",
+				"name": "PV Total Power",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "measurement",
 				"state_topic": "sofar/state_all",
-				"unit_of_measurement": "W",
 				"enabled_by_default": "true",
 				"entity_category": "diagnostic",
 				"availability_mode": "all",
@@ -490,12 +578,16 @@
 			"factor": 10,
 			"signed": true,
 			"ha": {
-				"name": "Sofar:Active power",
-				"unique_id": "sofar_active_power",
 				"device_class": "power",
-				"unit_of_measurement": "W",
+				"name": "Active Power",
+				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
+				"state_topic": "sofar/state_all",
+				"unit_of_measurement": "W",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.active_power }}"
 			}
 		},
 		{
@@ -504,12 +596,16 @@
 			"function": "multiply",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:House consumption now",
-				"unique_id": "sofar_house_consumption_now",
 				"device_class": "power",
-				"unit_of_measurement": "W",
+				"name": "Load Power",
+				"icon": "mdi:home-import-outline",
 				"state_class": "measurement",
-				"icon": "mdi:home-import-outline"
+				"state_topic": "sofar/state_all",
+				"unit_of_measurement": "W",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.load_power }}"
 			}
 		},
 		{
@@ -521,24 +617,32 @@
 			"agg_function": "subtract",
 			"invert": true,
 			"ha": {
-				"name": "Sofar:Grid power",
-				"unique_id": "sofar_grid_power",
 				"device_class": "power",
-				"unit_of_measurement": "W",
+				"name": "On-Grid Power",
+				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
+				"state_topic": "sofar/state_all",
+				"unit_of_measurement": "W",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.grid }}"
 			}
 		},
 		{
 			"name": "insulation_resistance",
 			"register": "0x042B",
 			"ha": {
-				"name": "Sofar:Insulation Resistance",
-				"unique_id": "sofar_insulation_resistance",
 				"device_class": "energy",
-				"unit_of_measurement": "Ohms",
+				"name": "Insulation Resistance",
+				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
+				"state_topic": "sofar/state_all",
+				"unit_of_measurement": "Ohms",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.insulation_resistance }}"
 			}
 		},
 		{
@@ -547,12 +651,16 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Ongrid Frequency",
-				"unique_id": "sofar_ongrid_frequency",
 				"device_class": "frequency",
-				"unit_of_measurement": "Hz",
+				"name": "On-grid Frequency",
+				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
+				"state_topic": "sofar/state_all",
+				"unit_of_measurement": "Hz",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.ongrid_frequency }}"
 			}
 		},
 		{
@@ -561,36 +669,48 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Ongrid Voltage",
-				"unique_id": "sofar_ongrid_voltage",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
+				"name": "On-grid Voltage",
+				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-high"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.ongrid_voltage }}"
 			}
 		},
 		{
 			"name": "inverter_temp_internal",
 			"register": "0x0418",
 			"ha": {
-				"name": "Sofar:Inverter temp internal",
-				"unique_id": "Sofar_inverter_temp_internal",
 				"device_class": "temperature",
 				"unit_of_measurement": "C",
+				"name": "Internal Temperature",
+				"icon": "mdi:thermometer",
 				"state_class": "measurement",
-				"icon": "mdi:thermometer"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.inverter_temp_internal }}"
 			}
 		},
 		{
 			"name": "inverter_temp_heatsink",
 			"register": "0x041A",
 			"ha": {
-				"name": "Sofar:Inverter temp heatsink",
-				"unique_id": "Sofar_inverter_temp_heatsink",
 				"device_class": "temperature",
 				"unit_of_measurement": "C",
+				"name": "Heatsink Temperature",
+				"icon": "mdi:thermometer",
 				"state_class": "measurement",
-				"icon": "mdi:thermometer"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.inverter_temp_heatsink }}"
 			}
 		},
 		{
@@ -599,12 +719,16 @@
 			"function": "multiply",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Offgrid Active power",
-				"unique_id": "sofar_offgrid_active_power",
 				"device_class": "power",
 				"unit_of_measurement": "W",
+				"name": "Off-Grid Power",
+				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.offgrid_active_power }}"
 			}
 		},
 		{
@@ -613,12 +737,16 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Offgrid Frequency",
-				"unique_id": "sofar_offgrid_frequency",
 				"device_class": "frequency",
 				"unit_of_measurement": "Hz",
+				"name": "Off-Grid Frequency",
+				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.offgrid_frequency }}"
 			}
 		},
 		{
@@ -627,12 +755,16 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Offgrid Voltage",
-				"unique_id": "sofar_offgrid_voltage",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
+				"name": "Off-Grid Voltage",
+				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-high"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.offgrid_voltage }}"
 			}
 		},
 		{
@@ -642,12 +774,16 @@
 			"factor": 100,
 			"signed": true,
 			"ha": {
-				"name": "Sofar:Battery current",
-				"unique_id": "sofar_battery_current_now",
 				"device_class": "current",
 				"unit_of_measurement": "A",
+				"name": "Battery Current",
+				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-50"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.battery_current }}"
 			}
 		},
 		{
@@ -657,12 +793,16 @@
 			"factor": 10,
 			"signed": true,
 			"ha": {
-				"name": "Sofar:Battery power",
-				"unique_id": "sofar_battery_power_now",
 				"device_class": "power",
 				"unit_of_measurement": "W",
+				"name": "Battery Power",
+				"icon": "mdi:flash",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-50"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.battery_power }}"
 			}
 		},
 		{
@@ -671,12 +811,16 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Solar generation",
-				"unique_id": "sofar_solar_generation_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Generation",
+				"icon": "mdi:solar-power",
 				"state_class": "total_increasing",
-				"icon": "mdi:solar-power"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.today_generation }}"
 			}
 		},
 		{
@@ -685,12 +829,16 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Consumption",
-				"unique_id": "Sofar_consumption_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Consumption",
+				"icon": "mdi:home-import-outline",
 				"state_class": "total_increasing",
-				"icon": "mdi:home-import-outline"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.today_consumption }}"
 			}
 		},
 		{
@@ -699,12 +847,16 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Import",
-				"unique_id": "Sofar_import_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Import",
+				"icon": "mdi:home-import-outline",
 				"state_class": "total_increasing",
-				"icon": "mdi:home-import-outline"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.today_import }}"
 			}
 		},
 		{
@@ -713,12 +865,16 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Export",
-				"unique_id": "Sofar_export_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Export",
+				"icon": "mdi:home-export-outline",
 				"state_class": "total_increasing",
-				"icon": "mdi:home-export-outline"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.today_export }}"
 			}
 		},
 		{
@@ -727,12 +883,16 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Battery discharge",
-				"unique_id": "sofar_battery_discharge_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Battery Discharge",
+				"icon": "mdi:battery-charging-50",
 				"state_class": "total_increasing",
-				"icon": "mdi:battery-charging-50"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.today_battery_discharge }}"
 			}
 		},
 		{
@@ -741,12 +901,16 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Battery charge",
-				"unique_id": "sofar_battery_charge_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Battery Charge",
+				"icon": "mdi:battery-charging",
 				"state_class": "total_increasing",
-				"icon": "mdi:battery-charging"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.today_battery_charge }}"
 			}
 		},
 		{
@@ -755,12 +919,16 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar Battery:Voltage",
-				"unique_id": "sofar_battery_voltage",
 				"device_class": "energy",
 				"unit_of_measurement": "V",
+				"name": "Battery Voltage",
+				"icon": "mdi:battery-charging-high",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-high"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.battery_voltage }}"
 			}
 		},
 		{
@@ -768,46 +936,64 @@
 			"register": "0x0607",
 			"signed": true,
 			"ha": {
-				"name": "Sofar Battery:Temp",
-				"unique_id": "sofar_battery_temp",
 				"device_class": "temperature",
 				"unit_of_measurement": "C",
+				"name": "Battery Temperature",
+				"icon": "mdi:thermometer",
 				"state_class": "measurement",
-				"icon": "mdi:thermometer"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.battery_voltage }}"
 			}
 		},
 		{
 			"name": "battery_soc",
 			"register": "0x0608",
 			"ha": {
-				"name": "Sofar:Battery SoC",
-				"unique_id": "Sofar_battery_SoC",
 				"device_class": "battery",
 				"unit_of_measurement": "%",
+				"name": "Battery SOC",
+				"icon": "mdi:battery-charging-outline",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-outline"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.battery_soc }}"
 			}
 		},
 		{
 			"name": "battery_soh",
 			"register": "0x0609",
 			"ha": {
-				"name": "Sofar:Battery SoH",
-				"unique_id": "Sofar_battery_SoH",
 				"device_class": "battery",
 				"unit_of_measurement": "%",
+				"name": "Battery SOH",
+				"icon": "mdi:battery-charging-outline",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-outline"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.battery_soh }}"
 			}
 		},
 		{
 			"name": "battery_cycles",
 			"register": "0x060A",
 			"ha": {
-				"name": "Sofar:Battery cycles",
-				"unique_id": "Sofar_battery_cycles",
+				"device_class": "battery",
+				"unit_of_measurement": "%",
+				"name": "Battery Cycles",
+				"icon": "mdi:battery-clock-outline",
 				"state_class": "measurement",
-				"icon": "mdi:battery-clock-outline"
+				"state_topic": "sofar/state_all",
+				"enabled_by_default": "true",
+				"entity_category": "diagnostic",
+				"availability_mode": "all",
+				"value_template": "{{ value_json.battery_cycles }}"
 			}
 		}
 	]
