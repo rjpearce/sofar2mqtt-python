@@ -61,106 +61,6 @@
 			"value_template": "{{ value_json.sw_version_slave }}"
 		},
 		{
-			"name": "eps_control",
-			"register": "0x1029",
-			"desc": "EPS On/Off control",
-			"type": "U16",
-			"function": "mode",
-			"modes": {
-				"0": "Off",
-				"1": "On"
-			},
-			"write": true,
-			"untested": true
-		},
-		{
-			"name": "remote_on_off_control",
-			"register": "0x1104",
-			"desc": "Turn inverter on/off",
-			"type": "U16",
-			"function": "mode",
-			"modes": {
-				"0": "Off",
-				"1": "On"
-			},
-			"write": true,
-			"untested": true
-		},
-		{
-			"name": "power_control",
-			"register": "0x1105",
-			"desc": "AC power control settings (0 to 100%)",
-			"type": "U16",
-			"min": 0,
-			"max": 100,
-			"write": true,
-			"untested": true
-		},
-		{
-			"name": "active_power_export_limit",
-			"register": "0x1106",
-			"desc": "AC output active power maximum percentage (0 to 100%)",
-			"type": "U16",
-			"min": 0,
-			"max": 100,
-			"write": true,
-			"untested": true
-		},
-		{
-			"name": "active_power_import_limit",
-			"register": "0x1107",
-			"desc": "AC input active power maximum percentage (0 to 100%)",
-			"type": "U16",
-			"min": 0,
-			"max": 100,
-			"write": true,
-			"untested": true
-		},
-		{
-			"name": "reactive_power_setting",
-			"register": "0x1108",
-			"desc": "AC reactive power percentage (-100 to 100%)",
-			"type": "I16",
-			"min": -100,
-			"max": 100,
-			"signed": true,
-			"write": true,
-			"untested": true
-		},
-		{
-			"name": "power_factor_setting",
-			"register": "0x1109",
-			"desc": "AC power factor (-1.00 to 1.00)",
-			"type": "I16",
-			"min": -1.00,
-			"max": 1.0,
-			"signed": true,
-			"write": true,
-			"untested": true
-		},
-		{
-			"name": "active_power_limit_speed",
-			"register": "0x110a",
-			"desc": "The charge rate of active power (1 to 3000%)",
-			"type": "U16",
-			"min": 1,
-			"max": 3000,
-			"signed": true,
-			"write": true,
-			"untested": true
-		},
-		{
-			"name": "reactive_power_response_time",
-			"register": "0x110b",
-			"desc": "Reactive power response time in secs (0.1 to 600)",
-			"type": "U16",
-			"min": 0.1,
-			"max": 600,
-			"signed": true,
-			"write": true,
-			"untested": true
-		},
-		{
 			"name": "energy_storage_mode",
 			"register": "0x1110",
 			"desc": "Storage mode",
@@ -1004,6 +904,106 @@
 				"availability_mode": "all",
 				"value_template": "{{ value_json.battery_cycles }}"
 			}
-		}
+		},
+		{
+			"name": "eps_control",
+			"register": "0x1029",
+			"desc": "EPS On/Off control",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Off",
+				"1": "On"
+			},
+			"write": true,
+			"untested": true
+		},
+		{
+			"name": "remote_on_off_control",
+			"register": "0x1104",
+			"desc": "Turn inverter on/off",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Off",
+				"1": "On"
+			},
+			"write": true,
+			"untested": true
+		},
+		{
+			"name": "power_control",
+			"register": "0x1105",
+			"desc": "AC power control settings (0 to 100%)",
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+			"write": true,
+			"untested": true
+		},
+		{
+			"name": "active_power_export_limit",
+			"register": "0x1106",
+			"desc": "AC output active power maximum percentage (0 to 100%)",
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+			"write": true,
+			"untested": true
+		},
+		{
+			"name": "active_power_import_limit",
+			"register": "0x1107",
+			"desc": "AC input active power maximum percentage (0 to 100%)",
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+			"write": true,
+			"untested": true
+		},
+		{
+			"name": "reactive_power_setting",
+			"register": "0x1108",
+			"desc": "AC reactive power percentage (-100 to 100%)",
+			"type": "I16",
+			"min": -100,
+			"max": 100,
+			"signed": true,
+			"write": true,
+			"untested": true
+		},
+		{
+			"name": "power_factor_setting",
+			"register": "0x1109",
+			"desc": "AC power factor (-1.00 to 1.00)",
+			"type": "I16",
+			"min": -1.00,
+			"max": 1.0,
+			"signed": true,
+			"write": true,
+			"untested": true
+		},
+		{
+			"name": "active_power_limit_speed",
+			"register": "0x110a",
+			"desc": "The charge rate of active power (1 to 3000%)",
+			"type": "U16",
+			"min": 1,
+			"max": 3000,
+			"signed": true,
+			"write": true,
+			"untested": true
+		},
+		{
+			"name": "reactive_power_response_time",
+			"register": "0x110b",
+			"desc": "Reactive power response time in secs (0.1 to 600)",
+			"type": "U16",
+			"min": 0.1,
+			"max": 600,
+			"signed": true,
+			"write": true,
+			"untested": true
+		},
 	]
 }
