@@ -189,16 +189,19 @@ class Sofar():
                             value = abs(value)
             else:
                 read_type = 'register'
+                registers = 1
                 if 'read_type' in register:
                     read_type = register['read_type']
+                if 'registers' in register:
+                    registers = register['registers']
                 value = self.read_value(
                         int(register['register'], 16),
                         read_type,
-                        signed
+                        signed,
+                        registers
                 )
             if value is None:
                 continue
-
             else:
                 # Inverter will return maximum 16-bit integer value when data not available (eg. grid usage when grid down)
                 if value == 65535:
@@ -434,7 +437,7 @@ class Sofar():
             else:
                 logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
 
-    def read_value(self, registeraddress, read_type, signed):
+    def read_value(self, registeraddress, read_type, signed, registers=1):
         """ Read value from register with a retry mechanism """
         with self.mutex:
             value = None
@@ -448,6 +451,9 @@ class Sofar():
                     elif read_type == "long":
                         value = self.instrument.read_long(
                             registeraddress, functioncode=3, signed=True, number_of_registers=2)
+                    elif read_type == "string":
+                        value = self.instrument.read_string(
+                            registeraddress, functioncode=3, number_of_registers=registers)
                 except minimalmodbus.NoResponseError:
                     logging.debug(traceback.format_exc())
                     retry = retry - 1

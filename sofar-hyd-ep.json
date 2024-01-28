@@ -3,7 +3,7 @@
 		{
 			"name": "serial_number",
 			"register": "0x0445",
-			"type": "string",
+			"read_type": "string",
 			"registers": 7,
 			"icon": "mdi:information",
 			"state_topic": "sofar/state_all",
@@ -15,7 +15,7 @@
 		{
 			"name": "hw_version",
 			"register": "0x044D",
-			"type": "string",
+			"read_type": "string",
 			"registers": 2,
 			"icon": "mdi:information",
 			"state_topic": "sofar/state_all",
@@ -27,7 +27,7 @@
 		{
 			"name": "sw_version_com",
 			"register": "0x044F",
-			"type": "string",
+			"read_type": "string",
 			"registers": 4,
 			"icon": "mdi:information",
 			"state_topic": "sofar/state_all",
@@ -39,7 +39,7 @@
 		{
 			"name": "sw_version_master",
 			"register": "0x0454",
-			"type": "string",
+			"read_type": "string",
 			"registers": 4,
 			"icon": "mdi:information",
 			"state_topic": "sofar/state_all",
@@ -51,7 +51,7 @@
 		{
 			"name": "sw_version_slave",
 			"register": "0x0457",
-			"type": "string",
+			"read_type": "string",
 			"registers": 4,
 			"icon": "mdi:information",
 			"state_topic": "sofar/state_all",
