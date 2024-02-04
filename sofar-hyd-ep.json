@@ -4,61 +4,31 @@
 			"name": "serial_number",
 			"register": "0x0445",
 			"read_type": "string",
-			"registers": 7,
-                        "ha": {
-                            "name": "Serial Number",
-                            "icon": "mdi:information",
-                            "entity_category": "diagnostic",
-                            "value_template": "{{ value_json.serial_number }}"
-                        }
+			"registers": 7
 		},
 		{
 			"name": "hw_version",
 			"register": "0x044D",
 			"read_type": "string",
-			"registers": 2,
-                        "ha": {
-			    "name": "Hardware Version",
-                            "icon": "mdi:information",
-                            "entity_category": "diagnostic",
-                            "value_template": "{{ value_json.hw_version }}"
-                        }
+			"registers": 2
 		},
 		{
 			"name": "sw_version_com",
 			"register": "0x044F",
 			"read_type": "string",
-			"registers": 4,
-                        "ha": {
-			    "name": "Software Version COM",
-                            "icon": "mdi:information",
-                            "entity_category": "diagnostic",
-                            "value_template": "{{ value_json.sw_version_com }}"
-                        }
+			"registers": 4
 		},
 		{
 			"name": "sw_version_master",
 			"register": "0x0454",
 			"read_type": "string",
-			"registers": 4,
-                        "ha": {
-			    "name": "Software Version Master",
-                            "icon": "mdi:information",
-                            "entity_category": "diagnostic",
-                            "value_template": "{{ value_json.sw_version_master }}"
-                        }
+			"registers": 4
 		},
 		{
 			"name": "sw_version_slave",
 			"register": "0x0457",
 			"read_type": "string",
-			"registers": 4,
-                        "ha": {
-			    "name": "Software Version Slave",
-                            "icon": "mdi:information",
-                            "entity_category": "diagnostic",
-                            "value_template": "{{ value_json.sw_version_slave }}"
-                        }
+			"registers": 4
 		},
 		{
 			"name": "energy_storage_mode",
@@ -125,31 +95,19 @@
 			"modes": {
 				"0": "Disabled",
 				"1": "Enabled"
-			},
-			"ha": {
-				"name": "Time of use",
-				"icon": "mdi:battery-clock-outline"
 			}
 		},
 		{
 			"name": "time_of_use_charge_start_time",
 			"register": "0x1122",
 			"function": "high_bit_low_bit",
-			"join": ":",
-			"ha": {
-				"name": "Time of use - Start time",
-				"icon": "mdi:battery-clock-outline"
-			}
+			"join": ":"
 		},
 		{
 			"name": "time_of_use_charge_end_time",
 			"register": "0x1123",
 			"function": "high_bit_low_bit",
-			"join": ":",
-			"ha": {
-				"name": "Time of use - End time",
-				"icon": "mdi:battery-clock-outline"
-			}
+			"join": ":"
 		},
 		{
 			"name": "time_of_use_charge_soc",
@@ -158,40 +116,24 @@
 			"function": "int",
 			"min": 30,
 			"max": 100,
-			"write": true,
-			"ha": {
-				"name": "Time of use - SOC",
-				"icon": "mdi:battery-clock-outline"
-			}
+			"write": true
 		},
 		{
 			"name": "time_of_use_charge_power",
 			"register": "0x1125",
-			"read_type": "long",
-			"ha": {
-				"name": "Time of use - Power",
-				"icon": "mdi:battery-clock-outline"
-			}
+			"read_type": "long"
 		},
 		{
 			"name": "time_of_use_start_date",
 			"register": "0x1127",
 			"function": "high_bit_low_bit",
-			"join": "/",
-			"ha": {
-				"name": "Time of use - Start date",
-				"icon": "mdi:battery-clock-outline"
-			}
+			"join": "/"
 		},
 		{
 			"name": "time_of_use_end_date",
 			"register": "0x1128",
 			"function": "high_bit_low_bit",
-			"join": "/",
-			"ha": {
-				"name": "Time of use - End date",
-				"icon": "mdi:battery-clock-outline"
-			}
+			"join": "/"
 		},
 		{
 			"name": "time_of_use_dow",
@@ -205,12 +147,7 @@
 				"Wed",
 				"Tue",
 				"Mon"
-			],
-			"ha": {
-				"name": "Time of use - DoW",
-				"state_class": "measurement",
-				"icon": "mdi:calendar-today-outline"
-			}
+			]
 		},
 		{
 			"name": "desired_power",
@@ -439,16 +376,7 @@
 		},
 		{
 			"name": "insulation_resistance",
-			"register": "0x042B",
-			"ha": {
-				"device_class": "energy",
-				"name": "Insulation Resistance",
-				"icon": "mdi:flash",
-				"state_class": "measurement",
-				"unit_of_measurement": "Ohms",
-				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.insulation_resistance }}"
-			}
+			"register": "0x042B"
 		},
 		{
 			"name": "ongrid_frequency",
@@ -485,7 +413,7 @@
 			"register": "0x0418",
 			"ha": {
 				"device_class": "temperature",
-				"unit_of_measurement": "C",
+				"unit_of_measurement": "°C",
 				"name": "Internal Temperature",
 				"icon": "mdi:thermometer",
 				"state_class": "measurement",
@@ -498,7 +426,7 @@
 			"register": "0x041A",
 			"ha": {
 				"device_class": "temperature",
-				"unit_of_measurement": "C",
+				"unit_of_measurement": "°C",
 				"name": "Heatsink Temperature",
 				"icon": "mdi:thermometer",
 				"state_class": "measurement",
@@ -595,7 +523,7 @@
 				"icon": "mdi:solar-power",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_generation }}"
+				"value_template": "{{ value_json.solar_generation_today }}"
 			}
 		},
 		{
@@ -625,7 +553,7 @@
 				"icon": "mdi:home-import-outline",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_import }}"
+				"value_template": "{{ value_json.import_today }}"
 			}
 		},
 		{
@@ -640,7 +568,7 @@
 				"icon": "mdi:home-export-outline",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_export }}"
+				"value_template": "{{ value_json.export_today }}"
 			}
 		},
 		{
@@ -655,7 +583,7 @@
 				"icon": "mdi:battery-charging-50",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_battery_discharge }}"
+				"value_template": "{{ value_json.battery_discharge_today }}"
 			}
 		},
 		{
@@ -670,7 +598,7 @@
 				"icon": "mdi:battery-charging",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_battery_charge }}"
+				"value_template": "{{ value_json.battery_charge_today }}"
 			}
 		},
 		{
@@ -679,7 +607,7 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"device_class": "energy",
+				"device_class": "voltage",
 				"unit_of_measurement": "V",
 				"name": "Battery Voltage",
 				"icon": "mdi:battery-charging-high",
@@ -694,12 +622,12 @@
 			"signed": true,
 			"ha": {
 				"device_class": "temperature",
-				"unit_of_measurement": "C",
+				"unit_of_measurement": "°C",
 				"name": "Battery Temperature",
 				"icon": "mdi:thermometer",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.battery_voltage }}"
+				"value_template": "{{ value_json.battery_temp }}"
 			}
 		},
 		{

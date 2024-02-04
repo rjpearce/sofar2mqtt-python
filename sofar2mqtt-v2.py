@@ -281,11 +281,12 @@ class Sofar():
             "object_id": "sofar2mqtt_python_bridge_connection_state",
             "payload_off": "offline",
             "payload_on": "online",
-            "state_topic": "sofar/state_all",
+            "state_topic": "sofar2mqtt_python/bridge",
             "unique_id": f"bridge_{sn}_connection_state_sofar2mqtt_python",
-            "value_template": "{{ value_json.bridge }}"
+            "value_template": "{{ value_json.state }}"
         }
         topic = f"homeassistant/binary_sensor/{sn}/connection_state/config"
+
         try:
             self.client.publish(topic, json.dumps(payload), retain=False)
         except Exception:
@@ -295,29 +296,30 @@ class Sofar():
                 continue
             try:
                 default_payload = {
-                    "availability": [
-                        {
-                            "topic": "sofar/state_all",
-                            "value_template": "{{ value_json.bridge }}"
-                        }
-                    ],
+                    "name": register['name'],
+                    "state_topic": "sofar/state_all",
+                    "unique_id": f"{sn}_{register['name']}",
+                    "enabled_by_default": "true",
                     "device": {
-                        "name": sn,
-                        "sw_version": "1.35.1",
+                        "name": f"Sofar Inverter",
+                        "sw_version": self.data["sw_version_com"],
+                        "hw_version": self.data["hw_version"],
                         "manufacturer": "SOFAR",
                         "model": "HYD-6000-EP",
-                        "identifiers": [f"sofar2mqtt_python_{sn}"],
+                        "configuration_url": "https://github.com/rjpearce/sofar2mqtt-python",
+                        "identifiers": [f"{sn}"]
                     },
-                    "state_topic": "sofar/state_all",
-                    "unique_id": f"sofar_{register['name']}",
-                    "enabled_by_default": "true",
-                    "availability_mode": "all",
+                    "availability": [
+                        {
+                            "topic": "sofar2mqtt_python/bridge",
+                            "value_template": "{{ value_json.state }}"
+                       }
+                    ],
                 }
                 payload = default_payload | register['ha']
                 control = 'sensor'
                 if 'control' in register['ha']:
                     control = register['ha']['control']
-                    payload.pop('control')
                 topic = f"homeassistant/{control}/sofar_{register['name']}/config"
                 self.client.publish(topic, json.dumps(payload), retain=False)
             except Exception:
@@ -333,10 +335,12 @@ class Sofar():
             while self.daemon:
                 self.read()
                 self.publish_state()
+                self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "online"}), retain=False)
                 if iteration == 0:
                     self.data['bridge'] = "online"
                     self.publish_mqtt_discovery()
                 time.sleep(self.refresh_interval)
+                iteration+=1
 
     def publish(self, key, value):
         if key == 'energy_storage_mode':
