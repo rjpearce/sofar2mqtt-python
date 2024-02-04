@@ -26,7 +26,7 @@ class Sofar():
     """ Sofar """
 
     # pylint: disable=line-too-long,too-many-arguments
-    def __init__(self, config_file_path, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device):
+    def __init__(self, config_file_path, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish):
         self.config = load_config(config_file_path)
         self.write_registers = []
         untested = False
@@ -54,6 +54,7 @@ class Sofar():
         self.retries = 0
         self.instrument = None
         self.device = device
+        self.legacy_publish = legacy_publish
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
@@ -348,11 +349,12 @@ class Sofar():
                 if value != self.data[key]:
                     logging.info(f"energy_storage_mode has changed to: {value}")
         self.data[key] = value
-        logging.debug('Publishing %s:%s', self.topic + key, value)
-        try:
-            self.client.publish(self.topic + key, value, retain=True)
-        except Exception:
-            logging.debug(traceback.format_exc())
+        if self.legacy_publish:
+            logging.debug('Publishing %s:%s', self.topic + key, value)
+            try:
+                self.client.publish(self.topic + key, value, retain=True)
+            except Exception:
+                logging.debug(traceback.format_exc())
 
     def write_value(self, register, value):
         """ Read value from register with a retry mechanism """
@@ -535,10 +537,16 @@ class Sofar():
     default='/dev/ttyUSB0',
     help='RS485/USB Device'
 )
+@click.option(
+    '--legacy-publish',
+    envvar='LEGACY_PUBLISH',
+    default=True,
+    help='Publish each register to MQTT individually in addition to state which contains all values',
+)
 # pylint: disable=too-many-arguments
-def main(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device):
+def main(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish):
     """Main"""
-    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device)
+    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish)
     sofar.main()
 
 # pylint: disable=no-value-for-parameter
