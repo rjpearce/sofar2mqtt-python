@@ -549,7 +549,7 @@
 				"icon": "mdi:solar-power",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.solar_generation_today }}"
+				"value_template": "{{ value_json.today_generation }}"
 			},
                         "refresh": 60
 		},
@@ -581,7 +581,7 @@
 				"icon": "mdi:home-import-outline",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.import_today }}"
+				"value_template": "{{ value_json.today_import }}"
 			},
                         "refresh": 60
 		},
@@ -597,7 +597,7 @@
 				"icon": "mdi:home-export-outline",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.export_today }}"
+				"value_template": "{{ value_json.today_export }}"
 			},
                         "refresh": 60
 		},
@@ -613,7 +613,7 @@
 				"icon": "mdi:battery-charging-50",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.battery_discharge_today }}"
+				"value_template": "{{ value_json.today_battery_discharge }}"
 			},
                         "refresh": 60
 		},
@@ -629,7 +629,7 @@
 				"icon": "mdi:battery-charging",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.battery_charge_today }}"
+				"value_template": "{{ value_json.today_battery_charge }}"
 			},
                         "refresh": 60
 		},
