@@ -162,7 +162,6 @@ class Sofar():
             self.instrument.serial.parity = serial.PARITY_NONE
             self.instrument.serial.stopbits = 1
             self.instrument.serial.timeout  = 0.1   # seconds
-            self.instrument.clear_buffers_before_each_transaction = True
             self.instrument.close_port_after_each_call = True
 
     def read_and_publish(self):
@@ -483,7 +482,7 @@ class Sofar():
 @click.option(
     '--refresh-interval',
     envvar='REFRESH_INTERVAL',
-    default=1,
+    default=0.1,
     type=int,
     help='Refresh data every n seconds',
 )
