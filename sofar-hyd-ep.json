@@ -206,8 +206,7 @@
 			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Charging, Negative value=Discharging",
 			"signed": true,
-			"read_type": "long",
-                        "refresh": 3600
+			"read_type": "long"
 		},
 		{
 			"name": "maximum_battery_power",
@@ -215,8 +214,7 @@
 			"desc": "Maximum battery power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Charging, Negative value=Discharging",
 			"signed": true,
-			"read_type": "long",
-                        "refresh": 3600
+			"read_type": "long"
 		},
 		{
 			"name": "state",
