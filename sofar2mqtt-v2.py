@@ -63,6 +63,7 @@ class Sofar():
         self.client.enable_logger(logger=logging)
         self.setup_mqtt()
         self.setup_instrument()
+        self.iteration = 0
         
     def on_connect(self, client, userdata, flags, rc, properties=None):
         logging.info("MQTT "+mqtt.connack_string(rc))
@@ -161,11 +162,17 @@ class Sofar():
             self.instrument.serial.bytesize = 8
             self.instrument.serial.parity = serial.PARITY_NONE
             self.instrument.serial.stopbits = 1
-            self.instrument.serial.timeout  = 0.1   # seconds
+            self.instrument.serial.timeout  = 0.2   # seconds
             self.instrument.close_port_after_each_call = True
 
     def read_and_publish(self):
         for register in self.config['registers']:
+            refresh = 1
+            if 'refresh' in register:
+                refresh = register['refresh'] 
+            if (self.iteration % refresh) != 0:
+                logging.debug("Skipping {register['name']}")
+                continue
             value = None
             signed = False
             logging.debug('Reading %s', register['name'])
@@ -327,8 +334,6 @@ class Sofar():
 
     def main(self):
         """ Main method """
-        iteration = 0
-
         if not self.daemon:
             self.read_and_publish()
         else:
@@ -336,11 +341,10 @@ class Sofar():
                 self.read()
                 self.publish_state()
                 self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "online"}), retain=False)
-                if iteration == 0:
-                    self.data['bridge'] = "online"
+                if self.iteration == 0:
                     self.publish_mqtt_discovery()
                 time.sleep(self.refresh_interval)
-                iteration+=1
+                self.iteration+=1
 
     def publish(self, key, value):
         if key == 'energy_storage_mode':
@@ -482,7 +486,7 @@ class Sofar():
 @click.option(
     '--refresh-interval',
     envvar='REFRESH_INTERVAL',
-    default=0.1,
+    default=0,
     type=int,
     help='Refresh data every n seconds',
 )

@@ -4,31 +4,36 @@
 			"name": "serial_number",
 			"register": "0x0445",
 			"read_type": "string",
-			"registers": 7
+			"registers": 7,
+                        "refresh": 86400
 		},
 		{
 			"name": "hw_version",
 			"register": "0x044D",
 			"read_type": "string",
-			"registers": 2
+			"registers": 2,
+                        "refresh": 86400
 		},
 		{
 			"name": "sw_version_com",
 			"register": "0x044F",
 			"read_type": "string",
-			"registers": 4
+			"registers": 4,
+                        "refresh": 86400
 		},
 		{
 			"name": "sw_version_master",
 			"register": "0x0454",
 			"read_type": "string",
-			"registers": 4
+			"registers": 4,
+                        "refresh": 86400
 		},
 		{
 			"name": "sw_version_slave",
 			"register": "0x0457",
 			"read_type": "string",
-			"registers": 4
+			"registers": 4,
+                        "refresh": 86400
 		},
 		{
 			"name": "energy_storage_mode",
@@ -62,31 +67,37 @@
 		},
 		{
 			"name": "charge_start_time",
-			"register": "0x1113"
+			"register": "0x1113",
+                        "refresh": 3600
 		},
 		{
 			"name": "charge_end_time",
-			"register": "0x1114"
+			"register": "0x1114",
+                        "refresh": 3600
 		},
 		{
 			"name": "discharge_start_time",
-			"register": "0x1115"
+			"register": "0x1115",
+                        "refresh": 3600
 		},
 		{
 			"name": "discharge_end_time",
-			"register": "0x1116"
+			"register": "0x1116",
+                        "refresh": 3600
 		},
 		{
 			"name": "charge_power",
 			"register": "0x1117",
 			"function": "multiply",
-			"factor": 10
+			"factor": 10,
+                        "refresh": 3600
 		},
 		{
 			"name": "discharge_power",
 			"register": "0x1118",
 			"function": "multiply",
-			"factor": 10
+			"factor": 10,
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use",
@@ -95,19 +106,22 @@
 			"modes": {
 				"0": "Disabled",
 				"1": "Enabled"
-			}
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_start_time",
 			"register": "0x1122",
 			"function": "high_bit_low_bit",
-			"join": ":"
+			"join": ":",
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_end_time",
 			"register": "0x1123",
 			"function": "high_bit_low_bit",
-			"join": ":"
+			"join": ":",
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_soc",
@@ -116,24 +130,28 @@
 			"function": "int",
 			"min": 30,
 			"max": 100,
-			"write": true
+			"write": true,
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_power",
 			"register": "0x1125",
-			"read_type": "long"
+			"read_type": "long",
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_start_date",
 			"register": "0x1127",
 			"function": "high_bit_low_bit",
-			"join": "/"
+			"join": "/",
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_end_date",
 			"register": "0x1128",
 			"function": "high_bit_low_bit",
-			"join": "/"
+			"join": "/",
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_dow",
@@ -147,7 +165,8 @@
 				"Wed",
 				"Tue",
 				"Mon"
-			]
+			],
+                        "refresh": 3600
 		},
 		{
 			"name": "desired_power",
@@ -187,7 +206,8 @@
 			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Charging, Negative value=Discharging",
 			"signed": true,
-			"read_type": "long"
+			"read_type": "long",
+                        "refresh": 3600
 		},
 		{
 			"name": "maximum_battery_power",
@@ -195,7 +215,8 @@
 			"desc": "Maximum battery power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Charging, Negative value=Discharging",
 			"signed": true,
-			"read_type": "long"
+			"read_type": "long",
+                        "refresh": 3600
 		},
 		{
 			"name": "state",
@@ -376,7 +397,8 @@
 		},
 		{
 			"name": "insulation_resistance",
-			"register": "0x042B"
+			"register": "0x042B",
+                        "refresh": 3600
 		},
 		{
 			"name": "ongrid_frequency",
@@ -391,7 +413,8 @@
 				"unit_of_measurement": "Hz",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.ongrid_frequency }}"
-			}
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "ongrid_voltage",
@@ -406,7 +429,8 @@
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.ongrid_voltage }}"
-			}
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "inverter_temp_internal",
@@ -462,7 +486,8 @@
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_frequency }}"
-			}
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "offgrid_voltage",
@@ -477,7 +502,8 @@
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_voltage }}"
-			}
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "battery_current",
@@ -524,7 +550,8 @@
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.solar_generation_today }}"
-			}
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "today_consumption",
@@ -539,7 +566,8 @@
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_consumption }}"
-			}
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "today_import",
@@ -554,7 +582,8 @@
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.import_today }}"
-			}
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "today_export",
@@ -569,7 +598,8 @@
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.export_today }}"
-			}
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "today_battery_discharge",
@@ -584,7 +614,8 @@
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_discharge_today }}"
-			}
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "today_battery_charge",
@@ -599,7 +630,8 @@
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_charge_today }}"
-			}
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "battery_voltage",
@@ -654,7 +686,8 @@
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_soh }}"
-			}
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "battery_cycles",
@@ -667,7 +700,8 @@
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_cycles }}"
-			}
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "eps_control",
@@ -680,7 +714,8 @@
 				"1": "On"
 			},
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "remote_on_off_control",
@@ -693,7 +728,8 @@
 				"1": "On"
 			},
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "power_control",
@@ -703,7 +739,8 @@
 			"min": 0,
 			"max": 100,
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "active_power_export_limit",
@@ -713,7 +750,8 @@
 			"min": 0,
 			"max": 100,
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "active_power_import_limit",
@@ -723,7 +761,8 @@
 			"min": 0,
 			"max": 100,
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "reactive_power_setting",
@@ -734,7 +773,8 @@
 			"max": 100,
 			"signed": true,
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "power_factor_setting",
@@ -745,7 +785,8 @@
 			"max": 1.0,
 			"signed": true,
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "active_power_limit_speed",
@@ -756,7 +797,8 @@
 			"max": 3000,
 			"signed": true,
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "reactive_power_response_time",
@@ -767,7 +809,8 @@
 			"max": 600,
 			"signed": true,
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "passive_timeout",
@@ -776,7 +819,8 @@
 			"desc2": "When the inverter does not receive any communication frame within time set in this register the inverter forces Passive_Timeout_Action",
 			"type": "U16",
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "passive_timeout_action",
@@ -789,7 +833,8 @@
 				"1": "Force to last storage mode"
 			},
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		},
 		{
 			"name": "desired_power_grid",
@@ -803,7 +848,8 @@
 			"min": -999999,
 			"max": 999999,
 			"write": true,
-			"untested": true
+			"untested": true,
+                        "refresh": 86400
 		}
 	]
 }
