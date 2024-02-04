@@ -306,6 +306,7 @@ class Sofar():
                     "name": register['name'],
                     "state_topic": "sofar/state_all",
                     "unique_id": f"{sn}_{register['name']}",
+                    "entity_id": f"sofar_{register['name']}",
                     "enabled_by_default": "true",
                     "device": {
                         "name": f"Sofar Inverter",
