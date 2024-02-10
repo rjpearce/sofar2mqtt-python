@@ -4,6 +4,7 @@ import datetime
 import json
 import time
 import signal
+import socket
 import logging
 import threading
 import click
@@ -21,7 +22,6 @@ def load_config(config_file_path):
     with open(config_file_path, mode='r', encoding='utf-8') as config_file:
         config = json.loads(config_file.read())
     return config
-
 
 # pylint: disable=too-many-instance-attributes
 class Sofar():
@@ -59,11 +59,10 @@ class Sofar():
         self.legacy_publish = legacy_publish
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
-        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
+        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.getLevelName(log_level))
         self.mutex = threading.Lock()
-        self.client = mqtt.Client(client_id="sofar2mqtt", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
-        self.client.enable_logger(logger=logging)
-        self.setup_mqtt()
+        self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
+        self.setup_mqtt(logging)
         self.setup_instrument()
         self.iteration = 0
         
@@ -143,7 +142,8 @@ class Sofar():
             logging.error(f"Received a request to set an unknown register: {register_name} to {payload}")
 
 
-    def setup_mqtt(self):
+    def setup_mqtt(self, logging):
+        self.client.enable_logger(logger=logging)
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         if self.username is not None and self.password is not None:
@@ -153,8 +153,8 @@ class Sofar():
             logging.info(f"MQTT connecting to broker {self.broker} port {self.port} without auth")
         self.client.reconnect_delay_set(min_delay=1, max_delay=300)
         self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
-
         self.client.loop_start()
+        self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "online"}), retain=False)
 
     def setup_instrument(self):
         with self.mutex:
@@ -173,7 +173,7 @@ class Sofar():
             if 'refresh' in register:
                 refresh = register['refresh'] 
             if (self.iteration % refresh) != 0:
-                logging.debug("Skipping {register['name']}")
+                logging.debug(f"Skipping {register['name']}")
                 continue
             value = None
             signed = False
@@ -336,34 +336,30 @@ class Sofar():
                 logging.info(traceback.format_exc())
 
     def signal_handler(self, sig, _frame):
-        logging.info(f"Received signal {sig}, attempting to stop")
+      logging.info(f"Received signal {sig}, attempting to stop")
+      self.daemon = False
 
-    def run(self):
-        while True:
-            self.read()
-            self.publish_state()
-            self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "online"}), retain=False)
-            if self.iteration == 0:
-                self.publish_mqtt_discovery()
-            time.sleep(self.refresh_interval)
-            self.iteration+=1
+    def terminate(self):
+      logging.info("Terminating")
+      self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "offline"}), retain=False)
+      self.client.loop_stop()
+      exit(0)
 
     def main(self):
         """ Main method """
-        if not self.daemon:
-            self.read_and_publish()
-            exit(0)
-        process = Process(target=self.run)
-        self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "online"}), retain=False)
-        process.start()
         signal.signal(signal.SIGTERM, self.signal_handler)
         signal.signal(signal.SIGINT, self.signal_handler)
-        signal.pause()
-        process.terminate()
-        self.daemon = False
-        logging.info("Terminating ..")
-        self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "offline"}), retain=False)
-        self.client.loop_stop()
+        if not self.daemon:
+          self.read_and_publish()
+        while (self.daemon):
+            self.read()
+            if self.iteration == 0:
+                logging.info("Publishing discovery")
+                self.publish_mqtt_discovery()
+            self.publish_state()
+            time.sleep(self.refresh_interval)
+            self.iteration+=1
+        self.terminate()
 
     def publish(self, key, value):
         if key == 'energy_storage_mode':
