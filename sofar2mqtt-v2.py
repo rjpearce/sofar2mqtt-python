@@ -3,13 +3,15 @@
 import datetime
 import json
 import time
+import signal
 import logging
+import threading
 import click
 import traceback
 import minimalmodbus
 import serial
 import struct
-import threading
+from multiprocessing import Process
 import paho.mqtt.client as mqtt
 import requests
 
@@ -333,19 +335,35 @@ class Sofar():
             except Exception:
                 logging.info(traceback.format_exc())
 
+    def signal_handler(self, sig, _frame):
+        logging.info(f"Received signal {sig}, attempting to stop")
+
+    def run(self):
+        while True:
+            self.read()
+            self.publish_state()
+            self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "online"}), retain=False)
+            if self.iteration == 0:
+                self.publish_mqtt_discovery()
+            time.sleep(self.refresh_interval)
+            self.iteration+=1
+
     def main(self):
         """ Main method """
         if not self.daemon:
             self.read_and_publish()
-        else:
-            while self.daemon:
-                self.read()
-                self.publish_state()
-                self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "online"}), retain=False)
-                if self.iteration == 0:
-                    self.publish_mqtt_discovery()
-                time.sleep(self.refresh_interval)
-                self.iteration+=1
+            exit(0)
+        process = Process(target=self.run)
+        self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "online"}), retain=False)
+        process.start()
+        signal.signal(signal.SIGTERM, self.signal_handler)
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.pause()
+        process.terminate()
+        self.daemon = False
+        logging.info("Terminating ..")
+        self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "offline"}), retain=False)
+        self.client.loop_stop()
 
     def publish(self, key, value):
         if key == 'energy_storage_mode':
