@@ -70,6 +70,8 @@ class Sofar():
         logging.info("MQTT "+mqtt.connack_string(rc))
         if rc == 0:
             try:
+                logging.info(f"Subscribing to homeassistant/status")
+                client.subscribe(f"homeassistant/status", qos=0, options=None, properties=None)
                 for register in self.write_registers:
                     logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
                     client.subscribe(f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
@@ -83,10 +85,16 @@ class Sofar():
     def on_message(self, client, userdata, message, properties=None):
         found = False
         valid = False
-        register_name = message.topic.split('/')[-1]
+        topic = message.topic
         payload = message.payload.decode("utf-8") 
+        if topic == "homeassistant/status":
+            logging.info(f"Received message for {topic}:{payload}")
+            if payload == "online":
+                self.publish_mqtt_discovery()
+            return
+
         for register in self.write_registers:
-            if register['name'] == register_name:
+            if register['name'] == topic.split('/')[-1]:
                 found = True
                 if 'function' in register:
                     if register['function'] == 'mode':
@@ -139,7 +147,7 @@ class Sofar():
                                 logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
 
         if not found:
-            logging.error(f"Received a request to set an unknown register: {register_name} to {payload}")
+            logging.error(f"Received a request to set an unknown register: {register_name['name']} to {payload}")
 
 
     def setup_mqtt(self, logging):
@@ -154,7 +162,6 @@ class Sofar():
         self.client.reconnect_delay_set(min_delay=1, max_delay=300)
         self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
         self.client.loop_start()
-        self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "online"}), retain=False)
 
     def setup_instrument(self):
         with self.mutex:
@@ -267,6 +274,7 @@ class Sofar():
     def publish_state(self):
         try:
             data = json.dumps(self.data, indent=2)
+            self.client.publish("sofar2mqtt_python/bridge", "online", retain=False)
             self.client.publish(self.topic + "state_all", data, retain=True)
             with open("data.json", "w") as write_file:
                 write_file.write(data)
@@ -292,11 +300,11 @@ class Sofar():
             "payload_on": "online",
             "state_topic": "sofar2mqtt_python/bridge",
             "unique_id": f"bridge_{sn}_connection_state_sofar2mqtt_python",
-            "value_template": "{{ value_json.state }}"
         }
         topic = f"homeassistant/binary_sensor/{sn}/connection_state/config"
 
         try:
+            logging.info(f"Publishing discovery to {topic}")
             self.client.publish(topic, json.dumps(payload), retain=False)
         except Exception:
             logging.info(traceback.format_exc())
@@ -322,7 +330,7 @@ class Sofar():
                     "availability": [
                         {
                             "topic": "sofar2mqtt_python/bridge",
-                            "value_template": "{{ value_json.state }}"
+                            "value": "online"
                        }
                     ],
                 }
@@ -341,7 +349,8 @@ class Sofar():
 
     def terminate(self):
       logging.info("Terminating")
-      self.client.publish("sofar2mqtt_python/bridge", json.dumps({"state": "offline"}), retain=False)
+      logging.info(f"Publishing offline to sofar2mqtt_python/bridge")
+      self.client.publish("sofar2mqtt_python/bridge", "offline", retain=False)
       self.client.loop_stop()
       exit(0)
 
@@ -354,7 +363,6 @@ class Sofar():
         while (self.daemon):
             self.read()
             if self.iteration == 0:
-                logging.info("Publishing discovery")
                 self.publish_mqtt_discovery()
             self.publish_state()
             time.sleep(self.refresh_interval)
