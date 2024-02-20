@@ -319,7 +319,7 @@ class Sofar():
                     "entity_id": f"sofar_{register['name']}",
                     "enabled_by_default": "true",
                     "device": {
-                        "name": f"Sofar Inverter",
+                        "name": f"Sofar",
                         "sw_version": self.data["sw_version_com"],
                         "hw_version": self.data["hw_version"],
                         "manufacturer": "SOFAR",
