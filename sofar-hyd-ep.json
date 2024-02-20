@@ -5,6 +5,12 @@
 			"register": "0x0445",
 			"read_type": "string",
 			"registers": 7,
+			"ha": {
+				"name": "Serial Number",
+				"icon": "mdi:numeric",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.serial_number }}"
+			},
                         "refresh": 86400
 		},
 		{
@@ -12,27 +18,51 @@
 			"register": "0x044D",
 			"read_type": "string",
 			"registers": 2,
+			"ha": {
+				"name": "HW Version",
+				"icon": "mdi:numeric",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.hw_version }}"
+			},
                         "refresh": 86400
 		},
 		{
 			"name": "sw_version_com",
-			"register": "0x044F",
+			"register": "0x0450",
 			"read_type": "string",
-			"registers": 4,
+			"registers": 3,
+			"ha": {
+				"name": "Software Version",
+				"icon": "mdi:numeric",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.sw_version_com }}"
+			},
                         "refresh": 86400
 		},
 		{
 			"name": "sw_version_master",
 			"register": "0x0454",
 			"read_type": "string",
-			"registers": 4,
+			"registers": 3,
+			"ha": {
+				"name": "DSP1 Software Version",
+				"icon": "mdi:numeric",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.sw_version_master }}"
+			},
                         "refresh": 86400
 		},
 		{
 			"name": "sw_version_slave",
-			"register": "0x0457",
+			"register": "0x0458",
 			"read_type": "string",
-			"registers": 4,
+			"registers": 3,
+			"ha": {
+				"name": "DSP2 Software Version",
+				"icon": "mdi:numeric",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.sw_version_slave }}"
+			},
                         "refresh": 86400
 		},
 		{
@@ -107,6 +137,12 @@
 				"0": "Disabled",
 				"1": "Enabled"
 			},
+			"ha": {
+				"name": "Time of use",
+				"icon": "mdi:home-clock",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use }}"
+			},
                         "refresh": 3600
 		},
 		{
@@ -114,6 +150,12 @@
 			"register": "0x1122",
 			"function": "high_bit_low_bit",
 			"join": ":",
+			"ha": {
+				"name": "Time of use - Start time",
+				"icon": "mdi:clock-digital",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_charge_start_time }}"
+			},
                         "refresh": 3600
 		},
 		{
@@ -121,6 +163,12 @@
 			"register": "0x1123",
 			"function": "high_bit_low_bit",
 			"join": ":",
+			"ha": {
+				"name": "Time of use - End time",
+				"icon": "mdi:clock-digital",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_charge_end_time }}"
+			},
                         "refresh": 3600
 		},
 		{
@@ -131,12 +179,30 @@
 			"min": 30,
 			"max": 100,
 			"write": true,
+			"ha": {
+				"name": "Time of use - Target SOC",
+				"icon": "mdi:percent-outline",
+				"entity_category": "diagnostic",
+				"device_class": "battery",
+				"unit_of_measurement": "%",
+				"state_class": "measurement",
+				"value_template": "{{ value_json.time_of_use_charge_soc }}"
+			},
                         "refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_power",
 			"register": "0x1125",
 			"read_type": "long",
+			"ha": {
+				"name": "Time of use - Power",
+				"icon": "mdi:lightning-bolt",
+				"device_class": "power",
+				"unit_of_measurement": "W",
+				"state_class": "measurement",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_charge_power }}"
+			},
                         "refresh": 3600
 		},
 		{
@@ -144,6 +210,12 @@
 			"register": "0x1127",
 			"function": "high_bit_low_bit",
 			"join": "/",
+			"ha": {
+				"name": "Time of use - Start date",
+				"icon": "mdi:calendar",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_start_date }}"
+			},
                         "refresh": 3600
 		},
 		{
@@ -151,6 +223,12 @@
 			"register": "0x1128",
 			"function": "high_bit_low_bit",
 			"join": "/",
+			"ha": {
+				"name": "Time of use - End date",
+				"icon": "mdi:calendar",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_end_date }}"
+			},
                         "refresh": 3600
 		},
 		{
@@ -166,6 +244,12 @@
 				"Tue",
 				"Mon"
 			],
+			"ha": {
+				"name": "Time of use - Days of week",
+				"icon": "mdi:calendar-today",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_dow }}"
+			},
                         "refresh": 3600
 		},
 		{
@@ -396,6 +480,13 @@
 		{
 			"name": "insulation_resistance",
 			"register": "0x042B",
+			"ha": {
+				"name": "Insulation resistance",
+				"icon": "mdi:omega",
+				"unit_of_measurement": "Ohms",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.insulation_resistance }}"
+			},
                         "refresh": 3600
 		},
 		{
@@ -536,98 +627,98 @@
 			}
 		},
 		{
-			"name": "today_generation",
+			"name": "generation_today",
 			"register": "0x0685",
 			"function": "divide",
 			"factor": 100,
 			"ha": {
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
-				"name": "Generation",
+				"name": "Solar Generation Today",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_generation }}"
+				"value_template": "{{ value_json.generation_today }}"
 			},
                         "refresh": 60
 		},
 		{
-			"name": "today_consumption",
+			"name": "consumption_today",
 			"register": "0x0689",
 			"function": "divide",
 			"factor": 100,
 			"ha": {
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
-				"name": "Consumption",
+				"name": "Consumption Today",
 				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_consumption }}"
+				"value_template": "{{ value_json.consumption_today }}"
 			},
                         "refresh": 60
 		},
 		{
-			"name": "today_import",
+			"name": "import_today",
 			"register": "0x068D",
 			"function": "divide",
 			"factor": 100,
 			"ha": {
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
-				"name": "Import",
+				"name": "Import Today",
 				"icon": "mdi:transmission-tower-import",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_import }}"
+				"value_template": "{{ value_json.import_today }}"
 			},
                         "refresh": 60
 		},
 		{
-			"name": "today_export",
+			"name": "export_today",
 			"register": "0x0691",
 			"function": "divide",
 			"factor": 100,
 			"ha": {
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
-				"name": "Export",
+				"name": "Export Today",
 				"icon": "mdi:transmission-tower-export",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_export }}"
+				"value_template": "{{ value_json.export_today }}"
 			},
                         "refresh": 60
 		},
 		{
-			"name": "today_battery_discharge",
+			"name": "battery_discharge_today",
 			"register": "0x0699",
 			"function": "divide",
 			"factor": 100,
 			"ha": {
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
-				"name": "Battery Discharge",
+				"name": "Battery Discharge Today",
 				"icon": "mdi:battery-minus-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_battery_discharge }}"
+				"value_template": "{{ value_json.battery_discharge_today }}"
 			},
                         "refresh": 60
 		},
 		{
-			"name": "today_battery_charge",
+			"name": "battery_charge_today",
 			"register": "0x0695",
 			"function": "divide",
 			"factor": 100,
 			"ha": {
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
-				"name": "Battery Charge",
+				"name": "Battery Charge Today",
 				"icon": "mdi:battery-plus-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_battery_charge }}"
+				"value_template": "{{ value_json.battery_charge_today }}"
 			},
                         "refresh": 60
 		},
