@@ -61,7 +61,7 @@
 					"Peak cut mode"
 				],
 				"value_template": "{{ value_json.energy_storage_mode }}",
-				"icon": "mdi:home-switch",
+				"icon": "mdi:auto-mode",
 				"control": "select"
 			}
 		},
@@ -246,7 +246,7 @@
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
 				"name": "PV1 Voltage",
-				"icon": "mdi:solar-power-variant",
+				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_1_voltage }}"
@@ -261,7 +261,7 @@
 				"device_class": "current",
 				"unit_of_measurement": "A",
 				"name": "PV1 Current",
-				"icon": "mdi:solar-power-variant",
+				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_1_current }}"
@@ -276,7 +276,7 @@
 				"device_class": "power",
 				"unit_of_measurement": "W",
 				"name": "PV1 Power",
-				"icon": "mdi:solar-power-variant",
+				"icon": "mdi:solar-power",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_1_power }}"
@@ -291,7 +291,7 @@
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
 				"name": "PV2 Voltage",
-				"icon": "mdi:solar-power-variant",
+				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_2_voltage }}"
@@ -306,7 +306,7 @@
 				"device_class": "current",
 				"unit_of_measurement": "A",
 				"name": "PV2 Current",
-				"icon": "mdi:solar-power-variant",
+				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_2_current }}"
@@ -321,7 +321,7 @@
 				"device_class": "power",
 				"unit_of_measurement": "W",
 				"name": "PV2 Power",
-				"icon": "mdi:solar-power-variant",
+				"icon": "mdi:solar-power",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_2_power }}"
@@ -338,7 +338,7 @@
 				"device_class": "power",
 				"unit_of_measurement": "W",
 				"name": "PV Total Power",
-				"icon": "mdi:solar-power-variant",
+				"icon": "mdi:solar-power",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_total_power }}"
@@ -353,7 +353,7 @@
 			"ha": {
 				"device_class": "power",
 				"name": "Active Power",
-				"icon": "mdi:flash",
+				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
 				"unit_of_measurement": "W",
 				"entity_category": "diagnostic",
@@ -368,7 +368,7 @@
 			"ha": {
 				"device_class": "power",
 				"name": "Load Power",
-				"icon": "mdi:home-import-outline",
+				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "measurement",
 				"unit_of_measurement": "W",
 				"entity_category": "diagnostic",
@@ -386,7 +386,7 @@
 			"ha": {
 				"device_class": "power",
 				"name": "On-Grid Power",
-				"icon": "mdi:flash",
+				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
 				"unit_of_measurement": "W",
 				"entity_category": "diagnostic",
@@ -406,7 +406,7 @@
 			"ha": {
 				"device_class": "frequency",
 				"name": "On-grid Frequency",
-				"icon": "mdi:flash",
+				"icon": "mdi:sine-wave",
 				"state_class": "measurement",
 				"unit_of_measurement": "Hz",
 				"entity_category": "diagnostic",
@@ -423,7 +423,7 @@
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
 				"name": "On-grid Voltage",
-				"icon": "mdi:flash",
+				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.ongrid_voltage }}"
@@ -437,7 +437,7 @@
 				"device_class": "temperature",
 				"unit_of_measurement": "°C",
 				"name": "Internal Temperature",
-				"icon": "mdi:thermometer",
+				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.inverter_temp_internal }}"
@@ -450,7 +450,7 @@
 				"device_class": "temperature",
 				"unit_of_measurement": "°C",
 				"name": "Heatsink Temperature",
-				"icon": "mdi:thermometer",
+				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.inverter_temp_heatsink }}"
@@ -465,7 +465,7 @@
 				"device_class": "power",
 				"unit_of_measurement": "W",
 				"name": "Off-Grid Power",
-				"icon": "mdi:flash",
+				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_active_power }}"
@@ -480,7 +480,7 @@
 				"device_class": "frequency",
 				"unit_of_measurement": "Hz",
 				"name": "Off-Grid Frequency",
-				"icon": "mdi:flash",
+				"icon": "mdi:sine-wave",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_frequency }}"
@@ -496,7 +496,7 @@
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
 				"name": "Off-Grid Voltage",
-				"icon": "mdi:flash",
+				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_voltage }}"
@@ -513,7 +513,7 @@
 				"device_class": "current",
 				"unit_of_measurement": "A",
 				"name": "Battery Current",
-				"icon": "mdi:flash",
+				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_current }}"
@@ -529,7 +529,7 @@
 				"device_class": "power",
 				"unit_of_measurement": "W",
 				"name": "Battery Power",
-				"icon": "mdi:flash",
+				"icon": "mdi:battery-charging",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_power }}"
@@ -544,7 +544,7 @@
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
 				"name": "Generation",
-				"icon": "mdi:solar-power",
+				"icon": "mdi:solar-power-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_generation }}"
@@ -560,7 +560,7 @@
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
 				"name": "Consumption",
-				"icon": "mdi:home-import-outline",
+				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_consumption }}"
@@ -576,7 +576,7 @@
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
 				"name": "Import",
-				"icon": "mdi:home-import-outline",
+				"icon": "mdi:transmission-tower-import",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_import }}"
@@ -592,7 +592,7 @@
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
 				"name": "Export",
-				"icon": "mdi:home-export-outline",
+				"icon": "mdi:transmission-tower-export",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_export }}"
@@ -608,7 +608,7 @@
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
 				"name": "Battery Discharge",
-				"icon": "mdi:battery-charging-50",
+				"icon": "mdi:battery-minus-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_battery_discharge }}"
@@ -624,7 +624,7 @@
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
 				"name": "Battery Charge",
-				"icon": "mdi:battery-charging",
+				"icon": "mdi:battery-plus-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_battery_charge }}"
@@ -640,7 +640,7 @@
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
 				"name": "Battery Voltage",
-				"icon": "mdi:battery-charging-high",
+				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_voltage }}"
@@ -654,7 +654,7 @@
 				"device_class": "temperature",
 				"unit_of_measurement": "°C",
 				"name": "Battery Temperature",
-				"icon": "mdi:thermometer",
+				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_temp }}"
@@ -667,7 +667,7 @@
 				"device_class": "battery",
 				"unit_of_measurement": "%",
 				"name": "Battery SOC",
-				"icon": "mdi:battery-charging-outline",
+				"icon": "mdi:battery-80",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_soc }}"
@@ -680,7 +680,7 @@
 				"device_class": "battery",
 				"unit_of_measurement": "%",
 				"name": "Battery SOH",
-				"icon": "mdi:battery-charging-outline",
+				"icon": "mdi:battery-heart-variant",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_soh }}"
@@ -694,7 +694,7 @@
 				"device_class": "battery",
 				"unit_of_measurement": "%",
 				"name": "Battery Cycles",
-				"icon": "mdi:battery-clock-outline",
+				"icon": "mdi:battery-sync",
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_cycles }}"
