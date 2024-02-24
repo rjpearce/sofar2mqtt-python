@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env: 
-  RELEASE: 2.2.6
+  RELEASE: 3.0.1
 
 jobs:
   docker:

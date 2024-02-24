@@ -3,13 +3,16 @@
 import datetime
 import json
 import time
+import signal
+import socket
 import logging
+import threading
 import click
 import traceback
 import minimalmodbus
 import serial
 import struct
-import threading
+from multiprocessing import Process
 import paho.mqtt.client as mqtt
 import requests
 
@@ -20,18 +23,20 @@ def load_config(config_file_path):
         config = json.loads(config_file.read())
     return config
 
-
 # pylint: disable=too-many-instance-attributes
 class Sofar():
     """ Sofar """
 
     # pylint: disable=line-too-long,too-many-arguments
-    def __init__(self, config_file_path, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device):
+    def __init__(self, config_file_path, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish):
         self.config = load_config(config_file_path)
         self.write_registers = []
+        untested = False
         for register in self.config['registers']:
+            if "untested" in register:
+                untested = register["untested"]
             if "write" in register:
-                if register["write"]:
+                if register["write"] and not untested:
                     self.write_registers.append(register)
         self.daemon = daemon
         self.retry = retry
@@ -51,19 +56,22 @@ class Sofar():
         self.retries = 0
         self.instrument = None
         self.device = device
+        self.legacy_publish = legacy_publish
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
-        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=self.log_level)
+        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.getLevelName(log_level))
         self.mutex = threading.Lock()
-        self.client = mqtt.Client(client_id="sofar2mqtt", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
-        self.client.enable_logger(logger=logging)
-        self.setup_mqtt()
+        self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
+        self.setup_mqtt(logging)
         self.setup_instrument()
+        self.iteration = 0
         
     def on_connect(self, client, userdata, flags, rc, properties=None):
         logging.info("MQTT "+mqtt.connack_string(rc))
         if rc == 0:
             try:
+                logging.info(f"Subscribing to homeassistant/status")
+                client.subscribe(f"homeassistant/status", qos=0, options=None, properties=None)
                 for register in self.write_registers:
                     logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
                     client.subscribe(f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
@@ -77,10 +85,16 @@ class Sofar():
     def on_message(self, client, userdata, message, properties=None):
         found = False
         valid = False
-        register_name = message.topic.split('/')[-1]
+        topic = message.topic
         payload = message.payload.decode("utf-8") 
+        if topic == "homeassistant/status":
+            logging.info(f"Received message for {topic}:{payload}")
+            if payload == "online":
+                self.publish_mqtt_discovery()
+            return
+
         for register in self.write_registers:
-            if register['name'] == register_name:
+            if register['name'] == topic.split('/')[-1]:
                 found = True
                 if 'function' in register:
                     if register['function'] == 'mode':
@@ -133,10 +147,11 @@ class Sofar():
                                 logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
 
         if not found:
-            logging.error(f"Received a request to set an unknown register: {register_name} to {payload}")
+            logging.error(f"Received a request to set an unknown register: {register_name['name']} to {payload}")
 
 
-    def setup_mqtt(self):
+    def setup_mqtt(self, logging):
+        self.client.enable_logger(logger=logging)
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         if self.username is not None and self.password is not None:
@@ -146,7 +161,6 @@ class Sofar():
             logging.info(f"MQTT connecting to broker {self.broker} port {self.port} without auth")
         self.client.reconnect_delay_set(min_delay=1, max_delay=300)
         self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
-
         self.client.loop_start()
 
     def setup_instrument(self):
@@ -157,12 +171,17 @@ class Sofar():
             self.instrument.serial.bytesize = 8
             self.instrument.serial.parity = serial.PARITY_NONE
             self.instrument.serial.stopbits = 1
-            self.instrument.serial.timeout  = 0.1   # seconds
-            self.instrument.clear_buffers_before_each_transaction = True
+            self.instrument.serial.timeout  = 0.2   # seconds
             self.instrument.close_port_after_each_call = True
 
     def read_and_publish(self):
         for register in self.config['registers']:
+            refresh = 1
+            if 'refresh' in register:
+                refresh = register['refresh'] 
+            if (self.iteration % refresh) != 0:
+                logging.debug(f"Skipping {register['name']}")
+                continue
             value = None
             signed = False
             logging.debug('Reading %s', register['name'])
@@ -189,16 +208,19 @@ class Sofar():
                             value = abs(value)
             else:
                 read_type = 'register'
+                registers = 1
                 if 'read_type' in register:
                     read_type = register['read_type']
+                if 'registers' in register:
+                    registers = register['registers']
                 value = self.read_value(
                         int(register['register'], 16),
                         read_type,
-                        signed
+                        signed,
+                        registers
                 )
             if value is None:
                 continue
-
             else:
                 # Inverter will return maximum 16-bit integer value when data not available (eg. grid usage when grid down)
                 if value == 65535:
@@ -231,29 +253,121 @@ class Sofar():
         failure_percentage = round(self.failures / (self.requests+self.retries)*100,2)
         retry_percentage = round(self.retries / (self.requests)*100,2)
         logging.info(f"Modbus Requests: {self.requests} Retries: {self.retries} ({retry_percentage}%) Failures: {self.failures} ({failure_percentage}%)")
-        self.publish('modbus_failures', self.failures)
-        self.publish('modbus_requests', self.requests)
-        self.publish('modbus_retries', self.retries)
-        self.publish('modbus_failure_rate', failure_percentage)
-        self.publish('modbus_retry_rate', retry_percentage)
+        self.data['modbus_failures'] = self.failures
+        self.data['modbus_requests'] = self.requests
+        self.data['modbus_retries'] = self.retries
+        self.data['modbus_failure_rate'] = failure_percentage
+        self.data['modbus_retry_rate'] = retry_percentage
+
+    def read(self):
+        now = datetime.datetime.now()
+        """ Sleep for 35 seconds to allow the inverter to reset the stats at 00:00 """
+        if (now.hour == 23 and now.minute == 59 and now.second >= 30):
+            logging.info('Snoozing 35 seconds')
+            time.sleep(35)
+        self.read_and_publish()
+        self.requests = 0
+        self.failures = 0
+        self.failed = []
+        self.retries = 0
+
+    def publish_state(self):
+        try:
+            data = json.dumps(self.data, indent=2)
+            self.client.publish("sofar2mqtt_python/bridge", "online", retain=False)
+            self.client.publish(self.topic + "state_all", data, retain=True)
+            with open("data.json", "w") as write_file:
+                write_file.write(data)
+        except Exception:
+            logging.info(traceback.format_exc())
+        time.sleep(self.refresh_interval)
+
+    def publish_mqtt_discovery(self):
+        sn = self.data['serial_number']
+        payload = {
+            "device": {
+               "identifiers": [f"sofar2mqtt_python_bridge_{sn}"],
+               "manufacturer": "Sofar2Mqtt-Python",
+               "model": "Bridge",
+               "name": "Sofar2Mqtt Python Bridge",
+               "sw_version": "1.35.3"
+            },
+            "device_class": "connectivity",
+            "entity_category": "diagnostic",
+            "name": "Connection state",
+            "object_id": "sofar2mqtt_python_bridge_connection_state",
+            "payload_off": "offline",
+            "payload_on": "online",
+            "state_topic": "sofar2mqtt_python/bridge",
+            "unique_id": f"bridge_{sn}_connection_state_sofar2mqtt_python",
+        }
+        topic = f"homeassistant/binary_sensor/{sn}/connection_state/config"
+
+        try:
+            logging.info(f"Publishing discovery to {topic}")
+            self.client.publish(topic, json.dumps(payload), retain=False)
+        except Exception:
+            logging.info(traceback.format_exc())
+        for register in self.config['registers']:
+            if 'ha' not in register:
+                continue
+            try:
+                default_payload = {
+                    "name": register['name'],
+                    "state_topic": "sofar/state_all",
+                    "unique_id": f"{sn}_{register['name']}",
+                    "entity_id": f"sofar_{register['name']}",
+                    "enabled_by_default": "true",
+                    "device": {
+                        "name": f"Sofar",
+                        "sw_version": self.data["sw_version_com"],
+                        "hw_version": self.data["hw_version"],
+                        "manufacturer": "SOFAR",
+                        "model": "HYD-6000-EP",
+                        "configuration_url": "https://github.com/rjpearce/sofar2mqtt-python",
+                        "identifiers": [f"{sn}"]
+                    },
+                    "availability": [
+                        {
+                            "topic": "sofar2mqtt_python/bridge",
+                            "value": "online"
+                       }
+                    ],
+                }
+                payload = default_payload | register['ha']
+                control = 'sensor'
+                if 'control' in register['ha']:
+                    control = register['ha']['control']
+                topic = f"homeassistant/{control}/sofar_{register['name']}/config"
+                self.client.publish(topic, json.dumps(payload), retain=False)
+            except Exception:
+                logging.info(traceback.format_exc())
+
+    def signal_handler(self, sig, _frame):
+      logging.info(f"Received signal {sig}, attempting to stop")
+      self.daemon = False
+
+    def terminate(self):
+      logging.info("Terminating")
+      logging.info(f"Publishing offline to sofar2mqtt_python/bridge")
+      self.client.publish("sofar2mqtt_python/bridge", "offline", retain=False)
+      self.client.loop_stop()
+      exit(0)
 
     def main(self):
         """ Main method """
+        signal.signal(signal.SIGTERM, self.signal_handler)
+        signal.signal(signal.SIGINT, self.signal_handler)
         if not self.daemon:
-            self.read_and_publish()
-        else:
-            while self.daemon:
-                now = datetime.datetime.now()
-                """ Sleep for 35 seconds to allow the inverter to reset the stats at 00:00 """
-                if (now.hour == 23 and now.minute == 59 and now.second >= 30):
-                    logging.info('Snoozing 35 seconds')
-                    time.sleep(35)
-                self.read_and_publish()
-                self.requests = 0
-                self.failures = 0
-                self.failed = []
-                self.retries = 0
-                time.sleep(self.refresh_interval)
+          self.read_and_publish()
+        while (self.daemon):
+            self.read()
+            if self.iteration == 0:
+                self.publish_mqtt_discovery()
+            self.publish_state()
+            time.sleep(self.refresh_interval)
+            self.iteration+=1
+        self.terminate()
 
     def publish(self, key, value):
         if key == 'energy_storage_mode':
@@ -261,11 +375,12 @@ class Sofar():
                 if value != self.data[key]:
                     logging.info(f"energy_storage_mode has changed to: {value}")
         self.data[key] = value
-        logging.debug('Publishing %s:%s', self.topic + key, value)
-        try:
-            self.client.publish(self.topic + key, value, retain=True)
-        except Exception:
-            logging.debug(traceback.format_exc())
+        if self.legacy_publish:
+            logging.debug('Publishing %s:%s', self.topic + key, value)
+            try:
+                self.client.publish(self.topic + key, value, retain=True)
+            except Exception:
+                logging.debug(traceback.format_exc())
 
     def write_value(self, register, value):
         """ Read value from register with a retry mechanism """
@@ -311,7 +426,7 @@ class Sofar():
             else:
                 logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
 
-    def read_value(self, registeraddress, read_type, signed):
+    def read_value(self, registeraddress, read_type, signed, registers=1):
         """ Read value from register with a retry mechanism """
         with self.mutex:
             value = None
@@ -325,6 +440,9 @@ class Sofar():
                     elif read_type == "long":
                         value = self.instrument.read_long(
                             registeraddress, functioncode=3, signed=True, number_of_registers=2)
+                    elif read_type == "string":
+                        value = self.instrument.read_string(
+                            registeraddress, functioncode=3, number_of_registers=registers)
                 except minimalmodbus.NoResponseError:
                     logging.debug(traceback.format_exc())
                     retry = retry - 1
@@ -391,7 +509,7 @@ class Sofar():
 @click.option(
     '--refresh-interval',
     envvar='REFRESH_INTERVAL',
-    default=1,
+    default=0,
     type=int,
     help='Refresh data every n seconds',
 )
@@ -445,10 +563,16 @@ class Sofar():
     default='/dev/ttyUSB0',
     help='RS485/USB Device'
 )
+@click.option(
+    '--legacy-publish',
+    envvar='LEGACY_PUBLISH',
+    default=True,
+    help='Publish each register to MQTT individually in addition to state which contains all values',
+)
 # pylint: disable=too-many-arguments
-def main(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device):
+def main(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish):
     """Main"""
-    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device)
+    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish)
     sofar.main()
 
 # pylint: disable=no-value-for-parameter

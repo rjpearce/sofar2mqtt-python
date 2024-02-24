@@ -1,95 +1,69 @@
 {
 	"registers": [
 		{
-			"name": "eps_control",
-			"register": "0x1029",
-			"desc": "EPS On/Off control",
-			"type": "U16",
-			"function": "mode",
-			"modes": {
-				"0": "Off",
-				"1": "On"
+			"name": "serial_number",
+			"register": "0x0445",
+			"read_type": "string",
+			"registers": 7,
+			"ha": {
+				"name": "Serial Number",
+				"icon": "mdi:numeric",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.serial_number }}"
 			},
-			"write": true
+                        "refresh": 86400
 		},
 		{
-			"name": "remote_on_off_control",
-			"register": "0x1104",
-			"desc": "Turn inverter on/off",
-			"type": "U16",
-			"function": "mode",
-			"modes": {
-				"0": "Off",
-				"1": "On"
+			"name": "hw_version",
+			"register": "0x044D",
+			"read_type": "string",
+			"registers": 2,
+			"ha": {
+				"name": "HW Version",
+				"icon": "mdi:numeric",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.hw_version }}"
 			},
-			"write": true
+                        "refresh": 86400
 		},
 		{
-			"name": "power_control",
-			"register": "0x1105",
-			"desc": "AC power control settings (0 to 100%)",
-			"type": "U16",
-			"min": 0,
-			"max": 100,
-			"write": true
+			"name": "sw_version_com",
+			"register": "0x0450",
+			"read_type": "string",
+			"registers": 3,
+			"ha": {
+				"name": "Software Version",
+				"icon": "mdi:numeric",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.sw_version_com }}"
+			},
+                        "refresh": 86400
 		},
 		{
-			"name": "active_power_export_limit",
-			"register": "0x1106",
-			"desc": "AC output active power maximum percentage (0 to 100%)",
-			"type": "U16",
-			"min": 0,
-			"max": 100,
-			"write": true
+			"name": "sw_version_master",
+			"register": "0x0454",
+			"read_type": "string",
+			"registers": 3,
+			"ha": {
+				"name": "DSP1 Software Version",
+				"icon": "mdi:numeric",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.sw_version_master }}"
+			},
+                        "refresh": 86400
 		},
 		{
-			"name": "active_power_import_limit",
-			"register": "0x1107",
-			"desc": "AC input active power maximum percentage (0 to 100%)",
-			"type": "U16",
-			"min": 0,
-			"max": 100,
-			"write": true
-		},
-		{
-			"name": "reactive_power_setting",
-			"register": "0x1108",
-			"desc": "AC reactive power percentage (-100 to 100%)",
-			"type": "I16",
-			"min": -100,
-			"max": 100,
-			"signed": true,
-			"write": true
-		},
-		{
-			"name": "power_factor_setting",
-			"register": "0x1109",
-			"desc": "AC power factor (-1.00 to 1.00)",
-			"type": "I16",
-			"min": -1.00,
-			"max": 1.0,
-			"signed": true,
-			"write": true
-		},
-		{
-			"name": "active_power_limit_speed",
-			"register": "0x110a",
-			"desc": "The charge rate of active power (1 to 3000%)",
-			"type": "U16",
-			"min": 1,
-			"max": 3000,
-			"signed": true,
-			"write": true
-		},
-		{
-			"name": "reactive_power_response_time",
-			"register": "0x110b",
-			"desc": "Reactive power response time in secs (0.1 to 600)",
-			"type": "U16",
-			"min": 0.1,
-			"max": 600,
-			"signed": true,
-			"write": true
+			"name": "sw_version_slave",
+			"register": "0x0458",
+			"read_type": "string",
+			"registers": 3,
+			"ha": {
+				"name": "DSP2 Software Version",
+				"icon": "mdi:numeric",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.sw_version_slave }}"
+			},
+                        "refresh": 86400
 		},
 		{
 			"name": "energy_storage_mode",
@@ -104,52 +78,56 @@
 				"3": "Passive mode",
 				"4": "Peak cut mode"
 			},
-			"write": true
-		},
-		{
-			"name": "energy_storage_mode",
-			"register": "0x1110",
-			"function": "mode",
-			"modes": {
-				"0": "Self use",
-				"1": "Time of use",
-				"2": "Timing mode",
-				"3": "Passive mode",
-				"4": "Peak cut mode"
-			},
+			"write": true,
 			"ha": {
-				"name": "Sofar:Mode",
-				"unique_id": "Sofar_mode",
-				"icon": "mdi:home-battery"
+				"command_topic": "sofar/rw/energy_storage_mode",
+				"entity_category": "config",
+				"name": "Mode",
+				"options": [
+					"Self use",
+					"Time of use",
+					"Timing mode",
+					"Passive mode",
+					"Peak cut mode"
+				],
+				"value_template": "{{ value_json.energy_storage_mode }}",
+				"icon": "mdi:auto-mode",
+				"control": "select"
 			}
 		},
 		{
 			"name": "charge_start_time",
-			"register": "0x1113"
+			"register": "0x1113",
+                        "refresh": 3600
 		},
 		{
 			"name": "charge_end_time",
-			"register": "0x1114"
+			"register": "0x1114",
+                        "refresh": 3600
 		},
 		{
 			"name": "discharge_start_time",
-			"register": "0x1115"
+			"register": "0x1115",
+                        "refresh": 3600
 		},
 		{
 			"name": "discharge_end_time",
-			"register": "0x1116"
+			"register": "0x1116",
+                        "refresh": 3600
 		},
 		{
 			"name": "charge_power",
 			"register": "0x1117",
 			"function": "multiply",
-			"factor": 10
+			"factor": 10,
+                        "refresh": 3600
 		},
 		{
 			"name": "discharge_power",
 			"register": "0x1118",
 			"function": "multiply",
-			"factor": 10
+			"factor": 10,
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use",
@@ -160,11 +138,12 @@
 				"1": "Enabled"
 			},
 			"ha": {
-				"name": "Sofar:Time of use",
-				"unique_id": "Sofar_time_of_use",
-				"state_class": "measurement",
-				"icon": "mdi:battery-clock-outline"
-			}
+				"name": "Time of use",
+				"icon": "mdi:home-clock",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use }}"
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_start_time",
@@ -172,11 +151,12 @@
 			"function": "high_bit_low_bit",
 			"join": ":",
 			"ha": {
-				"name": "Sofar:Time of use - Start time",
-				"unique_id": "Sofar_time_of_use_start_time",
-				"state_class": "measurement",
-				"icon": "mdi:battery-clock-outline"
-			}
+				"name": "Time of use - Start time",
+				"icon": "mdi:clock-digital",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_charge_start_time }}"
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_end_time",
@@ -184,11 +164,12 @@
 			"function": "high_bit_low_bit",
 			"join": ":",
 			"ha": {
-				"name": "Sofar:Time of use - End time",
-				"unique_id": "Sofar_time_of_use_end_time",
-				"state_class": "measurement",
-				"icon": "mdi:battery-clock-outline"
-			}
+				"name": "Time of use - End time",
+				"icon": "mdi:clock-digital",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_charge_end_time }}"
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_soc",
@@ -199,22 +180,30 @@
 			"max": 100,
 			"write": true,
 			"ha": {
-				"name": "Sofar:Time of use - SOC",
-				"unique_id": "Sofar_time_of_use_soc",
+				"name": "Time of use - Target SOC",
+				"icon": "mdi:percent-outline",
+				"entity_category": "diagnostic",
+				"device_class": "battery",
+				"unit_of_measurement": "%",
 				"state_class": "measurement",
-				"icon": "mdi:battery-clock-outline"
-			}
+				"value_template": "{{ value_json.time_of_use_charge_soc }}"
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_power",
 			"register": "0x1125",
 			"read_type": "long",
 			"ha": {
-				"name": "Sofar:Time of use - Power",
-				"unique_id": "Sofar_time_of_use_power",
+				"name": "Time of use - Power",
+				"icon": "mdi:lightning-bolt",
+				"device_class": "power",
+				"unit_of_measurement": "W",
 				"state_class": "measurement",
-				"icon": "mdi:battery-clock-outline"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_charge_power }}"
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_start_date",
@@ -222,11 +211,12 @@
 			"function": "high_bit_low_bit",
 			"join": "/",
 			"ha": {
-				"name": "Sofar:Time of use - Start date",
-				"unique_id": "Sofar_time_of_use_start_date",
-				"state_class": "measurement",
-				"icon": "mdi:battery-clock-outline"
-			}
+				"name": "Time of use - Start date",
+				"icon": "mdi:calendar",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_start_date }}"
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_end_date",
@@ -234,11 +224,12 @@
 			"function": "high_bit_low_bit",
 			"join": "/",
 			"ha": {
-				"name": "Sofar:Time of use - End date",
-				"unique_id": "Sofar_time_of_use_end_date",
-				"state_class": "measurement",
-				"icon": "mdi:battery-clock-outline"
-			}
+				"name": "Time of use - End date",
+				"icon": "mdi:calendar",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_end_date }}"
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "time_of_use_dow",
@@ -254,61 +245,52 @@
 				"Mon"
 			],
 			"ha": {
-				"name": "Sofar:Time of use - DoW",
-				"unique_id": "Sofar_time_of_use_dow",
-				"state_class": "measurement",
-				"icon": "mdi:calendar-today-outline"
-			}
-		},
-		{
-			"name": "passive_timeout",
-			"register": "0x1184",
-			"desc": "Passive mode timeout period in secs (0=Never)",
-			"desc2": "When the inverter does not receive any communication frame within time set in this register the inverter forces Passive_Timeout_Action",
-			"type": "U16",
-			"write": true
-		},
-		{
-			"name": "passive_timeout_action",
-			"register": "0x1185",
-			"desc": "Passive mode timeout action",
-			"function": "mode",
-			"type": "U16",
-			"modes": {
-				"0": "Force to standby",
-				"1": "Force to last storage mode"
+				"name": "Time of use - Days of week",
+				"icon": "mdi:calendar-today",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.time_of_use_dow }}"
 			},
-			"write": true
+                        "refresh": 3600
 		},
 		{
 			"name": "desired_power",
 			"register": "0x1187",
 			"desc": "Desired PCC power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Export, Negative value=Import",
+			"desc3": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189",
 			"type": "I32",
 			"function": "int",
 			"signed": true,
 			"passive": true,
 			"min": -999999,
 			"max": 999999,
-			"write": true
+			"write": true,
+			"aggregate": [
+				"minimum_battery_power",
+				"maximum_battery_power"
+			],
+			"agg_function": "avg",
+			"ha": {
+				"command_topic": "sofar/rw/desired_power",
+				"entity_category": "config",
+				"name": "Desired Power",
+				"min": -5000,
+				"max": 5000,
+				"step": 50,
+				"initial": 0,
+				"mode": "slider",
+				"value_template": "{{ value_json.desired_power }}",
+				"icon": "mdi:battery-charging",
+				"control": "number"
+			}
 		},
-		{
-                        "name": "desired_power",
-                        "aggregate": [
-                                "minimum_battery_power",
-                                "maximum_battery_power"
-                        ],
-                        "agg_function": "avg",
-                        "desc": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189"
-                },
 		{
 			"name": "minimum_battery_power",
 			"register": "0x1189",
 			"desc": "Minimum battery power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Charging, Negative value=Discharging",
 			"signed": true,
-                        "read_type": "long"
+			"read_type": "long"
 		},
 		{
 			"name": "maximum_battery_power",
@@ -316,20 +298,7 @@
 			"desc": "Maximum battery power in passive mode(-999999 to 999999) in watts",
 			"desc2": "Positive value=Charging, Negative value=Discharging",
 			"signed": true,
-                        "read_type": "long"
-		},
-		{
-			"name": "desired_power_grid",
-			"register": "0x118D",
-			"desc": "Maximum power to grid in passive mode(-999999 to 999999) in watts",
-			"desc2": "Positive value=Charging, Negative value=Discharging",
-			"type": "I32",
-			"function": "int",
-			"signed": true,
-			"passive": true,
-			"min": -999999,
-			"max": 999999,
-			"write": true
+			"read_type": "long"
 		},
 		{
 			"name": "state",
@@ -346,10 +315,10 @@
 				"7": "Self-charging"
 			},
 			"ha": {
-				"name": "Sofar:Inverter state",
-				"unique_id": "Sofar_inverter_state",
-				"state_class": "measurement",
-				"icon": "mdi:power-standby"
+				"name": "State",
+				"icon": "mdi:power-standby",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.state }}"
 			}
 		},
 		{
@@ -358,12 +327,13 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Solar PV1 voltage now",
-				"unique_id": "sofar_pv1_voltage_now",
-				"device_class": "power",
+				"device_class": "voltage",
 				"unit_of_measurement": "V",
+				"name": "PV1 Voltage",
+				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.pv_1_voltage }}"
 			}
 		},
 		{
@@ -372,12 +342,13 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Solar PV1 current now",
-				"unique_id": "sofar_pv1_current_now",
 				"device_class": "current",
 				"unit_of_measurement": "A",
+				"name": "PV1 Current",
+				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.pv_1_current }}"
 			}
 		},
 		{
@@ -386,12 +357,13 @@
 			"function": "multiply",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Solar PV1 power now",
-				"unique_id": "sofar_pv1_power_now",
 				"device_class": "power",
 				"unit_of_measurement": "W",
+				"name": "PV1 Power",
+				"icon": "mdi:solar-power",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.pv_1_power }}"
 			}
 		},
 		{
@@ -400,12 +372,13 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Solar PV2 voltage now",
-				"unique_id": "sofar_pv2_voltage_now",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
+				"name": "PV2 Voltage",
+				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.pv_2_voltage }}"
 			}
 		},
 		{
@@ -414,12 +387,13 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Solar PV2 current now",
-				"unique_id": "sofar_pv2_current_now",
 				"device_class": "current",
 				"unit_of_measurement": "A",
+				"name": "PV2 Current",
+				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.pv_2_current }}"
 			}
 		},
 		{
@@ -428,12 +402,13 @@
 			"function": "multiply",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Solar PV2 power now",
-				"unique_id": "sofar_pv2_power_now",
 				"device_class": "power",
 				"unit_of_measurement": "W",
+				"name": "PV2 Power",
+				"icon": "mdi:solar-power",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.pv_2_power }}"
 			}
 		},
 		{
@@ -444,12 +419,13 @@
 			],
 			"agg_function": "add",
 			"ha": {
-				"name": "Sofar:Solar power now",
-				"unique_id": "sofar_solar_power_now",
 				"device_class": "power",
 				"unit_of_measurement": "W",
+				"name": "PV Total Power",
+				"icon": "mdi:solar-power",
 				"state_class": "measurement",
-				"icon": "mdi:solar-power-variant"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.pv_total_power }}"
 			}
 		},
 		{
@@ -459,12 +435,13 @@
 			"factor": 10,
 			"signed": true,
 			"ha": {
-				"name": "Sofar:Active power",
-				"unique_id": "sofar_active_power",
 				"device_class": "power",
-				"unit_of_measurement": "W",
+				"name": "Active Power",
+				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
+				"unit_of_measurement": "W",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.active_power }}"
 			}
 		},
 		{
@@ -473,12 +450,13 @@
 			"function": "multiply",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:House consumption now",
-				"unique_id": "sofar_house_consumption_now",
 				"device_class": "power",
-				"unit_of_measurement": "W",
+				"name": "Load Power",
+				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "measurement",
-				"icon": "mdi:home-import-outline"
+				"unit_of_measurement": "W",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.load_power }}"
 			}
 		},
 		{
@@ -490,25 +468,26 @@
 			"agg_function": "subtract",
 			"invert": false,
 			"ha": {
-				"name": "Sofar:Grid power",
-				"unique_id": "sofar_grid_power",
 				"device_class": "power",
-				"unit_of_measurement": "W",
+				"name": "On-Grid Power",
+				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
+				"unit_of_measurement": "W",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.grid }}"
 			}
 		},
 		{
 			"name": "insulation_resistance",
 			"register": "0x042B",
 			"ha": {
-				"name": "Sofar:Insulation Resistance",
-				"unique_id": "sofar_insulation_resistance",
-				"device_class": "energy",
+				"name": "Insulation resistance",
+				"icon": "mdi:omega",
 				"unit_of_measurement": "Ohms",
-				"state_class": "measurement",
-				"icon": "mdi:flash"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.insulation_resistance }}"
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "ongrid_frequency",
@@ -516,13 +495,15 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Ongrid Frequency",
-				"unique_id": "sofar_ongrid_frequency",
 				"device_class": "frequency",
-				"unit_of_measurement": "Hz",
+				"name": "On-grid Frequency",
+				"icon": "mdi:sine-wave",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
-			}
+				"unit_of_measurement": "Hz",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.ongrid_frequency }}"
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "ongrid_voltage",
@@ -530,36 +511,40 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Ongrid Voltage",
-				"unique_id": "sofar_ongrid_voltage",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
+				"name": "On-grid Voltage",
+				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-high"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.ongrid_voltage }}"
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "inverter_temp_internal",
 			"register": "0x0418",
 			"ha": {
-				"name": "Sofar:Inverter temp internal",
-				"unique_id": "Sofar_inverter_temp_internal",
 				"device_class": "temperature",
-				"unit_of_measurement": "C",
+				"unit_of_measurement": "°C",
+				"name": "Internal Temperature",
+				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
-				"icon": "mdi:thermometer"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.inverter_temp_internal }}"
 			}
 		},
 		{
 			"name": "inverter_temp_heatsink",
 			"register": "0x041A",
 			"ha": {
-				"name": "Sofar:Inverter temp heatsink",
-				"unique_id": "Sofar_inverter_temp_heatsink",
 				"device_class": "temperature",
-				"unit_of_measurement": "C",
+				"unit_of_measurement": "°C",
+				"name": "Heatsink Temperature",
+				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
-				"icon": "mdi:thermometer"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.inverter_temp_heatsink }}"
 			}
 		},
 		{
@@ -568,12 +553,13 @@
 			"function": "multiply",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Offgrid Active power",
-				"unique_id": "sofar_offgrid_active_power",
 				"device_class": "power",
 				"unit_of_measurement": "W",
+				"name": "Off-Grid Power",
+				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.offgrid_active_power }}"
 			}
 		},
 		{
@@ -582,13 +568,15 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Offgrid Frequency",
-				"unique_id": "sofar_offgrid_frequency",
 				"device_class": "frequency",
 				"unit_of_measurement": "Hz",
+				"name": "Off-Grid Frequency",
+				"icon": "mdi:sine-wave",
 				"state_class": "measurement",
-				"icon": "mdi:flash"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.offgrid_frequency }}"
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "offgrid_voltage",
@@ -596,13 +584,15 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar:Offgrid Voltage",
-				"unique_id": "sofar_offgrid_voltage",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
+				"name": "Off-Grid Voltage",
+				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-high"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.offgrid_voltage }}"
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "battery_current",
@@ -611,12 +601,13 @@
 			"factor": 100,
 			"signed": true,
 			"ha": {
-				"name": "Sofar:Battery current",
-				"unique_id": "sofar_battery_current_now",
 				"device_class": "current",
 				"unit_of_measurement": "A",
+				"name": "Battery Current",
+				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-50"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.battery_current }}"
 			}
 		},
 		{
@@ -626,12 +617,13 @@
 			"factor": 10,
 			"signed": true,
 			"ha": {
-				"name": "Sofar:Battery power",
-				"unique_id": "sofar_battery_power_now",
 				"device_class": "power",
 				"unit_of_measurement": "W",
+				"name": "Battery Power",
+				"icon": "mdi:battery-charging",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-50"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.battery_power }}"
 			}
 		},
 		{
@@ -640,13 +632,15 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Solar generation",
-				"unique_id": "sofar_solar_generation_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Solar Generation Today",
+				"icon": "mdi:solar-power-variant",
 				"state_class": "total_increasing",
-				"icon": "mdi:solar-power"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.today_generation }}"
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "today_consumption",
@@ -654,13 +648,15 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Consumption",
-				"unique_id": "Sofar_consumption_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Consumption Today",
+				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "total_increasing",
-				"icon": "mdi:home-import-outline"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.today_consumption }}"
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "today_import",
@@ -668,13 +664,15 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Import",
-				"unique_id": "Sofar_import_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Import Today",
+				"icon": "mdi:transmission-tower-import",
 				"state_class": "total_increasing",
-				"icon": "mdi:home-import-outline"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.today_import }}"
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "today_export",
@@ -682,13 +680,15 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Export",
-				"unique_id": "Sofar_export_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Export Today",
+				"icon": "mdi:transmission-tower-export",
 				"state_class": "total_increasing",
-				"icon": "mdi:home-export-outline"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.today_export }}"
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "today_battery_discharge",
@@ -696,13 +696,15 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Battery discharge",
-				"unique_id": "sofar_battery_discharge_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Battery Discharge Today",
+				"icon": "mdi:battery-minus-variant",
 				"state_class": "total_increasing",
-				"icon": "mdi:battery-charging-50"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.today_battery_discharge }}"
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "today_battery_charge",
@@ -710,13 +712,15 @@
 			"function": "divide",
 			"factor": 100,
 			"ha": {
-				"name": "Sofar:Battery charge",
-				"unique_id": "sofar_battery_charge_today",
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
+				"name": "Battery Charge Today",
+				"icon": "mdi:battery-plus-variant",
 				"state_class": "total_increasing",
-				"icon": "mdi:battery-charging"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.today_battery_charge }}"
+			},
+                        "refresh": 60
 		},
 		{
 			"name": "battery_voltage",
@@ -724,12 +728,13 @@
 			"function": "divide",
 			"factor": 10,
 			"ha": {
-				"name": "Sofar Battery:Voltage",
-				"unique_id": "sofar_battery_voltage",
-				"device_class": "energy",
+				"device_class": "voltage",
 				"unit_of_measurement": "V",
+				"name": "Battery Voltage",
+				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-high"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.battery_voltage }}"
 			}
 		},
 		{
@@ -737,47 +742,203 @@
 			"register": "0x0607",
 			"signed": true,
 			"ha": {
-				"name": "Sofar Battery:Temp",
-				"unique_id": "sofar_battery_temp",
 				"device_class": "temperature",
-				"unit_of_measurement": "C",
+				"unit_of_measurement": "°C",
+				"name": "Battery Temperature",
+				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
-				"icon": "mdi:thermometer"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.battery_temp }}"
 			}
 		},
 		{
 			"name": "battery_soc",
 			"register": "0x0608",
 			"ha": {
-				"name": "Sofar:Battery SoC",
-				"unique_id": "Sofar_battery_SoC",
 				"device_class": "battery",
 				"unit_of_measurement": "%",
+				"name": "Battery SOC",
+				"icon": "mdi:battery-80",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-outline"
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.battery_soc }}"
 			}
 		},
 		{
 			"name": "battery_soh",
 			"register": "0x0609",
 			"ha": {
-				"name": "Sofar:Battery SoH",
-				"unique_id": "Sofar_battery_SoH",
 				"device_class": "battery",
 				"unit_of_measurement": "%",
+				"name": "Battery SOH",
+				"icon": "mdi:battery-heart-variant",
 				"state_class": "measurement",
-				"icon": "mdi:battery-charging-outline"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.battery_soh }}"
+			},
+                        "refresh": 3600
 		},
 		{
 			"name": "battery_cycles",
 			"register": "0x060A",
 			"ha": {
-				"name": "Sofar:Battery cycles",
-				"unique_id": "Sofar_battery_cycles",
+				"device_class": "battery",
+				"unit_of_measurement": "%",
+				"name": "Battery Cycles",
+				"icon": "mdi:battery-sync",
 				"state_class": "measurement",
-				"icon": "mdi:battery-clock-outline"
-			}
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.battery_cycles }}"
+			},
+                        "refresh": 3600
+		},
+		{
+			"name": "eps_control",
+			"register": "0x1029",
+			"desc": "EPS On/Off control",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Off",
+				"1": "On"
+			},
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "remote_on_off_control",
+			"register": "0x1104",
+			"desc": "Turn inverter on/off",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Off",
+				"1": "On"
+			},
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "power_control",
+			"register": "0x1105",
+			"desc": "AC power control settings (0 to 100%)",
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "active_power_export_limit",
+			"register": "0x1106",
+			"desc": "AC output active power maximum percentage (0 to 100%)",
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "active_power_import_limit",
+			"register": "0x1107",
+			"desc": "AC input active power maximum percentage (0 to 100%)",
+			"type": "U16",
+			"min": 0,
+			"max": 100,
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "reactive_power_setting",
+			"register": "0x1108",
+			"desc": "AC reactive power percentage (-100 to 100%)",
+			"type": "I16",
+			"min": -100,
+			"max": 100,
+			"signed": true,
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "power_factor_setting",
+			"register": "0x1109",
+			"desc": "AC power factor (-1.00 to 1.00)",
+			"type": "I16",
+			"min": -1.00,
+			"max": 1.0,
+			"signed": true,
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "active_power_limit_speed",
+			"register": "0x110a",
+			"desc": "The charge rate of active power (1 to 3000%)",
+			"type": "U16",
+			"min": 1,
+			"max": 3000,
+			"signed": true,
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "reactive_power_response_time",
+			"register": "0x110b",
+			"desc": "Reactive power response time in secs (0.1 to 600)",
+			"type": "U16",
+			"min": 0.1,
+			"max": 600,
+			"signed": true,
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "passive_timeout",
+			"register": "0x1184",
+			"desc": "Passive mode timeout period in secs (0=Never)",
+			"desc2": "When the inverter does not receive any communication frame within time set in this register the inverter forces Passive_Timeout_Action",
+			"type": "U16",
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "passive_timeout_action",
+			"register": "0x1185",
+			"desc": "Passive mode timeout action",
+			"function": "mode",
+			"type": "U16",
+			"modes": {
+				"0": "Force to standby",
+				"1": "Force to last storage mode"
+			},
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
+		},
+		{
+			"name": "desired_power_grid",
+			"register": "0x118D",
+			"desc": "Maximum power to grid in passive mode(-999999 to 999999) in watts",
+			"desc2": "Positive value=Charging, Negative value=Discharging",
+			"type": "I32",
+			"function": "int",
+			"signed": true,
+			"passive": true,
+			"min": -999999,
+			"max": 999999,
+			"write": true,
+			"untested": true,
+                        "refresh": 86400
 		}
 	]
 }
