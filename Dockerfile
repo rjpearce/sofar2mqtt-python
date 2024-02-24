@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.12.2-alpine
+FROM --platform=${BUILDPLATFORM} python:3.12.2-alpine AS build
 
 WORKDIR /opt/sofar2mqtt
 
