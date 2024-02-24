@@ -462,11 +462,11 @@
 		{
 			"name": "grid",
 			"aggregate": [
-				"active_power",
-				"load_power"
+				"load_power",
+				"active_power"
 			],
 			"agg_function": "subtract",
-			"invert": true,
+			"invert": false,
 			"ha": {
 				"device_class": "power",
 				"name": "On-Grid Power",
