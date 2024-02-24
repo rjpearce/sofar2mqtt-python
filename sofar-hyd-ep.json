@@ -627,7 +627,7 @@
 			}
 		},
 		{
-			"name": "generation_today",
+			"name": "today_generation",
 			"register": "0x0685",
 			"function": "divide",
 			"factor": 100,
@@ -638,12 +638,12 @@
 				"icon": "mdi:solar-power-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.generation_today }}"
+				"value_template": "{{ value_json.today_generation }}"
 			},
                         "refresh": 60
 		},
 		{
-			"name": "consumption_today",
+			"name": "today_consumption",
 			"register": "0x0689",
 			"function": "divide",
 			"factor": 100,
@@ -654,12 +654,12 @@
 				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.consumption_today }}"
+				"value_template": "{{ value_json.today_consumption }}"
 			},
                         "refresh": 60
 		},
 		{
-			"name": "import_today",
+			"name": "today_import",
 			"register": "0x068D",
 			"function": "divide",
 			"factor": 100,
@@ -670,12 +670,12 @@
 				"icon": "mdi:transmission-tower-import",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.import_today }}"
+				"value_template": "{{ value_json.today_import }}"
 			},
                         "refresh": 60
 		},
 		{
-			"name": "export_today",
+			"name": "today_export",
 			"register": "0x0691",
 			"function": "divide",
 			"factor": 100,
@@ -686,12 +686,12 @@
 				"icon": "mdi:transmission-tower-export",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.export_today }}"
+				"value_template": "{{ value_json.today_export }}"
 			},
                         "refresh": 60
 		},
 		{
-			"name": "battery_discharge_today",
+			"name": "today_battery_discharge",
 			"register": "0x0699",
 			"function": "divide",
 			"factor": 100,
@@ -702,12 +702,12 @@
 				"icon": "mdi:battery-minus-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.battery_discharge_today }}"
+				"value_template": "{{ value_json.today_battery_discharge }}"
 			},
                         "refresh": 60
 		},
 		{
-			"name": "battery_charge_today",
+			"name": "today_battery_charge",
 			"register": "0x0695",
 			"function": "divide",
 			"factor": 100,
@@ -718,7 +718,7 @@
 				"icon": "mdi:battery-plus-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.battery_charge_today }}"
+				"value_template": "{{ value_json.today_battery_charge }}"
 			},
                         "refresh": 60
 		},
