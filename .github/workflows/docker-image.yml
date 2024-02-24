@@ -8,6 +8,7 @@ on:
 
 env: 
   RELEASE: 3.0
+  IMAGE_NAME: ${{ github.repository }} 
 
 jobs:
   docker:
@@ -30,4 +31,4 @@ jobs:
           context: .
           platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8
           push: true
-          tags: rpearce/sofar2mqtt-python:${RELEASE}-${GITHUB_SHA}
+          tags: rpearce/sofar2mqtt-python:${{ env.RELEASE }}-${{ github.sha }}
