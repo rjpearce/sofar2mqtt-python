@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.9.18-slim-bullseye
+FROM --platform=$BUILDPLATFORM python:3.12.2-alpine
 
 WORKDIR /opt/sofar2mqtt
 
