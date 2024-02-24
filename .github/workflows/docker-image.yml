@@ -7,8 +7,7 @@ on:
     branches: [ "main" ]
 
 env: 
-  RELEASE: 3.0
-  IMAGE_NAME: ${{ github.repository }} 
+  RELEASE: 3.0.1
 
 jobs:
   docker:
