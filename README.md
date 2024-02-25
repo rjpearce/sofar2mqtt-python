@@ -4,9 +4,21 @@
 
 This project provides an integration between Sofar inverters over RS485 and MQTT using Python
 
-It allows you to read and write data to Sofar inverters using a prebuilt Docker image or Python script. 
+It allows you to read and write data to Sofar inverters using a prebuilt Docker image (preferred) or Python script . 
 
 [View the documentation](https://github.com/rjpearce/sofar2mqtt-python/wiki)
+
+## Release notes
+
+### 3.0.1
+
+* Implemented MQTT auto discovery for home assistant - no more manual config!
+* Added a new refresh option for each register allowing some registers to be read more regularly (fresher) than other that are less important (i.e serial number)
+* Added registers for serial number, software version, hardware version.
+* The script now retains a local dict of data which is updated after reading registers for this iteration (based on refresh)
+* After an iteration the entire dict (JSON) is sent to a new topic sofar/state_all'
+* Added a new option for LEGACY_PUBLISH to continue to send messages individually in addition to sofar/state_all.
+* Introduce Signal handling to ensure graceful exit
 
 ## Inverter Compatability
 
@@ -30,12 +42,9 @@ Please do feel free to contribute changes and improvements.
 
 NOTE: The slightly weird behaviour of desired power when in `Self use`, it is probably best to only change it when you are in `Passive mode`.
 
+### Home Assistant auto-discovery
 
-## Known Issues
-
-1. The desired_power control in Home Assistant does not update based on the actual setting in the inverter.
-The inverter always returns 0 and I don't know why.
-2. There are other modbus addresses that should be writable eg. Time of use SOC but they are not. I need to follow up with Sofar support to find out why.
+The gateway supports Home Assistant MQTT discovery. It publishes configuration information automatically, the inverter will appears as an new MQTT device. No more manual configuration in Home Assistant!
 
 ## Credits
 
