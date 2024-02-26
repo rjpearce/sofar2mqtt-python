@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env: 
-  RELEASE: 3.0.1
+  RELEASE: 3.0.2
 
 jobs:
   docker:
@@ -35,8 +35,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8
+          file: ./Dockerfile
+          platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
           push: true
-          tags: rpearce/sofar2mqtt-python:${{ env.RELEASE }}-${{ github.event.pull_request.base.sha }}
+          tags: rpearce/sofar2mqtt-python:${{ env.RELEASE }}-dev-${{ github.run_number }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
