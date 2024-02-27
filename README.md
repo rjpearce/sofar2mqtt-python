@@ -1,6 +1,7 @@
 # Sofar2MQTT - Python
 
 [![Build Docker Image](https://github.com/rjpearce/sofar2mqtt-python/actions/workflows/docker-image.yml/badge.svg)](https://github.com/rjpearce/sofar2mqtt-python/actions/workflows/docker-image.yml)
+[![CodeQL](https://github.com/rjpearce/sofar2mqtt-python/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/rjpearce/sofar2mqtt-python/actions/workflows/github-code-scanning/codeql)
 
 ## Overview
 
