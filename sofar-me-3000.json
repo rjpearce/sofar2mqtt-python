@@ -1,5 +1,41 @@
 {
 	"registers": [
+                {
+                        "name":"standby_mode",
+                        "register":"0x100",
+                        "function": "mode",
+                        "modes": {
+                          "0": "false",
+                          "1": "true"
+                        },
+                        "write": true
+                },
+                {
+                        "name":"discharge_mode",
+                        "register":"0x101",
+                        "function": "int",
+                        "min": -999999,
+			"max": 999999,
+                        "write": true
+                },
+                {
+                        "name":"charge_mode",
+                        "register":"0x102",
+                        "function": "int",
+                        "min": -999999,
+			"max": 999999,
+                        "write": true
+                },
+                {
+                        "name":"auto_mode",
+                        "register":"0x103",
+                        "function": "mode",
+                        "modes": {
+                          "0": "battery_save",
+                          "1": "true"
+                        },
+                        "write": true
+                },
 		{
 			"name": "running_state",
 			"register": "0x200",
