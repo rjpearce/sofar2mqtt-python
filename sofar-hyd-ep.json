@@ -276,7 +276,7 @@
 				"name": "Desired Power",
 				"min": -5000,
 				"max": 5000,
-				"step": 50,
+				"step": 500,
 				"initial": 0,
 				"mode": "slider",
 				"value_template": "{{ value_json.desired_power }}",
@@ -762,7 +762,9 @@
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_soc }}"
-			}
+			},
+			"min": 0,
+			"max": 100
 		},
 		{
 			"name": "battery_soh",

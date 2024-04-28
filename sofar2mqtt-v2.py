@@ -225,6 +225,14 @@ class Sofar():
                 # Inverter will return maximum 16-bit integer value when data not available (eg. grid usage when grid down)
                 if value == 65535:
                     value = 0
+                if 'min' in register:
+                    if value < register['min']:
+                        logging.error(f"Value for {register['name']}: {str(value)} is lower than min allowed value: {register['min']}. Ignoring value")
+                        continue
+                if 'max' in register:
+                    if value > register['max']:
+                        logging.error(f"Value for {register['name']}: {str(value)} is greater than max allowed value: {register['max']}. Ignoring value")
+                        continue
                 if 'function' in register:
                     if register['function'] == 'multiply':
                         value = value * register['factor']
@@ -283,6 +291,10 @@ class Sofar():
         time.sleep(self.refresh_interval)
 
     def publish_mqtt_discovery(self):
+        if 'serial_number' not in self.data:
+            logging.error("Serial number could not be determined, skipping publish")
+            return False
+
         sn = self.data['serial_number']
         payload = {
             "device": {
@@ -290,7 +302,7 @@ class Sofar():
                "manufacturer": "Sofar2Mqtt-Python",
                "model": "Bridge",
                "name": "Sofar2Mqtt Python Bridge",
-               "sw_version": "1.35.3"
+               "sw_version": "3.0.3"
             },
             "device_class": "connectivity",
             "entity_category": "diagnostic",
