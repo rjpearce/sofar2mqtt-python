@@ -762,7 +762,9 @@
 				"state_class": "measurement",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_soc }}"
-			}
+			},
+			"min": 0,
+			"max": 100
 		},
 		{
 			"name": "battery_soh",
