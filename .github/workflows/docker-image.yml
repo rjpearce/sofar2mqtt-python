@@ -7,13 +7,10 @@ on:
     branches:
       - "**"
     tags:
-      - "v*.*.*"
+      - "v*"
   pull_request:
     branches:
       - "main"
-
-env: 
-  RELEASE: 3.0.3
 
 jobs:
   docker:
@@ -35,7 +32,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha        
+            type=raw,value=latest,enable={{is_default_branch}}        
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
