@@ -290,7 +290,7 @@ class Sofar():
                "manufacturer": "Sofar2Mqtt-Python",
                "model": "Bridge",
                "name": "Sofar2Mqtt Python Bridge",
-               "sw_version": "1.35.3"
+               "sw_version": "3.0.3"
             },
             "device_class": "connectivity",
             "entity_category": "diagnostic",
