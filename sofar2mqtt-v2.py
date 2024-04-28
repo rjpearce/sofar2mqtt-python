@@ -283,6 +283,10 @@ class Sofar():
         time.sleep(self.refresh_interval)
 
     def publish_mqtt_discovery(self):
+        if 'serial_number' not in self.data:
+            logging.error("Serial number could not be determined, skipping publish")
+            return False
+
         sn = self.data['serial_number']
         payload = {
             "device": {
