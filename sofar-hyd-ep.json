@@ -276,7 +276,7 @@
 				"name": "Desired Power",
 				"min": -5000,
 				"max": 5000,
-				"step": 50,
+				"step": 500,
 				"initial": 0,
 				"mode": "slider",
 				"value_template": "{{ value_json.desired_power }}",
