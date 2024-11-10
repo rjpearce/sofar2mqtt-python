@@ -58,6 +58,7 @@ class Sofar():
         self.instrument = None
         self.device = device
         self.legacy_publish = legacy_publish
+        self.discovery_published = False
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.getLevelName(log_level))
@@ -76,6 +77,7 @@ class Sofar():
                 for register in self.write_registers:
                     logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
                     client.subscribe(f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
+                self.discovery_published = False
             except Exception:
                 logging.info(traceback.format_exc())
 
@@ -92,6 +94,7 @@ class Sofar():
             logging.info(f"Received message for {topic}:{payload}")
             if payload == "online":
                 self.publish_mqtt_discovery()
+                self.discovery_published = False
             return
 
         for register in self.write_registers:
@@ -358,6 +361,7 @@ class Sofar():
                 self.client.publish(topic, json.dumps(payload), retain=False)
             except Exception:
                 logging.info(traceback.format_exc())
+        self.discovery_published = True
 
     def signal_handler(self, sig, _frame):
       logging.info(f"Received signal {sig}, attempting to stop")
@@ -378,9 +382,10 @@ class Sofar():
           self.read_and_publish()
         while (self.daemon):
             self.read()
-            if self.iteration == 0:
-                self.publish_mqtt_discovery()
-            self.publish_state()
+            if 'serial_number' in self.data:
+                if not self.discovery_published:
+                  self.publish_mqtt_discovery()
+                self.publish_state()
             time.sleep(self.refresh_interval)
             self.iteration+=1
         self.terminate()
