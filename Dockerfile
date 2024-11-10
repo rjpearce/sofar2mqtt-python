@@ -1,4 +1,4 @@
-FROM python:3.12.2-alpine
+FROM python:3.13.0-alpine3.20
 
 WORKDIR /opt/sofar2mqtt
 
