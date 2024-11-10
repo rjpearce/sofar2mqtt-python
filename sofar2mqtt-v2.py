@@ -28,7 +28,7 @@ class Sofar():
     """ Sofar """
 
     # pylint: disable=line-too-long,too-many-arguments
-    def __init__(self, config_file_path, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish):
+    def __init__(self, config_file_path, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, ca_certs, topic, write_topic, log_level, device, legacy_publish):
         self.config = load_config(config_file_path)
         self.write_registers = []
         untested = False
@@ -48,6 +48,7 @@ class Sofar():
         self.port = port
         self.username = username
         self.password = password
+        self.ca_certs = ca_certs
         self.topic = topic
         self.write_topic = write_topic
         self.requests = 0
@@ -160,6 +161,9 @@ class Sofar():
         else:
             logging.info(f"MQTT connecting to broker {self.broker} port {self.port} without auth")
         self.client.reconnect_delay_set(min_delay=1, max_delay=300)
+        if (self.port == '8883'):
+          self.client.tls_set(ca_certs=self.ca_certs)
+
         self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
         self.client.loop_start()
 
@@ -551,6 +555,12 @@ class Sofar():
     help='MQTT password'
 )
 @click.option(
+    '--ca-certs',
+    envvar='MQTT_CA_CERTS',
+    default=None,
+    help='MQTT CA Certs path'
+)
+@click.option(
     '--topic',
     envvar='MQTT_TOPIC',
     default='sofar/',
@@ -582,9 +592,9 @@ class Sofar():
     help='Publish each register to MQTT individually in addition to state which contains all values',
 )
 # pylint: disable=too-many-arguments
-def main(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish):
+def main(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, ca_certs, topic, write_topic, log_level, device, legacy_publish):
     """Main"""
-    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish)
+    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, ca_certs, topic, write_topic, log_level, device, legacy_publish)
     sofar.main()
 
 # pylint: disable=no-value-for-parameter
