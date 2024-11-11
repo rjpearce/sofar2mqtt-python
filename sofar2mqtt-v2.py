@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" Sofar 2 MQQT """
+""" Sofar 2 MQTT """
 import datetime
 import json
 import time
