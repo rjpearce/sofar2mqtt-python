@@ -11,6 +11,7 @@ import click
 import traceback
 import minimalmodbus
 import serial
+import ssl
 import struct
 from multiprocessing import Process
 import paho.mqtt.client as mqtt
@@ -158,15 +159,14 @@ class Sofar():
         self.client.enable_logger(logger=logging)
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
+        if (self.port == 8883):
+          logging.info(f"MQTT configuring tls={ssl.PROTOCOL_TLS}")
+          self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
         if self.username is not None and self.password is not None:
+            logging.info(f"MQTT configuring auth user={self.username}")
             self.client.username_pw_set(self.username, self.password)
-            logging.info(f"MQTT connecting to broker {self.broker} port {self.port} with auth user {self.username}")
-        else:
-            logging.info(f"MQTT connecting to broker {self.broker} port {self.port} without auth")
         self.client.reconnect_delay_set(min_delay=1, max_delay=300)
-        if (self.port == '8883'):
-          self.client.tls_set(ca_certs=self.ca_certs)
-
+        logging.info(f"MQTT connecting to broker {self.broker} port {self.port}")
         self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
         self.client.loop_start()
 
