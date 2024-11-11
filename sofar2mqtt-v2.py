@@ -163,8 +163,8 @@ class Sofar():
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         if (self.port == 8883):
-          logging.info(f"MQTT configuring tls={ssl.PROTOCOL_TLS}")
-          self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
+          logging.info(f"MQTT configuring tls options ca_certs={self.ca_certs}, tls={ssl.PROTOCOL_TLS}")
+          self.client.tls_set(ca_certs=self.ca_certs, tls_version=ssl.PROTOCOL_TLS)
         if self.username is not None and self.password is not None:
             logging.info(f"MQTT configuring auth user={self.username}")
             self.client.username_pw_set(self.username, self.password)
@@ -566,7 +566,7 @@ class Sofar():
     '--ca-certs',
     envvar='MQTT_CA_CERTS',
     default=None,
-    help='MQTT CA Certs path'
+    help='MQTT TLS CA certs path'
 )
 @click.option(
     '--topic',
