@@ -16,6 +16,7 @@ import struct
 from multiprocessing import Process
 import paho.mqtt.client as mqtt
 import requests
+import uuid
 
 def load_config(config_file_path):
     """ Load configuration file """
@@ -64,7 +65,7 @@ class Sofar():
         self.log_level = logging.getLevelName(log_level)
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.getLevelName(log_level))
         self.mutex = threading.Lock()
-        self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
+        self.client = mqtt.Client(client_id=f"sofar2mqtt_{uuid.uuid4()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         self.setup_mqtt(logging)
         self.setup_instrument()
         self.iteration = 0
