@@ -596,7 +596,7 @@ class Sofar():
 @click.option(
     '--legacy-publish',
     envvar='LEGACY_PUBLISH',
-    default=True,
+    default=False,
     help='Publish each register to MQTT individually in addition to state which contains all values',
 )
 # pylint: disable=too-many-arguments
