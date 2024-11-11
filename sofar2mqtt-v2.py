@@ -325,6 +325,7 @@ class Sofar():
         try:
             logging.info(f"Publishing discovery to {topic}")
             self.client.publish(topic, json.dumps(payload), retain=False)
+            self.discovery_published = True
         except Exception:
             logging.info(traceback.format_exc())
         for register in self.config['registers']:
@@ -361,7 +362,6 @@ class Sofar():
                 self.client.publish(topic, json.dumps(payload), retain=False)
             except Exception:
                 logging.info(traceback.format_exc())
-        self.discovery_published = True
 
     def signal_handler(self, sig, _frame):
       logging.info(f"Received signal {sig}, attempting to stop")
