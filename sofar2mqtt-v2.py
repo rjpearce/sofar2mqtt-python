@@ -87,6 +87,9 @@ class Sofar():
             logging.info("MQTT un-expected disconnect")
 
     def on_message(self, client, userdata, message, properties=None):
+        if message.retain: 
+            logging.info(f"Ignoring retained message on topic {message.topic}") 
+            return
         found = False
         valid = False
         topic = message.topic
