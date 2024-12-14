@@ -86,7 +86,7 @@
 				"command_topic": "sofar/rw/depth_of_discharge",
 				"control": "number",
 				"value_template": "{{ value_json.depth_of_discharge | int }}"
-			},
+			}
 		},
 		{
 			"name": "energy_storage_mode",
