@@ -1,19 +1,6 @@
 {
 	"registers": [
 		{
-			"name": "serial_number",
-			"register": "0x0445",
-			"read_type": "string",
-			"registers": 7,
-			"ha": {
-				"name": "Serial Number",
-				"icon": "mdi:numeric",
-				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.serial_number }}"
-			},
-			"refresh": 86400
-		},
-		{
 			"name": "hw_version",
 			"register": "0x044D",
 			"read_type": "string",
