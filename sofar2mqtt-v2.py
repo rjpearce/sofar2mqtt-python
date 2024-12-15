@@ -93,6 +93,9 @@ class Sofar():
                 for register in self.write_registers:
                     logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
                     client.subscribe(f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
+                for block in self.config.get('write_register_blocks', []):
+                    logging.info(f"Subscribing to {self.write_topic}/{block['name']}")
+                    client.subscribe(f"{self.write_topic}/{block['name']}", qos=0, options=None, properties=None)
             except Exception:
                 logging.info(traceback.format_exc())
 
@@ -169,8 +172,12 @@ class Sofar():
                                 logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
 
         if not found:
-            logging.error(f"Received a request to set an unknown register: {register_name['name']} to {payload}")
-
+            for block in self.config.get('write_register_blocks', []):
+                if block['name'] == topic.split('/')[-1]:
+                    logging.info(f"Received a request to write block: {block['name']}")
+                    self.write_register_block(block['name'])
+                    return
+            logging.error(f"Received a request to set an unknown register or block: {topic.split('/')[-1]} to {payload}")
 
     def setup_mqtt(self, logging):
         self.client.enable_logger(logger=logging)
@@ -182,8 +189,8 @@ class Sofar():
         else:
             logging.info(f"MQTT connecting to broker {self.broker} port {self.port} without auth")
         self.client.reconnect_delay_set(min_delay=1, max_delay=300)
-        if (self.port == '8883'):
-          self.client.tls_set(ca_certs=self.ca_certs)
+        if self.port == 8883:
+            self.client.tls_set(ca_certs=self.ca_certs)
 
         self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
         self.client.loop_start()
@@ -646,6 +653,57 @@ class Sofar():
             logging.error("Failed to determine Modbus protocol from model")
         return modbus_protocol
 
+    def convert_value(self, register_name, value):
+        """
+        Convert value based on register modes.
+
+        Examples:
+        - If the register has modes defined as:
+          {
+              "0": "Default",
+              "1": "Pylon",
+              "2": "General"
+          }
+          and the value is "Pylon", it will return "1".
+        - If the value does not match any mode, it will return the original value.
+
+        Args:
+            register_name (str): The name of the register.
+            value (str): The value to be converted.
+
+        Returns:
+            str: The converted value or the original value if no conversion is needed.
+        """
+        register = next((r for r in self.config['registers'] if r['name'] == register_name), None)
+        if register and 'modes' in register:
+            value = next((k for k, v in register['modes'].items() if v == value), value)
+        return value
+
+    def write_register_block(self, block_name):
+        """ Write a specific register block from configuration to Modbus """
+        block = next((b for b in self.config.get('write_register_blocks', []) if b['name'] == block_name), None)
+        if not block:
+            logging.error(f"Block {block_name} not found in configuration")
+            return
+
+        logging.info(f"Block: {block}")
+        start_register = int(block['start_register'], 16)
+        length = int(block['length'])
+        values = []
+        for register_name in block['registers']:
+            value = self.data.get(register_name)
+            if value is None:
+                logging.error(f"Value for {register_name} not found in data. Skipping block {block['name']}")
+                return
+            value = int(self.convert_value(register_name, value))
+            values.append(value)
+        try:
+            #self.instrument.write_registers(start_register, values[:length])
+            logging.info(f"Would write {start_register} with {values[:length]}")
+            logging.info(f"Successfully wrote block {block['name']} to Modbus")
+        except Exception as e:
+            logging.error(f"Failed to write block {block['name']} to Modbus: {str(e)}")
+
 
 @click.command("cli", context_settings={'show_default': True})
 @click.option(
@@ -680,7 +738,7 @@ class Sofar():
     '--write-retry-delay',
     envvar='WRITE_RETRY_DELAY',
     default=5,
-    type=float,
+    type=int,
     help='Delay before retrying write',
 )
 @click.option(
