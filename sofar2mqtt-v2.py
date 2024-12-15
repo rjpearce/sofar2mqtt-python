@@ -95,7 +95,7 @@ class Sofar():
                     client.subscribe(f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
                 for block in self.config.get('write_register_blocks', []):
                     logging.info(f"Subscribing to {self.write_topic}/{block['name']}")
-                    client.subscribe(f"{self.write_topic}/{block['name']}", qos=0, options=None, properties=None)
+                    client.subscribe(f"{self.write_topic}/{block['name']}/#", qos=0, options=None, properties=None)
             except Exception:
                 logging.info(traceback.format_exc())
 
@@ -173,11 +173,12 @@ class Sofar():
 
         if not found:
             for block in self.config.get('write_register_blocks', []):
-                if block['name'] == topic.split('/')[-1]:
-                    logging.info(f"Received a request to write block: {block['name']}")
-                    self.write_register_block(block['name'])
+                if block['name'] == topic.split('/')[-2]:
+                    logging.info(f"Received a request to write block: {topic} {block['name']} {payload}")
+                    update_register = { topic.split('/')[-1]: payload }
+                    self.write_register_block(block['name'], update_register)
                     return
-            logging.error(f"Received a request to set an unknown register or block: {topic.split('/')[-1]} to {payload}")
+            logging.error(f"Received a request to set an unknown register or block: {topic.split('/')[-2]} to {payload}")
 
     def setup_mqtt(self, logging):
         self.client.enable_logger(logger=logging)
@@ -679,7 +680,7 @@ class Sofar():
             value = next((k for k, v in register['modes'].items() if v == value), value)
         return value
 
-    def write_register_block(self, block_name):
+    def write_register_block(self, block_name, update_register):
         """ Write a specific register block from configuration to Modbus """
         block = next((b for b in self.config.get('write_register_blocks', []) if b['name'] == block_name), None)
         if not block:
@@ -691,19 +692,23 @@ class Sofar():
         length = int(block['length'])
         values = []
         for register_name in block['registers']:
-            value = self.data.get(register_name)
+            if register_name in update_register:
+                value = self.convert_value(register_name, update_register[register_name])
+            else:
+                value = self.convert_value(register_name, self.data.get(register_name))
             if value is None:
                 logging.error(f"Value for {register_name} not found in data. Skipping block {block['name']}")
                 return
-            value = int(self.convert_value(register_name, value))
-            values.append(value)
+            values.append(int(value))
+        if 'append' in block:
+            for append_item in block['append']:
+                values.append(append_item)
         try:
-            #self.instrument.write_registers(start_register, values[:length])
             logging.info(f"Would write {start_register} with {values[:length]}")
+            self.instrument.write_registers(start_register, values[:length])
             logging.info(f"Successfully wrote block {block['name']} to Modbus")
         except Exception as e:
             logging.error(f"Failed to write block {block['name']} to Modbus: {str(e)}")
-
 
 @click.command("cli", context_settings={'show_default': True})
 @click.option(
