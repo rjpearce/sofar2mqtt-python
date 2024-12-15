@@ -16,7 +16,6 @@ from multiprocessing import Process
 import paho.mqtt.client as mqtt
 import requests
 
-
 VERSION = "3.1.0"
 
 def load_config(config_file_path):
