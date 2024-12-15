@@ -16,6 +16,9 @@ from multiprocessing import Process
 import paho.mqtt.client as mqtt
 import requests
 
+
+VERSION = "3.1.0"
+
 def load_config(config_file_path):
     """ Load configuration file """
     config = {}
@@ -28,16 +31,7 @@ class Sofar():
     """ Sofar """
 
     # pylint: disable=line-too-long,too-many-arguments
-    def __init__(self, config_file_path, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, ca_certs, topic, write_topic, log_level, device, legacy_publish):
-        self.config = load_config(config_file_path)
-        self.write_registers = []
-        untested = False
-        for register in self.config['registers']:
-            if "untested" in register:
-                untested = register["untested"]
-            if "write" in register:
-                if register["write"] and not untested:
-                    self.write_registers.append(register)
+    def __init__(self, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, ca_certs, topic, write_topic, log_level, device, legacy_publish):
         self.daemon = daemon
         self.retry = retry
         self.retry_delay = retry_delay
@@ -58,26 +52,48 @@ class Sofar():
         self.instrument = None
         self.device = device
         self.legacy_publish = legacy_publish
-        self.discovery_published = False
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
+        self.iteration = 0
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.getLevelName(log_level))
         self.mutex = threading.Lock()
+        self.setup_instrument()
+        self.data['serial_number'] = self.determine_serial_number()
+        if not self.data['serial_number']:
+            logging.error("Failed to determine serial number. Exiting")
+            exit(1)
+        self.data['model'] = self.determine_model()
+        self.data['protocol'] = self.determine_modbus_protocol()
+
+        if self.data.get('protocol') == "SOFAR-1-40KTL.json":
+            logging.error("Unsupported protocol detected. Exiting")
+
+        self.config = load_config(self.data.get('protocol'))
+        self.write_registers = []
+        untested = False
+        for register in self.config['registers']:
+            if "untested" in register:
+                untested = register["untested"]
+            if "write" in register:
+                if register["write"] and not untested:
+                    self.write_registers.append(register)
+
+        logging.info(f"Starting sofar2mqtt-python with serial number: {self.data.get('serial_number')}")
+        self.read()
         self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         self.setup_mqtt(logging)
-        self.setup_instrument()
-        self.iteration = 0
         
     def on_connect(self, client, userdata, flags, rc, properties=None):
         logging.info("MQTT "+mqtt.connack_string(rc))
         if rc == 0:
             try:
+                self.publish_mqtt_discovery_bridge()
+                self.publish_mqtt_discovery()
                 logging.info(f"Subscribing to homeassistant/status")
                 client.subscribe(f"homeassistant/status", qos=0, options=None, properties=None)
                 for register in self.write_registers:
                     logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
                     client.subscribe(f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
-                self.discovery_published = False
             except Exception:
                 logging.info(traceback.format_exc())
 
@@ -93,8 +109,8 @@ class Sofar():
         if topic == "homeassistant/status":
             logging.info(f"Received message for {topic}:{payload}")
             if payload == "online":
+                self.publish_mqtt_discovery_bridge()
                 self.publish_mqtt_discovery()
-                self.discovery_published = False
             return
 
         for register in self.write_registers:
@@ -297,19 +313,14 @@ class Sofar():
             logging.info(traceback.format_exc())
         time.sleep(self.refresh_interval)
 
-    def publish_mqtt_discovery(self):
-        if 'serial_number' not in self.data:
-            logging.error("Serial number could not be determined, skipping publish")
-            return False
-
-        sn = self.data['serial_number']
+    def publish_mqtt_discovery_bridge(self):
         payload = {
             "device": {
-               "identifiers": [f"sofar2mqtt_python_bridge_{sn}"],
+               "identifiers": [f"sofar2mqtt_python_bridge_{self.data.get('serial_number')}"],
                "manufacturer": "Sofar2Mqtt-Python",
                "model": "Bridge",
                "name": "Sofar2Mqtt Python Bridge",
-               "sw_version": "3.0.3"
+               "sw_version": VERSION
             },
             "device_class": "connectivity",
             "entity_category": "diagnostic",
@@ -318,15 +329,17 @@ class Sofar():
             "payload_off": "offline",
             "payload_on": "online",
             "state_topic": "sofar2mqtt_python/bridge",
-            "unique_id": f"bridge_{sn}_connection_state_sofar2mqtt_python",
+            "unique_id": f"bridge_{self.data.get('serial_number')}_connection_state_sofar2mqtt_python",
         }
-        topic = f"homeassistant/binary_sensor/{sn}/connection_state/config"
+        topic = f"homeassistant/binary_sensor/{self.data.get('serial_number')}/connection_state/config"
 
         try:
-            logging.info(f"Publishing discovery to {topic}")
+            logging.info(f"Publishing bridge via MQTT to {topic}")
             self.client.publish(topic, json.dumps(payload), retain=False)
         except Exception:
             logging.info(traceback.format_exc())
+
+    def publish_mqtt_discovery(self):
         for register in self.config['registers']:
             if 'ha' not in register:
                 continue
@@ -334,17 +347,17 @@ class Sofar():
                 default_payload = {
                     "name": register['name'],
                     "state_topic": "sofar/state_all",
-                    "unique_id": f"{sn}_{register['name']}",
+                    "unique_id": f"{self.data.get("serial_number")}_{register['name']}",
                     "entity_id": f"sofar_{register['name']}",
                     "enabled_by_default": "true",
                     "device": {
-                        "name": f"Sofar",
-                        "sw_version": self.data["sw_version_com"],
-                        "hw_version": self.data["hw_version"],
-                        "manufacturer": "SOFAR",
-                        "model": "HYD-6000-EP",
+                        "name": f"Sofar {self.data.get("serial_number")}",
+                        "sw_version": self.data.get("sw_version_com"),
+                        "hw_version": self.data.get("hw_version"),
+                        "manufacturer": "Sofar",
+                        "model": self.data.get('model'),
                         "configuration_url": "https://github.com/rjpearce/sofar2mqtt-python",
-                        "identifiers": [f"{sn}"]
+                        "identifiers": [f"{self.data.get('serial_number')}"]
                     },
                     "availability": [
                         {
@@ -361,7 +374,6 @@ class Sofar():
                 self.client.publish(topic, json.dumps(payload), retain=False)
             except Exception:
                 logging.info(traceback.format_exc())
-        self.discovery_published = True
 
     def signal_handler(self, sig, _frame):
       logging.info(f"Received signal {sig}, attempting to stop")
@@ -382,10 +394,7 @@ class Sofar():
           self.read_and_publish()
         while (self.daemon):
             self.read()
-            if 'serial_number' in self.data:
-                if not self.discovery_published:
-                  self.publish_mqtt_discovery()
-                self.publish_state()
+            self.publish_state()
             time.sleep(self.refresh_interval)
             self.iteration+=1
         self.terminate()
@@ -485,13 +494,159 @@ class Sofar():
                 self.failed.append(registeraddress)
             return value
 
+    def determine_serial_number(self):
+        """ Determine the serial number from the inverter """
+        serial_number = None
+
+        # Try first location: 0x2001 ... 0x2007
+        try:
+            serial_number = ''.join([self.read_value(register, 'string', False, 1) for register in range(0x2001, 0x2008)])
+            if serial_number:
+                logging.info(f"Serial number found at first location: {serial_number}")
+                return serial_number
+        except Exception:
+            logging.debug("Failed to read serial number from first location")
+
+        # Try second location: 0x0445 ... 0x044B (14 digits)
+        try:
+            serial_number = ''.join([self.read_value(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
+            if serial_number:
+                logging.info(f"Serial number found at second location: {serial_number}")
+                return serial_number
+        except Exception:
+            logging.debug("Failed to read serial number from second location")
+
+        # Try third location: 0x0445 ... 0x044C and 0x0470...0x0471 (20 digits)
+        try:
+            serial_number_part1 = ''.join([self.read_value(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
+            serial_number_part2 = ''.join([self.read_value(register, 'string', False, 1) for register in range(0x0470, 0x0472)])
+            if serial_number_part2 and int(serial_number_part2) != 0:
+                serial_number = serial_number_part1 + serial_number_part2
+                logging.info(f"Serial number found at third location: {serial_number}")
+                return serial_number
+            elif serial_number_part1:
+                logging.info(f"Serial number found at second location (fallback): {serial_number_part1}")
+                return serial_number_part1
+        except Exception:
+            logging.debug("Failed to read serial number from third location")
+
+        logging.error("Failed to determine serial number")
+        return None
+
+    def determine_model(self):
+        """ Determine the model of the inverter based on the serial number """
+        serial_number = self.data.get('serial_number')
+        model = None
+        if len(serial_number) == 14:
+            code = serial_number[1:3]
+            model_mapping = {
+                "A1": "SOFAR 1000...3000TL",
+                "A3": "SOFAR 1100...3300TL-G3",
+                "B1": "SOFAR 3...6KTLM",
+                "C1": "SOFAR 10...20KTL",
+                "C2": "SOFAR 10...20KTL",
+                "C3": "SOFAR 10...20KTL",
+                "C4": "SOFAR 10...20KTL",
+                "D1": "SOFAR 10...20KTL",
+                "D2": "SOFAR 10...20KTL",
+                "D3": "SOFAR 10...20KTL",
+                "D4": "SOFAR 10...20KTL",
+                "E1": "SOFAR ME 3000-SP",
+                "F1": "SOFAR 3.3...12KTL-X",
+                "F2": "SOFAR 3.3...12KTL-X",
+                "F3": "SOFAR 3.3...12KTL-X",
+                "F4": "SOFAR 3.3...12KTL-X",
+                "G1": "SOFAR 30...40KTL-G2",
+                "G2": "SOFAR 30...40KTL-G2",
+                "H1": "SOFAR 3...6KTLM-G2",
+                "H3": "SOFAR 3...6KTLM-G3",
+                "H4": "SOFAR 7.5KTLM-G3",
+                "I1": "SOFAR 50...70KTL",
+                "J1": "SOFAR 50...70KTL-G2",
+                "J2": "SOFAR 50...70KTL-G2",
+                "J3": "SOFAR 50...70KTL-G2",
+                "K1": "SOFAR 7.5KTLM",
+                "L1": "SOFAR 20...33KTL-G2",
+                "M1": "SOFAR HYD 3000...6000-ES",
+                "M2": "SOFAR HYD 3000...6000-EP",
+                "N1": "SOFAR 10...15KTL-G2",
+                "P1": "SOFAR HYD 5...20KTL-3PH",
+                "P2": "SOFAR HYD 5...20KTL-3PH",
+                "Q1": "SOFAR 75...136KTL",
+                "R1": "SOFAR 255KTL-HV",
+                "S1": "SOFAR 15...24KTLX-G3",
+                "S2": "SOFAR 3.3...12KTLX-G3",
+                "S3": "SOFAR 25...50KTLX-G3",
+                "S4": "SOFAR 60...80KTLX-G3",
+                "T1": "SOFAR 7...10.5KTLM-G3",
+                "U1": "SOFAR ME 5...20KTL-3PH",
+                "U2": "SOFAR ME 5...20KTL-3PH",
+                "U3": "SOFAR ME 5...20KTL-3PH"
+            }
+            model = model_mapping.get(code)
+        elif len(serial_number) == 20:
+            code = serial_number[2:6]
+            model_mapping = {
+                "1012": "SOFAR 1100...3300TL-G3",
+                "1005": "SOFAR ME 3000-SP",
+                "1012": "SOFAR 3..6KTLM-G3",
+                "1018": "SOFAR 7.5KTLM-G3",
+                "1005": "SOFAR HYD 3000..6000-EP",
+                "1033": "SOFAR HYD 5..20KTL-3PH",
+                "1017": "SOFAR 255KTL-HV",
+                "1016": "SOFAR 3.3..24KTLX-G3",
+                "1021": "SOFAR 60...80KTLX-G3",
+                "1036": "SOFAR 100...125KTLX-G4",
+                "1018": "SOFAR 7...10.5KTLM-G3",
+                "1019": "SOFAR ME 5...20KTL-3PH",
+                "1025": "SOFAR ESI 2.5...5.0K"
+            }
+            model = model_mapping.get(code)
+
+        if model:
+            logging.info(f"Model determined: {model}")
+        else:
+            logging.error("Failed to determine model from serial number")
+        return model
+
+    def determine_modbus_protocol(self):
+        """ Determine the Modbus protocol based on the model """
+
+        protocol_mapping = {
+            "SOFAR 1000...3000TL": "SOFAR-1-40KTL.json",
+            "SOFAR 1100...3300TL-G3": "SOFAR-1-40KTL.json",
+            "SOFAR 3...6KTLM": "SOFAR-1-40KTL.json",
+            "SOFAR 10...20KTL": "SOFAR-1-40KTL.json",
+            "SOFAR ME 3000-SP": "SOFAR-HYD-ES-AND-ME3000-SP.json",
+            "SOFAR 3.3...12KTL-X": "SOFAR-1-40KTL.json",
+            "SOFAR 30...40KTL-G2": "SOFAR-1-40KTL.json",
+            "SOFAR 3...6KTLM-G2": "SOFAR-1-40KTL.json",
+            "SOFAR 7.5KTLM": "SOFAR-1-40KTL.json",
+            "SOFAR 20...33KTL-G2": "SOFAR-1-40KTL.json",
+            "SOFAR 10...15KTL-G2": "SOFAR-1-40KTL.json",
+            "SOFAR HYD 3000...6000-ES": "SOFAR-HYD-ES-AND-ME3000-SP.json",
+            "SOFAR HYD 3000...6000-EP": "SOFAR-HYD-3PH-AND-G3.json",
+            "SOFAR HYD 5...20KTL-3PH": "SOFAR-HYD-3PH-AND-G3.json",
+            "SOFAR 75...136KTL": "SOFAR-HYD-3PH-AND-G3.json",
+            "SOFAR 255KTL-HV": "SOFAR-HYD-3PH-AND-G3.json",
+            "SOFAR 15...24KTLX-G3": "SOFAR-HYD-3PH-AND-G3.json",
+            "SOFAR 3.3...12KTLX-G3": "SOFAR-HYD-3PH-AND-G3.json",
+            "SOFAR 25...50KTLX-G3": "SOFAR-HYD-3PH-AND-G3.json",
+            "SOFAR 60...80KTLX-G3": "SOFAR-HYD-3PH-AND-G3.json",
+            "SOFAR 7...10.5KTLM-G3": "SOFAR-HYD-3PH-AND-G3.json",
+            "SOFAR ME 5...20KTL-3PH": "SOFAR-HYD-3PH-AND-G3.json",
+            "SOFAR ESI 2.5...5.0K": "SOFAR-HYD-3PH-AND-G3.json"
+        }
+
+        modbus_protocol = protocol_mapping.get(self.data.get('model'))
+        if modbus_protocol:
+            logging.info(f"Modbus protocol determined: {modbus_protocol}")
+        else:
+            logging.error("Failed to determine Modbus protocol from model")
+        return modbus_protocol
+
+
 @click.command("cli", context_settings={'show_default': True})
-@click.option(
-    '--config-file',
-    envvar='CONFIG_FILE',
-    default='sofar-hyd-ep.json',
-    help='Configuration file to use',
-)
 @click.option(
     '--daemon',
     envvar='DAEMON',
@@ -597,9 +752,9 @@ class Sofar():
     help='Publish each register to MQTT individually in addition to state which contains all values',
 )
 # pylint: disable=too-many-arguments
-def main(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, ca_certs, topic, write_topic, log_level, device, legacy_publish):
+def main(daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, ca_certs, topic, write_topic, log_level, device, legacy_publish):
     """Main"""
-    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, ca_certs, topic, write_topic, log_level, device, legacy_publish)
+    sofar = Sofar(daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, ca_certs, topic, write_topic, log_level, device, legacy_publish)
     sofar.main()
 
 # pylint: disable=no-value-for-parameter
