@@ -413,6 +413,7 @@
 				"4": "Peak cut mode"
 			},
 			"write": true,
+			"notify_on_change": true,
 			"ha": {
 				"command_topic": "sofar/rw/energy_storage_mode",
 				"entity_category": "config",
