@@ -355,7 +355,7 @@ class Sofar():
                     "entity_id": f"sofar_{register['name']}",
                     "enabled_by_default": "true",
                     "device": {
-                        "name": f"Sofar {self.data.get('serial_number')}",
+                        "name": f"Sofar",
                         "sw_version": self.data.get("sw_version_com"),
                         "hw_version": self.data.get("hw_version"),
                         "manufacturer": "Sofar",
