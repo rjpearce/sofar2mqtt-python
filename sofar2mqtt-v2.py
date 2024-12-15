@@ -78,8 +78,8 @@ class Sofar():
                 if register["write"] and not untested:
                     self.write_registers.append(register)
 
-        logging.info(f"Starting sofar2mqtt-python with serial number: {self.data.get('serial_number')}")
-        self.read()
+        logging.info(f"Starting sofar2mqtt-python for serial number: {self.data.get('serial_number')}")
+        self.update_state()
         self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         self.setup_mqtt(logging)
         
@@ -136,7 +136,7 @@ class Sofar():
                                     retry = 0
                                 else:
                                     logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to: {payload}. Retries remaining: {retry}")
-                                    self.write_value(register, int(new_mode))
+                                    self.write_register(register, int(new_mode))
                                     time.sleep(self.write_retry_delay)
                                     retry = retry - 1
                         else: 
@@ -163,7 +163,7 @@ class Sofar():
                                         retry = 0
                                     else:
                                         logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to {value}. Retries remaining: {retry}")
-                                        self.write_value(register, value)
+                                        self.write_register(register, value)
                                         time.sleep(self.write_retry_delay)
                                         retry = retry - 1
                             else: 
@@ -200,7 +200,7 @@ class Sofar():
             self.instrument.serial.timeout  = 0.2   # seconds
             self.instrument.close_port_after_each_call = True
 
-    def read_and_publish(self):
+    def update_state(self):
         for register in self.config['registers']:
             refresh = 1
             if 'refresh' in register:
@@ -239,7 +239,7 @@ class Sofar():
                     read_type = register['read_type']
                 if 'registers' in register:
                     registers = register['registers']
-                value = self.read_value(
+                value = self.read_register(
                         int(register['register'], 16),
                         read_type,
                         signed,
@@ -282,8 +282,10 @@ class Sofar():
                         value = f"{high:02}{register['join']}{low:02}" # combine and pad 2 zeros 
             logging.debug('Read %s:%s', register['name'], value)
 
-            self.publish(register['name'], value)
-
+            if not self.data.get(register.get('name')) == value:
+                if register.get('notify_on_change', False):
+                    logging.info(f"Notification - {register.get('name')} has changed to: {value}")
+            self.data[register.get('name')] = value 
         failure_percentage = round(self.failures / (self.requests+self.retries)*100,2)
         retry_percentage = round(self.retries / (self.requests)*100,2)
         logging.info(f"Modbus Requests: {self.requests} Retries: {self.retries} ({retry_percentage}%) Failures: {self.failures} ({failure_percentage}%)")
@@ -293,28 +295,26 @@ class Sofar():
         self.data['modbus_failure_rate'] = failure_percentage
         self.data['modbus_retry_rate'] = retry_percentage
 
-    def read(self):
-        now = datetime.datetime.now()
-        """ Sleep for 35 seconds to allow the inverter to reset the stats at 00:00 """
-        if (now.hour == 23 and now.minute == 59 and now.second >= 30):
-            logging.info('Snoozing 35 seconds')
-            time.sleep(35)
-        self.read_and_publish()
-        self.requests = 0
-        self.failures = 0
-        self.failed = []
-        self.retries = 0
-
     def publish_state(self):
         try:
             data = json.dumps(self.data, indent=2)
-            self.client.publish("sofar2mqtt_python/bridge", "online", retain=False)
             self.client.publish(self.topic + "state_all", data, retain=True)
+
             with open("data.json", "w") as write_file:
                 write_file.write(data)
+            if self.legacy_publish:
+                self.publish_legacy_state()
         except Exception:
             logging.info(traceback.format_exc())
         time.sleep(self.refresh_interval)
+
+    def publish_legacy_state(self):
+        for register in self.config['registers']:
+            logging.debug('Publishing %s:%s', self.topic + register.get("name"), self.data.get(register.get("name")))
+            try:
+                self.client.publish(self.topic + register.get("name"), self.data.get(register.get("name")), retain=False)
+            except Exception:
+                logging.debug(traceback.format_exc())
 
     def publish_mqtt_discovery_bridge(self):
         payload = {
@@ -339,10 +339,12 @@ class Sofar():
         try:
             logging.info(f"Publishing bridge via MQTT to {topic}")
             self.client.publish(topic, json.dumps(payload), retain=False)
+            self.client.publish("sofar2mqtt_python/bridge", "online", retain=False)
         except Exception:
             logging.info(traceback.format_exc())
 
     def publish_mqtt_discovery(self):
+        logging.info(f"Publishing controls via MQTT")
         for register in self.config['registers']:
             if 'ha' not in register:
                 continue
@@ -394,28 +396,25 @@ class Sofar():
         signal.signal(signal.SIGTERM, self.signal_handler)
         signal.signal(signal.SIGINT, self.signal_handler)
         if not self.daemon:
-          self.read_and_publish()
+            self.update_state()
+            self.publish_state()
         while (self.daemon):
-            self.read()
+            now = datetime.datetime.now()
+            """ Sleep for 34 seconds to allow the inverter to reset the stats at 00:00 """
+            if (now.hour == 22 and now.minute == 59 and now.second >= 30):
+                logging.info('Snoozing 34 seconds')
+                time.sleep(34)
+            self.requests = 0
+            self.failures = 0
+            self.failed = []
+            self.retries = 0
+            self.update_state()
             self.publish_state()
             time.sleep(self.refresh_interval)
             self.iteration+=1
         self.terminate()
 
-    def publish(self, key, value):
-        if key == 'energy_storage_mode':
-            if key in self.data:
-                if value != self.data[key]:
-                    logging.info(f"energy_storage_mode has changed to: {value}")
-        self.data[key] = value
-        if self.legacy_publish:
-            logging.debug('Publishing %s:%s', self.topic + key, value)
-            try:
-                self.client.publish(self.topic + key, value, retain=True)
-            except Exception:
-                logging.debug(traceback.format_exc())
-
-    def write_value(self, register, value):
+    def write_register(self, register, value):
         """ Read value from register with a retry mechanism """
         with self.mutex:
             retry = self.write_retry
@@ -459,7 +458,7 @@ class Sofar():
             else:
                 logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
 
-    def read_value(self, registeraddress, read_type, signed, registers=1):
+    def read_register(self, registeraddress, read_type, signed, registers=1):
         """ Read value from register with a retry mechanism """
         with self.mutex:
             value = None
@@ -503,7 +502,7 @@ class Sofar():
 
         # Try first location: 0x2001 ... 0x2007
         try:
-            serial_number = ''.join([self.read_value(register, 'string', False, 1) for register in range(0x2001, 0x2008)])
+            serial_number = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x2001, 0x2008)])
             if serial_number:
                 logging.info(f"Serial number found at first location: {serial_number}")
                 return serial_number
@@ -512,7 +511,7 @@ class Sofar():
 
         # Try second location: 0x0445 ... 0x044B (14 digits)
         try:
-            serial_number = ''.join([self.read_value(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
+            serial_number = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
             if serial_number:
                 logging.info(f"Serial number found at second location: {serial_number}")
                 return serial_number
@@ -521,8 +520,8 @@ class Sofar():
 
         # Try third location: 0x0445 ... 0x044C and 0x0470...0x0471 (20 digits)
         try:
-            serial_number_part1 = ''.join([self.read_value(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
-            serial_number_part2 = ''.join([self.read_value(register, 'string', False, 1) for register in range(0x0470, 0x0472)])
+            serial_number_part1 = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
+            serial_number_part2 = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x0470, 0x0472)])
             if serial_number_part2 and int(serial_number_part2) != 0:
                 serial_number = serial_number_part1 + serial_number_part2
                 logging.info(f"Serial number found at third location: {serial_number}")
