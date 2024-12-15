@@ -66,7 +66,7 @@
 				"step": 1,
 				"initial": 0,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_id",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"value_template": "{{ value_json.battery_config_id | int }}"
 			}
@@ -85,7 +85,7 @@
 				"step": 1,
 				"initial": 0,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_address",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"value_template": "{{ value_json.battery_config_address }}"
 			}
@@ -113,7 +113,7 @@
 				"icon": "mdi:flash",
 				"entity_category": "config",
 				"value_template": "{{ value_json.battery_config_protocol }}",
-				"command_topic": "sofar/rw/energy_storage_mode",
+				"command_topic": "sofar/rw/battery_config",
 				"options": [
 					"Default",
 					"Pylon",
@@ -143,7 +143,7 @@
 				"min": 0.0,
 				"max": 65535.0,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_voltage_over",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
@@ -164,7 +164,7 @@
 				"min": 0.0,
 				"max": 65535.0,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_voltage_charge",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
@@ -185,7 +185,7 @@
 				"min": 0.0,
 				"max": 65535.0,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_voltage_lack",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
@@ -206,7 +206,7 @@
 				"min": 0.0,
 				"max": 65535.0,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_voltage_discharge_stop",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
@@ -227,7 +227,7 @@
 				"min": 0,
 				"max": 65535,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_current_charge_limit",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"device_class": "current",
 				"unit_of_measurement": "A",
@@ -248,7 +248,7 @@
 				"min": 0,
 				"max": 65535,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_current_discharge_limit",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"device_class": "current",
 				"unit_of_measurement": "A",
@@ -271,7 +271,7 @@
 				"min": 10,
 				"max": 90,
 				"mode": "box",
-				"command_topic": "sofar/rw/depth_of_discharge",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"unit_of_measurement": "%",
 				"value_template": "{{ value_json.depth_of_discharge | int }}"
@@ -289,7 +289,7 @@
 				"min": 1,
 				"max": 90,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_end_of_discharge",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"unit_of_measurement": "%",
 				"value_template": "{{ value_json.battery_config_end_of_discharge }}"
@@ -307,7 +307,7 @@
 				"min": 1,
 				"max": 65535,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_capacity",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"unit_of_measurement": "Ah",
 				"value_template": "{{ value_json.battery_config_capacity }}"
@@ -327,7 +327,7 @@
 				"min": 0.0,
 				"max": 65535.0,
 				"mode": "box",
-				"command_topic": "sofar/rw/battery_config_voltage_nominal",
+				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"device_class": "voltage",
 				"unit_of_measurement": "V",
@@ -342,20 +342,20 @@
 			"function": "mode",
 			"modes": {
 				"0": "Lead-acid",
-				"1": "Lithium-Iron-Phosphate-LiFePO4",
-				"2": "Lithium-Ternary-NCM",
-				"3": "Lithium-Titanate-LTO"
+				"1": "Lithium Iron Phosphate (LiFePO4)",
+				"2": "Lithium Ternary (NCM)",
+				"3": "Lithium Titanate (LTO)"
 			},
 			"ha": {
 				"name": "Battery Cell Type",
 				"icon": "mdi:flash",
 				"entity_category": "config",
-				"command_topic": "sofar/rw/battery_config_cell_type",
+				"command_topic": "sofar/rw/battery_config",
 				"options": [
 					"Lead-acid",
-					"Lithium-Iron-Phosphate-LiFePO4",
-					"Lithium-Ternary-NCM",
-					"Lithium-Titanate-LTO"
+					"Lithium Iron Phosphate (LiFePO4)",
+					"Lithium Ternary (NCM)",
+					"Lithium Titanate (LTO)"
 				],
 				"control": "select",
 				"value_template": "{{ value_json.battery_config_cell_type }}"
