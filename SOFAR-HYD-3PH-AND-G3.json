@@ -1,4 +1,29 @@
 {
+	"write_register_blocks": [
+		{
+			"name": "battery_config",
+			"start_register": "0x1044",
+			"length": "16",
+			"registers": [
+				"battery_config_id",
+				"battery_config_address",
+				"battery_config_protocol",
+				"battery_config_voltage_over",
+				"battery_config_voltage_charge",
+				"battery_config_voltage_lack",
+				"battery_config_voltage_discharge_stop",
+				"battery_config_current_charge_limit",
+				"battery_config_current_discharge_limit",
+				"battery_config_depth_of_discharge",
+				"battery_config_end_of_discharge",
+				"battery_config_capacity",
+				"battery_config_voltage_nominal",
+				"battery_config_cell_type",
+				"battery_config_eps_buffer",
+				"battery_config_control"
+			]
+		}
+	],
 	"registers": [
 		{
 			"name": "hw_version",
@@ -256,9 +281,9 @@
 			}
 		},
 		{
-			"name": "depth_of_discharge",
+			"name": "battery_config_depth_of_discharge",
 			"register": "0x104D",
-			"desc": "Depth of Discharge SOC",
+			"desc": "Battery Depth of Discharge SOC",
 			"function": "int",
 			"min": 1,
 			"max": 90,
@@ -274,7 +299,7 @@
 				"command_topic": "sofar/rw/battery_config",
 				"control": "number",
 				"unit_of_measurement": "%",
-				"value_template": "{{ value_json.depth_of_discharge | int }}"
+				"value_template": "{{ value_json.battery_config_depth_of_discharge | int }}"
 			}
 		},
 		{
@@ -1180,7 +1205,7 @@
 		{
 			"name": "active_power_import_limit",
 			"register": "0x1107",
-				"desc": "AC input active power maximum percentage (0 to 100%)",
+			"desc": "AC input active power maximum percentage (0 to 100%)",
 			"type": "U16",
 			"min": 0,
 			"max": 100,
