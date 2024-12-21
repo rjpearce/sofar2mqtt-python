@@ -52,6 +52,7 @@ class Sofar():
         self.device = device
         self.legacy_publish = legacy_publish
         self.data = {}
+        self.raw_data = {}
         self.log_level = logging.getLevelName(log_level)
         self.iteration = 0
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.getLevelName(log_level))
@@ -174,11 +175,11 @@ class Sofar():
         if not found:
             for block in self.config.get('write_register_blocks', []):
                 if block['name'] == topic.split('/')[-2]:
-                    logging.info(f"Received a request to write block: {topic} {block['name']} {payload}")
-                    update_register = { topic.split('/')[-1]: payload }
-                    self.write_register_block(block['name'], update_register)
+                    update_register = topic.split('/')[-1] 
+                    logging.info(f"Received a request to write block: {topic} {block['name']}_{update_register} {payload}")
+                    self.write_register_block(block['name'], f"{block['name']}_{update_register}", payload)
                     return
-            logging.error(f"Received a request to set an unknown register or block: {topic.split('/')[-2]} to {payload}")
+            logging.error(f"Received a request to set an unknown register or block: {topic} to {payload}")
 
     def setup_mqtt(self, logging):
         self.client.enable_logger(logger=logging)
@@ -206,6 +207,7 @@ class Sofar():
             self.instrument.serial.stopbits = 1
             self.instrument.serial.timeout  = 0.2   # seconds
             self.instrument.close_port_after_each_call = True
+            self.instrument.clear_buffers_before_each_transaction = True
 
     def update_state(self):
         for register in self.config['registers']:
@@ -215,6 +217,7 @@ class Sofar():
             if (self.iteration % refresh) != 0:
                 logging.debug(f"Skipping {register['name']}")
                 continue
+            raw_value = None
             value = None
             signed = False
             logging.debug('Reading %s', register['name'])
@@ -246,12 +249,13 @@ class Sofar():
                     read_type = register['read_type']
                 if 'registers' in register:
                     registers = register['registers']
-                value = self.read_register(
+                raw_value = self.read_register(
                         int(register['register'], 16),
                         read_type,
                         signed,
                         registers
                 )
+                value = raw_value
             if value is None:
                 continue
             else:
@@ -293,6 +297,7 @@ class Sofar():
                 if register.get('notify_on_change', False):
                     logging.info(f"Notification - {register.get('name')} has changed to: {value}")
             self.data[register.get('name')] = value 
+            self.raw_data[register.get('name')] = raw_value 
         failure_percentage = round(self.failures / (self.requests+self.retries)*100,2)
         retry_percentage = round(self.retries / (self.requests)*100,2)
         logging.info(f"Modbus Requests: {self.requests} Retries: {self.retries} ({retry_percentage}%) Failures: {self.failures} ({failure_percentage}%)")
@@ -713,32 +718,37 @@ class Sofar():
             value = next((k for k, v in register['modes'].items() if v == value), value)
         return value
 
-    def write_register_block(self, block_name, update_register):
+    def write_register_block(self, block_name, update_register, value):
         """ Write a specific register block from configuration to Modbus """
         block = next((b for b in self.config.get('write_register_blocks', []) if b['name'] == block_name), None)
         if not block:
             logging.error(f"Block {block_name} not found in configuration")
             return
 
-        logging.info(f"Block: {block}")
         start_register = int(block['start_register'], 16)
         length = int(block['length'])
         values = []
         for register_name in block['registers']:
-            if register_name in update_register:
-                value = self.convert_value(register_name, update_register[register_name])
+            if register_name == update_register:
+                reg = next((r for r in self.config['registers'] if r['name'] == register_name), None)
+                if 'function' in reg:
+                    if reg['function'] == 'divide':
+                        value = int(value * reg['factor'])
+                    if reg['function'] == 'multiply':
+                        value = int(value / reg['factor'])
+                raw_value = self.convert_value(register_name, value)
             else:
-                value = self.convert_value(register_name, self.data.get(register_name))
-            if value is None:
+                raw_value = self.convert_value(register_name, self.raw_data.get(register_name))
+            if raw_value is None:
                 logging.error(f"Value for {register_name} not found in data. Skipping block {block['name']}")
                 return
-            values.append(int(value))
+            values.append(int(raw_value))
         if 'append' in block:
             for append_item in block['append']:
                 values.append(append_item)
-        logging.info(f"Would write {block['start_register']} with {values[:length]}") 
-        self.write_registers_with_retry(block['start_register'], [0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1])
-        #self.instrument.write_registers(start_register, values[:length])
+        #logging.info(f"Would write {block['start_register']} with {values[:length]}") 
+        #self.write_registers_with_retry(block['start_register'], [0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1])
+        self.write_registers_with_retry(block['start_register'], values[:length])
 
 @click.command("cli", context_settings={'show_default': True})
 @click.option(
