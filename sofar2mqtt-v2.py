@@ -730,13 +730,15 @@ class Sofar():
         values = []
         for register_name in block['registers']:
             if register_name == update_register:
+                raw_value = value
                 reg = next((r for r in self.config['registers'] if r['name'] == register_name), None)
                 if 'function' in reg:
                     if reg['function'] == 'divide':
-                        value = int(value * reg['factor'])
+                        raw_value = int(float(value) * reg['factor'])
                     if reg['function'] == 'multiply':
-                        value = int(value / reg['factor'])
-                raw_value = self.convert_value(register_name, value)
+                        raw_value = int(float(value) / reg['factor'])
+                    if reg['function'] == 'mode': 
+                        raw_value = self.convert_value(register_name, value)
             else:
                 raw_value = self.convert_value(register_name, self.raw_data.get(register_name))
             if raw_value is None:
@@ -747,6 +749,7 @@ class Sofar():
             for append_item in block['append']:
                 values.append(append_item)
         #logging.info(f"Would write {block['start_register']} with {values[:length]}") 
+        #logging.info(f"Reference values: {[0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1]}")
         #self.write_registers_with_retry(block['start_register'], [0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1])
         self.write_registers_with_retry(block['start_register'], values[:length])
 
