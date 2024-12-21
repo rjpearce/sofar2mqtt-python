@@ -465,6 +465,39 @@ class Sofar():
             else:
                 logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
 
+    def write_registers_with_retry(self, start_register, values):
+        """ Write values with a retry mechanism """
+        with self.mutex:
+            retry = self.write_retry
+            logging.info(f"Writing {start_register} with {values}")
+            signed = False
+            success = False
+            retries = 0
+            failed = 0 
+            while retry > 0 and not success:
+                try:
+                    self.instrument.write_registers(int(start_register,16), values)
+                except minimalmodbus.NoResponseError:
+                    logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                except minimalmodbus.InvalidResponseError:
+                    logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                except serial.serialutil.SerialException:
+                    logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                success = True
+            if success:
+                logging.info('Modbus Write Request: %s successful. Retries: %d', start_register, retries)
+            else:
+                logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', start_register, retries)
+
     def read_register(self, registeraddress, read_type, signed, registers=1):
         """ Read value from register with a retry mechanism """
         with self.mutex:
@@ -703,12 +736,9 @@ class Sofar():
         if 'append' in block:
             for append_item in block['append']:
                 values.append(append_item)
-        try:
-            logging.info(f"Would write {start_register} with {values[:length]}")
-            self.instrument.write_registers(start_register, values[:length])
-            logging.info(f"Successfully wrote block {block['name']} to Modbus")
-        except Exception as e:
-            logging.error(f"Failed to write block {block['name']} to Modbus: {str(e)}")
+        logging.info(f"Would write {block['start_register']} with {values[:length]}") 
+        self.write_registers_with_retry(block['start_register'], [0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1])
+        #self.instrument.write_registers(start_register, values[:length])
 
 @click.command("cli", context_settings={'show_default': True})
 @click.option(
