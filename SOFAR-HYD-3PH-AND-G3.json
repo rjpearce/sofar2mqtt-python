@@ -765,6 +765,8 @@
 				"pv_2_power"
 			],
 			"agg_function": "add",
+			"function": "multiply",
+			"factor": 10,
 			"ha": {
 				"device_class": "power",
 				"unit_of_measurement": "W",
@@ -812,8 +814,9 @@
 				"load_power",
 				"active_power"
 			],
+			"function": "multiply",
+			"factor": 10,
 			"agg_function": "subtract",
-			"invert": false,
 			"ha": {
 				"device_class": "power",
 				"name": "On-Grid Power",
