@@ -51,24 +51,23 @@ class Sofar():
         self.instrument = None
         self.device = device
         self.legacy_publish = legacy_publish
-        self.data = {}
         self.raw_data = {}
         self.log_level = logging.getLevelName(log_level)
         self.iteration = 0
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.getLevelName(log_level))
         self.mutex = threading.Lock()
         self.setup_instrument()
-        self.data['serial_number'] = self.determine_serial_number()
-        if not self.data['serial_number']:
+        self.raw_data['serial_number'] = self.determine_serial_number()
+        if not self.raw_data['serial_number']:
             logging.error("Failed to determine serial number. Exiting")
             exit(1)
-        self.data['model'] = self.determine_model()
-        self.data['protocol'] = self.determine_modbus_protocol()
+        self.raw_data['model'] = self.determine_model()
+        self.raw_data['protocol'] = self.determine_modbus_protocol()
 
-        if self.data.get('protocol') == "SOFAR-1-40KTL.json":
+        if self.raw_data.get('protocol') == "SOFAR-1-40KTL.json":
             logging.error("Unsupported protocol detected. Exiting")
 
-        self.config = load_config(self.data.get('protocol'))
+        self.config = load_config(self.raw_data.get('protocol'))
         self.write_registers = []
         untested = False
         for register in self.config['registers']:
@@ -78,7 +77,7 @@ class Sofar():
                 if register["write"] and not untested:
                     self.write_registers.append(register)
 
-        logging.info(f"Starting sofar2mqtt-python for serial number: {self.data.get('serial_number')}")
+        logging.info(f"Starting sofar2mqtt-python for serial number: {self.raw_data.get('serial_number')}")
         self.update_state()
         self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         self.setup_mqtt(logging)
@@ -120,25 +119,26 @@ class Sofar():
             return
 
         for register in self.write_registers:
+            new_value = self.translate_to_raw_value(register, payload)
             if register['name'] == topic.split('/')[-1]:
                 found = True
                 if 'function' in register:
                     if register['function'] == 'mode':
                         new_mode = False
                         for key in register['modes']:
-                            if register['modes'][key] == payload:
+                            if register['modes'][key] == new_value:
                               new_mode = key
                         logging.info(f"Received a request for {register['name']} to set mode value to: {payload}({new_mode})")
                         if not new_mode:
-                            logging.error(f"Received a request for {register['name']} but mode value: {payload} is not a known mode. Ignoring")
-                        if register['name'] in self.data:
+                            logging.error(f"Received a request for {register['name']} but mode value: {new_value} is not a known mode. Ignoring")
+                        if register['name'] in self.raw_data:
                             retry = self.write_retry
                             while retry > 0:
-                                if self.data[register['name']] == payload:
-                                    logging.info(f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {payload}. Ignoring")
+                                if self.raw_data[register['name']] == new_value:
+                                    logging.info(f"Current value for {register['name']}={self.raw_data[register['name']]} matches desired value: {new_value}. Ignoring")
                                     retry = 0
                                 else:
-                                    logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to: {payload}. Retries remaining: {retry}")
+                                    logging.info(f"Current value for {register['name']}={self.raw_data[register['name']]}, attempting to set it to: {new_value}. Retries remaining: {retry}")
                                     self.write_register(register, int(new_mode))
                                     time.sleep(self.write_retry_delay)
                                     retry = retry - 1
@@ -146,27 +146,26 @@ class Sofar():
                             logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
 
                     elif register['function'] == 'int':
-                        value = int(payload)
-                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({value})")
-                        if value < register['min']:
-                            logging.error(f"Received a request for {register['name']} but value: {value} is less than the min value: {register['min']}. Ignoring")
-                        elif value > register['max']:
-                            logging.error(f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
+                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({new_value})")
+                        if new_value < register['min']:
+                            logging.error(f"Received a request for {register['name']} but value: {new_value} is less than the min value: {register['min']}. Ignoring")
+                        elif new_value > register['max']:
+                            logging.error(f"Received a request for {register['name']} but value: {new_value} is more than the max value: {register['max']}. Ignoring")
                         else:
                             if register['name'] == 'desired_power':
-                                 if 'energy_storage_mode' in self.data:
-                                     if 'Passive mode' != self.data['energy_storage_mode']:
+                                 if 'energy_storage_mode' != self.raw_data:
+                                     if 'Passive mode' != self.raw_data['energy_storage_mode']:
                                          logging.info(f"Received a request for {register['name']} but not not in Passive mode. Ignoring")
                                          continue
-                            if register['name'] in self.data:
+                            if register['name'] in self.raw_data:
                                 retry = self.write_retry
                                 while retry > 0:
-                                    if self.data[register['name']] == value:
-                                        logging.info(f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {value}. Ignoring")
+                                    if self.raw_data[register['name']] == new_value:
+                                        logging.info(f"Current value for {register['name']}={self.raw_data[register['name']]} matches desired value: {new_value}. Ignoring")
                                         retry = 0
                                     else:
-                                        logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to {value}. Retries remaining: {retry}")
-                                        self.write_register(register, value)
+                                        logging.info(f"Current value for {register['name']}={self.raw_data[register['name']]}, attempting to set it to {new_value}. Retries remaining: {retry}")
+                                        self.write_register(register, new_value)
                                         time.sleep(self.write_retry_delay)
                                         retry = retry - 1
                             else: 
@@ -209,111 +208,81 @@ class Sofar():
             self.instrument.close_port_after_each_call = True
             self.instrument.clear_buffers_before_each_transaction = True
 
+    def combine_aggregate_registers(self, register):
+        """ Combine registers from the 'aggregate' field using the arithmetic function in 'agg_function' """
+        raw_value = 0
+        for register_name in register['aggregate']:
+            if register_name in self.raw_data:
+                if raw_value == 0:
+                    raw_value = self.raw_data[register_name]
+                else:
+                    if register['agg_function'] == 'add':
+                        raw_value += self.raw_data[register_name]
+                    elif register['agg_function'] == 'subtract':
+                        raw_value -= self.raw_data[register_name]
+                    elif register['agg_function'] == 'avg':
+                        raw_value = int((raw_value + self.raw_data[register_name]) / 2)
+        self.raw_data[register['name']] = raw_value
+        return raw_value
+
     def update_state(self):
         for register in self.config['registers']:
-            refresh = 1
-            if 'refresh' in register:
-                refresh = register['refresh'] 
+            refresh = register.get('refresh', 1)
             if (self.iteration % refresh) != 0:
                 logging.debug(f"Skipping {register['name']}")
                 continue
             raw_value = None
-            value = None
-            signed = False
             logging.debug('Reading %s', register['name'])
-            if 'signed' in register:
-                signed = register['signed']
             if 'aggregate' in register:
-                value = 0
-                for register_name in register['aggregate']:
-                    if register_name in self.data:
-                        if value == 0:
-                            value = self.data[register_name]
-                        else:
-                            if register['agg_function'] == 'add':
-                                value += self.data[register_name]
-                            elif register['agg_function'] == 'subtract':
-                                value -= self.data[register_name]
-                            elif register['agg_function'] == 'avg':
-                                value = int((value + self.data[register_name]) / 2)
-                if 'invert' in register:
-                    if register['invert']:
-                        if value > 0:
-                            value = -abs(value)
-                        else:
-                            value = abs(value)
+                raw_value = self.combine_aggregate_registers(register)
             else:
-                read_type = 'register'
-                registers = 1
-                if 'read_type' in register:
-                    read_type = register['read_type']
-                if 'registers' in register:
-                    registers = register['registers']
                 raw_value = self.read_register(
                         int(register['register'], 16),
-                        read_type,
-                        signed,
-                        registers
+                        register.get('read_type', 'register'),
+                        register.get('signed', False),
+                        register.get('registers', 1)
                 )
-                value = raw_value
-            if value is None:
+            if raw_value is None:
+                logging.error(f"Value for {register['name']}: is none")
                 continue
             else:
+                value = self.translate_from_raw_value(register, raw_value)
                 # Inverter will return maximum 16-bit integer value when data not available (eg. grid usage when grid down)
                 if value == 65535:
                     value = 0
-                if 'min' in register:
-                    if value < register['min']:
-                        logging.error(f"Value for {register['name']}: {str(value)} is lower than min allowed value: {register['min']}. Ignoring value")
-                        continue
-                if 'max' in register:
-                    if value > register['max']:
-                        logging.error(f"Value for {register['name']}: {str(value)} is greater than max allowed value: {register['max']}. Ignoring value")
-                        continue
-                if 'function' in register:
-                    if register['function'] == 'multiply':
-                        value = value * register['factor']
-                    elif register['function'] == 'divide':
-                        value = value / register['factor']
-                    elif register['function'] == 'mode':
-                        try:
-                            value = register['modes'][str(value)]
-                        except KeyError:
-                            logging.error(f"Unknown mode value for {register['name']} value: {str(value)}")
-                    elif register['function'] == 'bit_field':
-                        length = len(register['fields'])
-                        fields = []
-                        for n in reversed(range(length)):
-                            if value & (1 << ((length-1)-n)):
-                                fields.append(register['fields'][n])
-                        value = (','.join(fields))
-                    elif register['function'] == 'high_bit_low_bit':
-                        high = value >> 8 # shift right 
-                        low = value & 255 # apply bitmask 
-                        value = f"{high:02}{register['join']}{low:02}" # combine and pad 2 zeros 
-            logging.debug('Read %s:%s', register['name'], value)
+                if 'min' in register and value < register['min']:
+                    logging.error(f"Value for {register['name']}: {str(value)} is lower than min allowed value: {register['min']}")
+                if 'max' in register and value > register['max']:
+                    logging.error(f"Value for {register['name']}: {str(raw_value)} is greater than max allowed value: {register['max']}")
+                logging.debug(f"Read {register['name']} {value}")
 
-            if not self.data.get(register.get('name')) == value:
+            if not self.raw_data.get(register.get('name')) == raw_value:
                 if register.get('notify_on_change', False):
-                    logging.info(f"Notification - {register.get('name')} has changed to: {value}")
-            self.data[register.get('name')] = value 
+                    logging.info(f"Notification - {register.get('name')} has changed from: {self.raw_data.get(register.get('name'))} to: {self.translate_from_raw_value(register, raw_value)}")
             self.raw_data[register.get('name')] = raw_value 
         failure_percentage = round(self.failures / (self.requests+self.retries)*100,2)
         retry_percentage = round(self.retries / (self.requests)*100,2)
         logging.info(f"Modbus Requests: {self.requests} Retries: {self.retries} ({retry_percentage}%) Failures: {self.failures} ({failure_percentage}%)")
-        self.data['modbus_failures'] = self.failures
-        self.data['modbus_requests'] = self.requests
-        self.data['modbus_retries'] = self.retries
-        self.data['modbus_failure_rate'] = failure_percentage
-        self.data['modbus_retry_rate'] = retry_percentage
+        self.raw_data['modbus_failures'] = self.failures
+        self.raw_data['modbus_requests'] = self.requests
+        self.raw_data['modbus_retries'] = self.retries
+        self.raw_data['modbus_failure_rate'] = failure_percentage
+        self.raw_data['modbus_retry_rate'] = retry_percentage
 
     def publish_state(self):
         try:
-            data = json.dumps(self.data, indent=2)
-            self.client.publish(self.topic + "state_all", data, retain=True)
+            data = {}
+            for register in self.config['registers']:
+                if register['name'] in self.raw_data:
+                    raw_value = self.raw_data[register['name']]
+                    value = self.translate_from_raw_value(register, raw_value)
+                    data[register['name']] = value
+
+            json_data = json.dumps(data, indent=2)
+            self.client.publish(self.topic + "state_all", json_data, retain=True)
 
             with open("data.json", "w") as write_file:
-                write_file.write(data)
+                write_file.write(json_data)
             if self.legacy_publish:
                 self.publish_legacy_state()
         except Exception:
@@ -322,16 +291,17 @@ class Sofar():
 
     def publish_legacy_state(self):
         for register in self.config['registers']:
-            logging.debug('Publishing %s:%s', self.topic + register.get("name"), self.data.get(register.get("name")))
+            logging.debug('Publishing %s:%s', self.topic + register.get("name"), self.raw_data.get(register.get("name")))
             try:
-                self.client.publish(self.topic + register.get("name"), self.data.get(register.get("name")), retain=False)
+                value = self.translate_from_raw_value(register, self.raw_data.get(register.get("name")))
+                self.client.publish(self.topic + register.get("name"), value, retain=False)
             except Exception:
                 logging.debug(traceback.format_exc())
 
     def publish_mqtt_discovery_bridge(self):
         payload = {
             "device": {
-               "identifiers": [f"sofar2mqtt_python_bridge_{self.data.get('serial_number')}"],
+               "identifiers": [f"sofar2mqtt_python_bridge_{self.raw_data.get('serial_number')}"],
                "manufacturer": "Sofar2Mqtt-Python",
                "model": "Bridge",
                "name": "Sofar2Mqtt Python Bridge",
@@ -344,9 +314,9 @@ class Sofar():
             "payload_off": "offline",
             "payload_on": "online",
             "state_topic": "sofar2mqtt_python/bridge",
-            "unique_id": f"bridge_{self.data.get('serial_number')}_connection_state_sofar2mqtt_python",
+            "unique_id": f"bridge_{self.raw_data.get('serial_number')}_connection_state_sofar2mqtt_python",
         }
-        topic = f"homeassistant/binary_sensor/{self.data.get('serial_number')}/connection_state/config"
+        topic = f"homeassistant/binary_sensor/{self.raw_data.get('serial_number')}/connection_state/config"
 
         try:
             logging.info(f"Publishing bridge via MQTT to {topic}")
@@ -364,17 +334,17 @@ class Sofar():
                 default_payload = {
                     "name": register['name'],
                     "state_topic": "sofar/state_all",
-                    "unique_id": f"{self.data.get('serial_number')}_{register['name']}",
+                    "unique_id": f"{self.raw_data.get('serial_number')}_{register['name']}",
                     "entity_id": f"sofar_{register['name']}",
                     "enabled_by_default": "true",
                     "device": {
                         "name": f"Sofar",
-                        "sw_version": self.data.get("sw_version_com"),
-                        "hw_version": self.data.get("hw_version"),
+                        "sw_version": self.raw_data.get("sw_version_com"),
+                        "hw_version": self.raw_data.get("hw_version"),
                         "manufacturer": "Sofar",
-                        "model": self.data.get('model'),
+                        "model": self.raw_data.get('model'),
                         "configuration_url": "https://github.com/rjpearce/sofar2mqtt-python",
-                        "identifiers": [f"{self.data.get('serial_number')}"]
+                        "identifiers": [f"{self.raw_data.get('serial_number')}"]
                     },
                     "availability": [
                         {
@@ -582,7 +552,7 @@ class Sofar():
 
     def determine_model(self):
         """ Determine the model of the inverter based on the serial number """
-        serial_number = self.data.get('serial_number')
+        serial_number = self.raw_data.get('serial_number')
         model = None
         if len(serial_number) == 14:
             code = serial_number[1:3]
@@ -685,14 +655,14 @@ class Sofar():
             "SOFAR ESI 2.5...5.0K": "SOFAR-HYD-3PH-AND-G3.json"
         }
 
-        modbus_protocol = protocol_mapping.get(self.data.get('model'))
+        modbus_protocol = protocol_mapping.get(self.raw_data.get('model'))
         if modbus_protocol:
             logging.info(f"Modbus protocol determined: {modbus_protocol}")
         else:
             logging.error("Failed to determine Modbus protocol from model")
         return modbus_protocol
 
-    def convert_value(self, register_name, value):
+    def convert_value(self, register, value):
         """
         Convert value based on register modes.
 
@@ -713,9 +683,8 @@ class Sofar():
         Returns:
             str: The converted value or the original value if no conversion is needed.
         """
-        register = self.get_register(register_name)
         if register and 'modes' in register:
-            value = next((k for k, v in register['modes'].items() if v == value), value)
+            return next((k for k, v in register['modes'].items() if v == value), value)
         return value
 
     def write_register_block(self, block_name, update_register, value):
@@ -728,26 +697,19 @@ class Sofar():
         start_register = int(block['start_register'], 16)
         length = int(block['length'])
         values = []
+        raw_value = None
         for register_name in block['registers']:
             if register_name == update_register:
-                raw_value = value
                 register = self.get_register(register_name)
                 if register:
-                    if 'function' in register:
-                        if register['function'] == 'divide':
-                            raw_value = int(float(value) * register['factor'])
-                        if register['function'] == 'multiply':
-                            raw_value = int(float(value) / register['factor'])
-                        if register['function'] == 'mode': 
-                            raw_value = self.convert_value(register_name, value)
+                    raw_value = self.translate_to_raw_value(register, value)
                 else:
                     logging.error(f"Register {register_name} not found in configuration")
-                    raw_value = None
                     continue
             else:
-                raw_value = self.convert_value(register_name, self.raw_data.get(register_name))
+                raw_value = self.raw_data.get(register_name)
             if raw_value is None:
-                logging.error(f"Value for {register_name} not found in data. Skipping block {block['name']}")
+                logging.error(f"Value for {register_name} not found in raw data. Skipping block {block['name']}")
                 return
             values.append(int(raw_value))
         if 'append' in block:
@@ -764,6 +726,49 @@ class Sofar():
         if register is None:
             logging.error(f"Register {register_name} not found in configuration")
         return register
+
+    def translate_from_raw_value(self, register, raw_value):
+        """ Translate raw value to a normalized value using the function and factor """
+        if 'function' in register:
+            if register['function'] == 'multiply':
+                return raw_value * register['factor']
+            elif register['function'] == 'divide':
+                return raw_value / register['factor']
+            elif register['function'] == 'mode':
+                return register['modes'].get(str(raw_value), raw_value)
+            elif register['function'] == 'bit_field':
+                length = len(register['fields'])
+                fields = []
+                for n in reversed(range(length)):
+                    if raw_value & (1 << ((length-1)-n)):
+                        fields.append(register['fields'][n])
+                return ','.join(fields)
+            elif register['function'] == 'high_bit_low_bit':
+                high = raw_value >> 8  # shift right
+                low = raw_value & 255  # apply bitmask
+                return f"{high:02}{register['join']}{low:02}"  # combine and pad 2 zeros
+        return raw_value
+
+    def translate_to_raw_value(self, register, value):
+        """ Undo the operation performed by translate_from_raw_value """
+        if 'function' in register:
+            if register['function'] == 'multiply':
+                return value / register['factor']
+            elif register['function'] == 'divide':
+                return value * register['factor']
+            elif register['function'] == 'mode':
+                return next((k for k, v in register['modes'].items() if v == value), value)
+            elif register['function'] == 'bit_field':
+                fields = value.split(',')
+                raw_value = 0
+                for field in fields:
+                    if field in register['fields']:
+                        raw_value |= (1 << (len(register['fields']) - 1 - register['fields'].index(field)))
+                return raw_value
+            elif register['function'] == 'high_bit_low_bit':
+                high, low = map(int, value.split(register['join']))
+                return (high << 8) | low
+        return value
 
 @click.command("cli", context_settings={'show_default': True})
 @click.option(
