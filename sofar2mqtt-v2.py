@@ -713,7 +713,7 @@ class Sofar():
         Returns:
             str: The converted value or the original value if no conversion is needed.
         """
-        register = next((r for r in self.config['registers'] if r['name'] == register_name), None)
+        register = self.get_register(register_name)
         if register and 'modes' in register:
             value = next((k for k, v in register['modes'].items() if v == value), value)
         return value
@@ -731,14 +731,19 @@ class Sofar():
         for register_name in block['registers']:
             if register_name == update_register:
                 raw_value = value
-                reg = next((r for r in self.config['registers'] if r['name'] == register_name), None)
-                if 'function' in reg:
-                    if reg['function'] == 'divide':
-                        raw_value = int(float(value) * reg['factor'])
-                    if reg['function'] == 'multiply':
-                        raw_value = int(float(value) / reg['factor'])
-                    if reg['function'] == 'mode': 
-                        raw_value = self.convert_value(register_name, value)
+                register = self.get_register(register_name)
+                if register:
+                    if 'function' in register:
+                        if register['function'] == 'divide':
+                            raw_value = int(float(value) * register['factor'])
+                        if register['function'] == 'multiply':
+                            raw_value = int(float(value) / register['factor'])
+                        if register['function'] == 'mode': 
+                            raw_value = self.convert_value(register_name, value)
+                else:
+                    logging.error(f"Register {register_name} not found in configuration")
+                    raw_value = None
+                    continue
             else:
                 raw_value = self.convert_value(register_name, self.raw_data.get(register_name))
             if raw_value is None:
@@ -752,6 +757,13 @@ class Sofar():
         #logging.info(f"Reference values: {[0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1]}")
         #self.write_registers_with_retry(block['start_register'], [0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1])
         self.write_registers_with_retry(block['start_register'], values[:length])
+
+    def get_register(self, register_name):
+        """ Look up a register from self.config['registers'] """
+        register = next((r for r in self.config['registers'] if r['name'] == register_name), None)
+        if register is None:
+            logging.error(f"Register {register_name} not found in configuration")
+        return register
 
 @click.command("cli", context_settings={'show_default': True})
 @click.option(
