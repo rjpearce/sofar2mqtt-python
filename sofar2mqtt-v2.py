@@ -15,6 +15,7 @@ import struct
 from multiprocessing import Process
 import paho.mqtt.client as mqtt
 import requests
+import os
 
 VERSION = "3.1.0"
 
@@ -67,8 +68,14 @@ class Sofar():
 
         if self.raw_data.get('protocol') == "SOFAR-1-40KTL.json":
             logging.error("Unsupported protocol detected. Exiting")
+            exit(1)
 
-        self.config = load_config(self.raw_data.get('protocol'))
+        protocol_file = self.raw_data.get('protocol')
+        if not os.path.isfile(protocol_file):
+            logging.error(f"Protocol file {protocol_file} does not exist. Exiting")
+            exit(1)
+
+        self.config = load_config(protocol_file)
         self.write_registers = []
         untested = False
         for register in self.config['registers']:
