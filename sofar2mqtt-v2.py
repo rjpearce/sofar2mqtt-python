@@ -120,8 +120,8 @@ class Sofar():
             return
 
         for register in self.write_registers:
-            new_raw_value = self.translate_to_raw_value(register, payload)
             if register['name'] == topic.split('/')[-1]:
+                new_raw_value = self.translate_to_raw_value(register, payload)
                 found = True
                 if 'function' in register:
                     if register['function'] == 'mode':
