@@ -715,13 +715,16 @@ class Sofar():
             if raw_value is None:
                 logging.error(f"Value for {register_name} not found in raw data. Skipping block {block['name']}")
                 return
-            values.append(int(raw_value))
+            values.append(raw_value)
         if 'append' in block:
             for append_item in block['append']:
                 values.append(append_item)
-        #logging.info(f"Would write {block['start_register']} with {values[:length]}") 
+        logging.info(f"Would write {block['start_register']} with {values[:length]}") 
         #logging.info(f"Reference values: {[0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1]}")
+        #                                  [0, 0, 1, 540, 530, 425, 470, 10000, 10000, 89, 90, 250, 480, 1, 10, 1]
+
         #self.write_registers_with_retry(block['start_register'], [0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1])
+
         self.write_registers_with_retry(block['start_register'], values[:length])
 
     def get_register(self, register_name):
@@ -756,10 +759,12 @@ class Sofar():
     def translate_to_raw_value(self, register, value):
         """ Undo the operation performed by translate_from_raw_value """
         if 'function' in register:
+            if register['function'] == 'int':
+                return int(value)
             if register['function'] == 'multiply':
-                return value / register['factor']
+                return int(float(value) / register['factor'])
             elif register['function'] == 'divide':
-                return value * register['factor']
+                return int(float(value) * register['factor'])
             elif register['function'] == 'mode':
                 return next((k for k, v in register['modes'].items() if v == value), value)
             elif register['function'] == 'bit_field':
