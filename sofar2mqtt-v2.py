@@ -440,36 +440,36 @@ class Sofar():
 
     def write_registers_with_retry(self, start_register, values):
         """ Write values with a retry mechanism """
-        with self.mutex:
-            retry = self.write_retry
-            logging.info(f"Writing {start_register} with {values}")
-            signed = False
-            success = False
-            retries = 0
-            failed = 0 
-            while retry > 0 and not success:
-                try:
+        retry = self.write_retry
+        logging.info(f"Writing {start_register} with {values}")
+        signed = False
+        success = False
+        retries = 0
+        failed = 0 
+        while retry > 0 and not success:
+            try:
+                with self.mutex:
                     self.instrument.write_registers(int(start_register,16), values)
-                except minimalmodbus.NoResponseError:
-                    logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
-                    retry = retry - 1
-                    retries = retries + 1
-                    time.sleep(self.write_retry_delay)
-                except minimalmodbus.InvalidResponseError:
-                    logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
-                    retry = retry - 1
-                    retries = retries + 1
-                    time.sleep(self.write_retry_delay)
-                except serial.serialutil.SerialException:
-                    logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
-                    retry = retry - 1
-                    retries = retries + 1
-                    time.sleep(self.write_retry_delay)
-                success = True
-            if success:
-                logging.info('Modbus Write Request: %s successful. Retries: %d', start_register, retries)
-            else:
-                logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', start_register, retries)
+            except minimalmodbus.NoResponseError:
+                logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
+                retry = retry - 1
+                retries = retries + 1
+                time.sleep(self.write_retry_delay)
+            except minimalmodbus.InvalidResponseError:
+                logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
+                retry = retry - 1
+                retries = retries + 1
+                time.sleep(self.write_retry_delay)
+            except serial.serialutil.SerialException:
+                logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
+                retry = retry - 1
+                retries = retries + 1
+                time.sleep(self.write_retry_delay)
+            success = True
+        if success:
+            logging.info('Modbus Write Request: %s successful. Retries: %d', start_register, retries)
+        else:
+            logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', start_register, retries)
 
     def read_register(self, registeraddress, read_type, signed, registers=1):
         """ Read value from register with a retry mechanism """
@@ -691,7 +691,7 @@ class Sofar():
             return next((k for k, v in register['modes'].items() if v == value), value)
         return value
 
-    def write_register_block(self, block_name, update_register, value):
+    def write_register_block(self, block_name, update_register, new_value):
         """ Write a specific register block from configuration to Modbus """
         block = next((b for b in self.config.get('write_register_blocks', []) if b['name'] == block_name), None)
         if not block:
@@ -706,7 +706,7 @@ class Sofar():
             if register_name == update_register:
                 register = self.get_register(register_name)
                 if register:
-                    raw_value = self.translate_to_raw_value(register, value)
+                    raw_value = self.translate_to_raw_value(register, new_value)
                 else:
                     logging.error(f"Register {register_name} not found in configuration")
                     continue
@@ -719,13 +719,26 @@ class Sofar():
         if 'append' in block:
             for append_item in block['append']:
                 values.append(append_item)
-        logging.info(f"Would write {block['start_register']} with {values[:length]}") 
+        #logging.info(f"Would write {block['start_register']} with {values[:length]}") 
         #logging.info(f"Reference values: {[0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1]}")
         #                                  [0, 0, 1, 540, 530, 425, 470, 10000, 10000, 89, 90, 250, 480, 1, 10, 1]
-
         #self.write_registers_with_retry(block['start_register'], [0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1])
 
-        self.write_registers_with_retry(block['start_register'], values[:length])
+        register = self.get_register(update_register)
+        new_raw_value = self.translate_to_raw_value(register, new_value)
+
+        retry = self.write_retry + 10
+        while retry > 0:
+            current_raw_value = self.raw_data[update_register]
+            current_value = self.translate_from_raw_value(register, current_raw_value)
+            if current_raw_value == new_raw_value:
+                logging.info(f"Current value for {register['name']}: {current_raw_value} ({current_value}). Matches desired value: {new_raw_value} ({new_value}).")
+                retry = 0
+            else:
+                logging.info(f"Current value for {register['name']}: {current_raw_value} ({current_value}), attempting to set it to: {new_raw_value} ({new_value}). Retries remaining: {retry}")
+                self.write_registers_with_retry(block['start_register'], values[:length])
+                time.sleep(self.write_retry_delay)
+                retry = retry - 1
 
     def get_register(self, register_name):
         """ Look up a register from self.config['registers'] """

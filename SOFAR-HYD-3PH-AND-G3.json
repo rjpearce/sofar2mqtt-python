@@ -95,7 +95,7 @@
 				"control": "number",
 				"value_template": "{{ value_json.battery_config_id | int }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_address",
@@ -115,7 +115,7 @@
 				"control": "number",
 				"value_template": "{{ value_json.battery_config_address }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_protocol",
@@ -155,7 +155,7 @@
 				],
 				"control": "select"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_voltage_over",
@@ -177,7 +177,7 @@
 				"unit_of_measurement": "V",
 				"value_template": "{{ value_json.battery_config_voltage_over }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_voltage_charge",
@@ -199,7 +199,7 @@
 				"unit_of_measurement": "V",
 				"value_template": "{{ value_json.battery_config_voltage_charge }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_voltage_lack",
@@ -221,7 +221,7 @@
 				"unit_of_measurement": "V",
 				"value_template": "{{ value_json.battery_config_voltage_lack }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_voltage_discharge_stop",
@@ -243,7 +243,7 @@
 				"unit_of_measurement": "V",
 				"value_template": "{{ value_json.battery_config_voltage_discharge_stop }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_current_charge_limit",
@@ -265,7 +265,7 @@
 				"unit_of_measurement": "A",
 				"value_template": "{{ value_json.battery_config_current_charge_limit }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_current_discharge_limit",
@@ -287,7 +287,7 @@
 				"unit_of_measurement": "A",
 				"value_template": "{{ value_json.battery_config_current_discharge_limit }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_depth_of_discharge",
@@ -310,7 +310,7 @@
 				"unit_of_measurement": "%",
 				"value_template": "{{ value_json.battery_config_depth_of_discharge | int }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_end_of_discharge",
@@ -329,7 +329,7 @@
 				"unit_of_measurement": "%",
 				"value_template": "{{ value_json.battery_config_end_of_discharge }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_capacity",
@@ -348,7 +348,7 @@
 				"unit_of_measurement": "Ah",
 				"value_template": "{{ value_json.battery_config_capacity }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_voltage_nominal",
@@ -370,7 +370,7 @@
 				"unit_of_measurement": "V",
 				"value_template": "{{ value_json.battery_config_voltage_nominal }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_cell_type",
@@ -398,7 +398,7 @@
 				"control": "select",
 				"value_template": "{{ value_json.battery_config_cell_type }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_eps_buffer",
@@ -419,7 +419,7 @@
 				"unit_of_measurement": "%",
 				"value_template": "{{ value_json.battery_config_eps_buffer }}"
 			},
-			"refresh": 30
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_control",
