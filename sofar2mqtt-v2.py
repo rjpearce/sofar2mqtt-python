@@ -47,6 +47,7 @@ class Sofar():
         self.requests = 0
         self.failures = 0
         self.failed = []
+        self.failure_pattern = ""
         self.retries = 0
         self.instrument = None
         self.device = device
@@ -78,9 +79,9 @@ class Sofar():
                     self.write_registers.append(register)
 
         logging.info(f"Starting sofar2mqtt-python for serial number: {self.raw_data.get('serial_number')}")
-        self.update_state()
         self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         self.setup_mqtt(logging)
+        self.update_state()
         
     def on_connect(self, client, userdata, flags, rc, properties=None):
         logging.info("MQTT "+mqtt.connack_string(rc))
@@ -119,53 +120,51 @@ class Sofar():
             return
 
         for register in self.write_registers:
-            new_value = self.translate_to_raw_value(register, payload)
+            new_raw_value = self.translate_to_raw_value(register, payload)
             if register['name'] == topic.split('/')[-1]:
                 found = True
                 if 'function' in register:
                     if register['function'] == 'mode':
-                        new_mode = False
-                        for key in register['modes']:
-                            if register['modes'][key] == new_value:
-                              new_mode = key
-                        logging.info(f"Received a request for {register['name']} to set mode value to: {payload}({new_mode})")
-                        if not new_mode:
+                        new_value = register['modes'].get(str(new_raw_value), None)
+                        logging.info(f"Received a request for {register['name']} to set mode value to: {new_raw_value} ({new_value})")
+                        if not new_value:
                             logging.error(f"Received a request for {register['name']} but mode value: {new_value} is not a known mode. Ignoring")
                         if register['name'] in self.raw_data:
                             retry = self.write_retry
+                            raw_value = self.raw_data.get(register.get('name'), None)
+                            value = self.translate_from_raw_value(register, raw_value)
                             while retry > 0:
-                                if self.raw_data[register['name']] == new_value:
-                                    logging.info(f"Current value for {register['name']}={self.raw_data[register['name']]} matches desired value: {new_value}. Ignoring")
+                                if self.raw_data[register['name']] == int(new_raw_value):
+                                    logging.info(f"Current value for {register['name']}: {raw_value} ({value}). Matches desired value: {new_raw_value} ({new_value}).")
                                     retry = 0
                                 else:
-                                    logging.info(f"Current value for {register['name']}={self.raw_data[register['name']]}, attempting to set it to: {new_value}. Retries remaining: {retry}")
-                                    self.write_register(register, int(new_mode))
+                                    logging.info(f"Current value for {register['name']}: {raw_value} ({value}), attempting to set it to: {new_raw_value} ({new_value}). Retries remaining: {retry}")
+                                    self.write_register(register, int(new_raw_value))
                                     time.sleep(self.write_retry_delay)
                                     retry = retry - 1
                         else: 
                             logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
 
                     elif register['function'] == 'int':
-                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({new_value})")
-                        if new_value < register['min']:
-                            logging.error(f"Received a request for {register['name']} but value: {new_value} is less than the min value: {register['min']}. Ignoring")
-                        elif new_value > register['max']:
-                            logging.error(f"Received a request for {register['name']} but value: {new_value} is more than the max value: {register['max']}. Ignoring")
+                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({new_raw_value})")
+                        if int(new_raw_value) < register['min']:
+                            logging.error(f"Received a request for {register['name']} but value: {new_raw_value} is less than the min value: {register['min']}. Ignoring")
+                        elif int(new_raw_value) > register['max']:
+                            logging.error(f"Received a request for {register['name']} but value: {new_raw_value} is more than the max value: {register['max']}. Ignoring")
                         else:
                             if register['name'] == 'desired_power':
-                                 if 'energy_storage_mode' != self.raw_data:
-                                     if 'Passive mode' != self.raw_data['energy_storage_mode']:
-                                         logging.info(f"Received a request for {register['name']} but not not in Passive mode. Ignoring")
-                                         continue
+                                 if int(self.raw_data.get('energy_storage_mode', None)) == 0:
+                                    logging.info(f"Received a request for {register['name']} but energy_storage_mode is not in Passive mode. Ignoring")
+                                    continue
                             if register['name'] in self.raw_data:
                                 retry = self.write_retry
                                 while retry > 0:
-                                    if self.raw_data[register['name']] == new_value:
-                                        logging.info(f"Current value for {register['name']}={self.raw_data[register['name']]} matches desired value: {new_value}. Ignoring")
+                                    if int(self.raw_data[register['name']]) == int(new_raw_value):
+                                        logging.info(f"Current value for {register['name']}: {self.raw_data[register['name']]} matches desired value: {new_raw_value}")
                                         retry = 0
                                     else:
-                                        logging.info(f"Current value for {register['name']}={self.raw_data[register['name']]}, attempting to set it to {new_value}. Retries remaining: {retry}")
-                                        self.write_register(register, new_value)
+                                        logging.info(f"Current value for {register['name']}: {self.raw_data[register['name']]}, attempting to set it to {new_raw_value}. Retries remaining: {retry}")
+                                        self.write_register(register, int(new_raw_value))
                                         time.sleep(self.write_retry_delay)
                                         retry = retry - 1
                             else: 
@@ -204,8 +203,8 @@ class Sofar():
             self.instrument.serial.bytesize = 8
             self.instrument.serial.parity = serial.PARITY_NONE
             self.instrument.serial.stopbits = 1
-            self.instrument.serial.timeout  = 0.2   # seconds
-            self.instrument.close_port_after_each_call = True
+            self.instrument.serial.timeout  = 0.1   # seconds
+            self.instrument.close_port_after_each_call = False
             self.instrument.clear_buffers_before_each_transaction = True
 
     def combine_aggregate_registers(self, register):
@@ -258,11 +257,15 @@ class Sofar():
 
             if not self.raw_data.get(register.get('name')) == raw_value:
                 if register.get('notify_on_change', False):
-                    logging.info(f"Notification - {register.get('name')} has changed from: {self.raw_data.get(register.get('name'))} to: {self.translate_from_raw_value(register, raw_value)}")
-            self.raw_data[register.get('name')] = raw_value 
+                    from_raw = self.raw_data.get(register.get('name'))
+                    from_value = self.translate_from_raw_value(register, from_raw)
+                    logging.info(f"Notification - {register.get('name')} has changed from: {from_raw} ({from_value}) to: {raw_value} ({value})")
+                self.raw_data[register.get('name')] = raw_value 
         failure_percentage = round(self.failures / (self.requests+self.retries)*100,2)
         retry_percentage = round(self.retries / (self.requests)*100,2)
         logging.info(f"Modbus Requests: {self.requests} Retries: {self.retries} ({retry_percentage}%) Failures: {self.failures} ({failure_percentage}%)")
+        logging.info(self.failure_pattern)
+        self.failure_pattern = ""
         self.raw_data['modbus_failures'] = self.failures
         self.raw_data['modbus_requests'] = self.requests
         self.raw_data['modbus_retries'] = self.retries
@@ -381,11 +384,6 @@ class Sofar():
             self.update_state()
             self.publish_state()
         while (self.daemon):
-            now = datetime.datetime.now()
-            """ Sleep for 34 seconds to allow the inverter to reset the stats at 00:00 """
-            if (now.hour == 22 and now.minute == 59 and now.second >= 30):
-                logging.info('Snoozing 34 seconds')
-                time.sleep(34)
             self.requests = 0
             self.failures = 0
             self.failed = []
@@ -494,21 +492,27 @@ class Sofar():
                     logging.debug(traceback.format_exc())
                     retry = retry - 1
                     self.retries = self.retries + 1
+                    self.failure_pattern += "r"
                     time.sleep(self.retry_delay)
                 except minimalmodbus.InvalidResponseError:
                     logging.debug(traceback.format_exc())
                     retry = retry - 1
                     self.retries = self.retries + 1
+                    self.failure_pattern += "i"
                     time.sleep(self.retry_delay)
                 except serial.serialutil.SerialException:
                     logging.debug(traceback.format_exc())
                     retry = retry - 1
                     self.retries = self.retries + 1
+                    self.failure_pattern += "x"
                     time.sleep(self.retry_delay)
 
             if retry == 0:
                 self.failures = self.failures + 1
+                self.failure_pattern += "f"
                 self.failed.append(registeraddress)
+            if value:
+                self.failure_pattern += "."
             return value
 
     def determine_serial_number(self):
