@@ -71,6 +71,9 @@ class Sofar():
             exit(1)
 
         protocol_file = self.raw_data.get('protocol')
+        if not protocol_file:
+            logging.error(f"Protocol file is None. Exiting")
+            exit(1)
         if not os.path.isfile(protocol_file):
             logging.error(f"Protocol file {protocol_file} does not exist. Exiting")
             exit(1)
@@ -526,15 +529,6 @@ class Sofar():
         """ Determine the serial number from the inverter """
         serial_number = None
 
-        # Try first location: 0x2001 ... 0x2007
-        try:
-            serial_number = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x2001, 0x2008)])
-            if serial_number:
-                logging.info(f"Serial number found at first location: {serial_number}")
-                return serial_number
-        except Exception:
-            logging.debug("Failed to read serial number from first location")
-
         # Try second location: 0x0445 ... 0x044B (14 digits)
         try:
             serial_number = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
@@ -544,10 +538,22 @@ class Sofar():
         except Exception:
             logging.debug("Failed to read serial number from second location")
 
+        # Try first location: 0x2001 ... 0x2007
+        try:
+            serial_number = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x2001, 0x2008)])
+            if serial_number:
+                logging.info(f"Serial number found at first location: {serial_number}")
+                return serial_number
+        except Exception:
+            logging.debug("Failed to read serial number from first location")
+
+
         # Try third location: 0x0445 ... 0x044C and 0x0470...0x0471 (20 digits)
         try:
             serial_number_part1 = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
             serial_number_part2 = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x0470, 0x0472)])
+            logging.info(serial_number_part1)
+            logging.info(serial_number_part2)
             if serial_number_part2 and int(serial_number_part2) != 0:
                 serial_number = serial_number_part1 + serial_number_part2
                 logging.info(f"Serial number found at third location: {serial_number}")
