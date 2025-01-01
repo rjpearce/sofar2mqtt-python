@@ -57,6 +57,7 @@ class Sofar():
         self.log_level = logging.getLevelName(log_level)
         self.iteration = 0
         logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.getLevelName(log_level))
+        logging.info(f"Starting sofar2mqtt-python {VERSION}")
         self.mutex = threading.Lock()
         self.setup_instrument()
         self.raw_data['serial_number'] = self.determine_serial_number()
@@ -71,9 +72,6 @@ class Sofar():
             exit(1)
 
         protocol_file = self.raw_data.get('protocol')
-        if not protocol_file:
-            logging.error(f"Protocol file is None. Exiting")
-            exit(1)
         if not os.path.isfile(protocol_file):
             logging.error(f"Protocol file {protocol_file} does not exist. Exiting")
             exit(1)
@@ -427,18 +425,18 @@ class Sofar():
                         high = struct.unpack(">H", bytearray([values[2], values[3]]))[0]
                         # send the registers
                         self.instrument.write_registers(int(register['register'],16), [0, 0, low, high, low, high])
-                except minimalmodbus.NoResponseError:
-                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                except minimalmodbus.NoResponseError as e:
+                    logging.debug(f"Failed to write_register {register['name']} {str(e)}")
                     retry = retry - 1
                     retries = retries + 1
                     time.sleep(self.write_retry_delay)
-                except minimalmodbus.InvalidResponseError:
-                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                except minimalmodbus.InvalidResponseError as e:
+                    logging.debug(f"Failed to write_register {register['name']} {str(e)}")
                     retry = retry - 1
                     retries = retries + 1
                     time.sleep(self.write_retry_delay)
-                except serial.serialutil.SerialException:
-                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                except serial.serialutil.SerialException as e:
+                    logging.debug(f"Failed to write_register {register['name']} {str(e)}")
                     retry = retry - 1
                     retries = retries + 1
                     time.sleep(self.write_retry_delay)
@@ -460,18 +458,18 @@ class Sofar():
             try:
                 with self.mutex:
                     self.instrument.write_registers(int(start_register,16), values)
-            except minimalmodbus.NoResponseError:
-                logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
+            except minimalmodbus.NoResponseError as e:
+                logging.debug(f"Failed to write_register {start_register} {str(e)}")
                 retry = retry - 1
                 retries = retries + 1
                 time.sleep(self.write_retry_delay)
-            except minimalmodbus.InvalidResponseError:
-                logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
+            except minimalmodbus.InvalidResponseError as e:
+                logging.debug(f"Failed to write_register {start_register} {str(e)}")
                 retry = retry - 1
                 retries = retries + 1
                 time.sleep(self.write_retry_delay)
-            except serial.serialutil.SerialException:
-                logging.debug(f"Failed to write_register {start_register} {traceback.format_exc()}")
+            except serial.serialutil.SerialException as e:
+                logging.debug(f"Failed to write_register {start_register} {str(e)}")
                 retry = retry - 1
                 retries = retries + 1
                 time.sleep(self.write_retry_delay)
@@ -498,20 +496,20 @@ class Sofar():
                     elif read_type == "string":
                         value = self.instrument.read_string(
                             registeraddress, functioncode=3, number_of_registers=registers)
-                except minimalmodbus.NoResponseError:
-                    logging.debug(traceback.format_exc())
+                except minimalmodbus.NoResponseError as e:
+                    logging.debug(f"Failed to read_register {registeraddress} {str(e)}")
                     retry = retry - 1
                     self.retries = self.retries + 1
                     self.failure_pattern += "r"
                     time.sleep(self.retry_delay)
-                except minimalmodbus.InvalidResponseError:
-                    logging.debug(traceback.format_exc())
+                except minimalmodbus.InvalidResponseError as e:
+                    logging.debug(f"Failed to read_register {registeraddress} {str(e)}")
                     retry = retry - 1
                     self.retries = self.retries + 1
                     self.failure_pattern += "i"
                     time.sleep(self.retry_delay)
-                except serial.serialutil.SerialException:
-                    logging.debug(traceback.format_exc())
+                except serial.serialutil.SerialException as e:
+                    logging.debug(f"Failed to read_register {registeraddress} {str(e)}")
                     retry = retry - 1
                     self.retries = self.retries + 1
                     self.failure_pattern += "x"
@@ -525,44 +523,47 @@ class Sofar():
                 self.failure_pattern += "."
             return value
 
+    def is_valid_serial_number(self, serial_number):
+        """ Check if the serial number is valid """
+        logging.info(f"Checking validity of Serial number: {str(serial_number)} length: {len(serial_number)}")
+        if len(serial_number) == 14:
+            return serial_number[0] == 'S' and serial_number[1].isalpha() and serial_number[2:].isalnum()
+        elif len(serial_number) == 20:
+            return serial_number[0] == 'S' and serial_number[1:].isalnum()
+        return False
+
     def determine_serial_number(self):
         """ Determine the serial number from the inverter """
         serial_number = None
 
-        # Try second location: 0x0445 ... 0x044B (14 digits)
-        try:
-            serial_number = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
-            if serial_number:
-                logging.info(f"Serial number found at second location: {serial_number}")
-                return serial_number
-        except Exception:
-            logging.debug("Failed to read serial number from second location")
-
         # Try first location: 0x2001 ... 0x2007
         try:
             serial_number = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x2001, 0x2008)])
-            if serial_number:
-                logging.info(f"Serial number found at first location: {serial_number}")
+            if self.is_valid_serial_number(serial_number):
+                logging.info(f"Valid Serial number found at first location: {serial_number}")
                 return serial_number
-        except Exception:
-            logging.debug("Failed to read serial number from first location")
+        except Exception as e:
+            logging.info(f"Failed to validate serial number from first location: {str(e)}")
 
+        # Try second location: 0x0445 ... 0x044B (14 digits)
+        try:
+            serial_number = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
+            if self.is_valid_serial_number(serial_number):
+                logging.info(f"Valid Serial number found at second location: {serial_number}")
+                return serial_number
+        except Exception as e:
+            logging.info(f"Failed to validate serial number from second location: {str(e)}")
 
         # Try third location: 0x0445 ... 0x044C and 0x0470...0x0471 (20 digits)
         try:
             serial_number_part1 = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x0445, 0x044C)])
             serial_number_part2 = ''.join([self.read_register(register, 'string', False, 1) for register in range(0x0470, 0x0472)])
-            logging.info(serial_number_part1)
-            logging.info(serial_number_part2)
-            if serial_number_part2 and int(serial_number_part2) != 0:
-                serial_number = serial_number_part1 + serial_number_part2
-                logging.info(f"Serial number found at third location: {serial_number}")
+            serial_number = serial_number_part1 + serial_number_part2
+            if self.is_valid_serial_number(serial_number):
+                logging.info(f"Valid Serial number found at third location: {serial_number}")
                 return serial_number
-            elif serial_number_part1:
-                logging.info(f"Serial number found at second location (fallback): {serial_number_part1}")
-                return serial_number_part1
-        except Exception:
-            logging.debug("Failed to read serial number from third location")
+        except Exception as e:
+            logging.info(f"Failed to validate serial number from third location: {str(e)}")
 
         logging.error("Failed to determine serial number")
         return None
