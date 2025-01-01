@@ -63,18 +63,18 @@ class Sofar():
         self.raw_data['serial_number'] = self.determine_serial_number()
         if not self.raw_data['serial_number']:
             logging.error("Failed to determine serial number. Exiting")
-            exit(1)
+            self.terminate(status_code=1)
         self.raw_data['model'] = self.determine_model()
         self.raw_data['protocol'] = self.determine_modbus_protocol()
 
         if self.raw_data.get('protocol') == "SOFAR-1-40KTL.json":
             logging.error("Unsupported protocol detected. Exiting")
-            exit(1)
+            self.terminate(status_code=1)
 
         protocol_file = self.raw_data.get('protocol')
         if not os.path.isfile(protocol_file):
             logging.error(f"Protocol file {protocol_file} does not exist. Exiting")
-            exit(1)
+            self.terminate(status_code=1)
 
         self.config = load_config(protocol_file)
         self.write_registers = []
@@ -377,12 +377,12 @@ class Sofar():
       logging.info(f"Received signal {sig}, attempting to stop")
       self.daemon = False
 
-    def terminate(self):
+    def terminate(self, status_code=0):
       logging.info("Terminating")
       logging.info(f"Publishing offline to sofar2mqtt_python/bridge")
       self.client.publish("sofar2mqtt_python/bridge", "offline", retain=False)
       self.client.loop_stop()
-      exit(0)
+      exit(status_code)
 
     def main(self):
         """ Main method """
@@ -400,7 +400,7 @@ class Sofar():
             self.publish_state()
             time.sleep(self.refresh_interval)
             self.iteration+=1
-        self.terminate()
+        self.terminate(status_code=0)
 
     def write_register(self, register, value):
         """ Read value from register with a retry mechanism """
