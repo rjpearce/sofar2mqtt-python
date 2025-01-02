@@ -713,14 +713,17 @@ class Sofar():
             return
 
         start_register = int(block['start_register'], 16)
-        length = int(block['length'])
+        required_length = int(block['length'])
         values = []
         raw_value = None
         for register_name in block['registers']:
             if register_name == update_register:
                 register = self.get_register(register_name)
                 if register:
-                    raw_value = self.translate_to_raw_value(register, new_value)
+                    new_raw_value = self.translate_to_raw_value(register, new_value)
+                    if not validate_new_value(register, new_raw_value):
+                        return
+                    raw_value = new_raw_value
                 else:
                     logging.error(f"Register {register_name} not found in configuration")
                     continue
@@ -733,10 +736,6 @@ class Sofar():
         if 'append' in block:
             for append_item in block['append']:
                 values.append(append_item)
-        #logging.info(f"Would write {block['start_register']} with {values[:length]}") 
-        #logging.info(f"Reference values: {[0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1]}")
-        #                                  [0, 0, 1, 540, 530, 425, 470, 10000, 10000, 89, 90, 250, 480, 1, 10, 1]
-        #self.write_registers_with_retry(block['start_register'], [0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1])
 
         register = self.get_register(update_register)
         new_raw_value = self.translate_to_raw_value(register, new_value)
@@ -749,9 +748,16 @@ class Sofar():
                 logging.info(f"Current value for {register['name']}: {current_raw_value} ({current_value}). Matches desired value: {new_raw_value} ({new_value}).")
                 retry = 0
             else:
+                if len(values) < required_length:
+                    logging.error(f"Length of values in block is less than required length for block {block['name']}. Skipping write operation. Values: {values}")
+                    return
                 logging.info(f"Current value for {register['name']}: {current_raw_value} ({current_value}), attempting to set it to: {new_raw_value} ({new_value}). Retries remaining: {retry}")
-                self.write_registers_with_retry(block['start_register'], values[:length])
-                time.sleep(self.write_retry_delay)
+                logging.info(f"Would write {block['start_register']} with {values[:required_length]}") 
+                self.write_registers_with_retry(block['start_register'], values[:required_length])
+                #logging.info(f"Reference values: {[0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1]}")
+                #                                  [0, 0, 1, 540, 530, 425, 470, 10000, 10000, 89, 90, 250, 480, 1, 10, 1]
+                #self.write_registers_with_retry(block['start_register'], [0, 0, 1, 560, 540, 425, 470, 10000, 10000, 90, 90, 250, 480, 1, 10, 1])
+                time.sleep(self.write_retry_delay + 5)
                 retry = retry - 1
 
     def get_register(self, register_name):
@@ -793,7 +799,7 @@ class Sofar():
             elif register['function'] == 'divide':
                 return int(float(value) * register['factor'])
             elif register['function'] == 'mode':
-                return next((k for k, v in register['modes'].items() if v == value), value)
+                return int(next((k for k, v in register['modes'].items() if v == value), value))
             elif register['function'] == 'bit_field':
                 fields = value.split(',')
                 raw_value = 0
@@ -804,7 +810,20 @@ class Sofar():
             elif register['function'] == 'high_bit_low_bit':
                 high, low = map(int, value.split(register['join']))
                 return (high << 8) | low
-        return value
+        return int(value)
+
+def validate_new_value(register, new_value):
+    """ Validate the new value based on the register's min, max, and modes """
+    if 'min' in register and new_value < register['min']:
+        logging.error(f"Value {new_value} is less than the minimum allowed value {register['min']} for register {register['name']}")
+        return False
+    if 'max' in register and new_value > register['max']:
+        logging.error(f"Value {new_value} is greater than the maximum allowed value {register['max']} for register {register['name']}")
+        return False
+    if 'function' in register and register['function'] == 'mode' and str(new_value) not in register['modes']:
+        logging.error(f"Value {new_value} is not a valid mode for register {register['name']}")
+        return False
+    return True
 
 @click.command("cli", context_settings={'show_default': True})
 @click.option(
