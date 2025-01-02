@@ -22,6 +22,27 @@
 				"battery_config_eps_buffer"
 			],
 			"append": [1]
+		},
+		{
+			"name": "eps_config",
+			"start_register": "0x1029",
+			"length": "2",
+			"registers": [
+				"eps_control",
+				"eps_wait_time"
+			]
+		},
+		{
+			"name": "rs485_config",
+			"start_register": "0x100B",
+			"length": "5",
+			"registers": [
+				"rs485_config_address",
+				"rs485_config_baud",
+				"rs485_config_stop_bit",
+				"rs485_config_parity_bit"
+			],
+			"append": [1]
 		}
 	],
 	"registers": [
@@ -76,6 +97,124 @@
 				"value_template": "{{ value_json.sw_version_slave }}"
 			},
 			"refresh": 86400
+		},
+		{
+			"name": "rs485_config_address",
+			"register": "0x100B",
+			"desc": "RS 485 configuration- communication address",
+			"type": "U16",
+			"min": 1,
+			"max": 63,
+			"ha": {
+				"name": "RS485 Address",
+				"icon": "mdi:identifier",
+				"entity_category": "config",
+				"min": 1,
+				"max": 63,
+				"initial": 0,
+				"mode": "box",
+				"command_topic": "sofar/rw/rs485_config/address",
+				"control": "number",
+				"value_template": "{{ value_json.rs485_config_address | int }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "rs485_config_baud",
+			"register": "0x100C",
+			"desc": "RS485 Baud Rate Selection",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "4800",
+				"1": "9600",
+				"2": "19200",
+				"3": "38400",
+				"4": "57600"
+			},
+			"ha": {
+				"name": "RS485 Baud",
+				"icon": "mdi:identifier",
+				"entity_category": "config",
+				"min": 0,
+				"max": 4,
+				"initial": 0,
+				"mode": "box",
+				"unit_of_measurement": "bps",
+				"value_template": "{{ value_json.rs485_config_baud }}",
+				"command_topic": "sofar/rw/rs485_config/baud",
+				"options": [
+					"4800",
+					"9600",
+					"19200",
+					"38400",
+					"57600"
+				],
+				"control": "select"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "rs485_config_stop_bit",
+			"register": "0x100C",
+			"desc": "RS485 Stop Bit Selection",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "1",
+				"1": "1.5",
+				"2": "2"
+			},
+			"ha": {
+				"name": "RS485 Stop Bit",
+				"icon": "mdi:identifier",
+				"entity_category": "config",
+				"min": 0,
+				"max": 2,
+				"initial": 0,
+				"value_template": "{{ value_json.rs485_config_stop_bit }}",
+				"command_topic": "sofar/rw/rs485_config/stop_bit",
+				"options": [
+					"1",
+					"1.5",
+					"2"
+				],
+				"control": "select"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "rs485_config_parity_bit",
+			"register": "0x100C",
+			"desc": "RS485 Parity Bit Selection",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "None",
+				"1": "Even",
+				"2": "Odd",
+				"3": "High/Mark",
+				"4": "Low/Space"
+			},
+			"ha": {
+				"name": "RS485 Parity Bit",
+				"icon": "mdi:identifier",
+				"entity_category": "config",
+				"min": 0,
+				"max": 4,
+				"initial": 0,
+				"value_template": "{{ value_json.rs485_config_parity_bit }}",
+				"command_topic": "sofar/rw/rs485_config/parity_bit",
+				"options": [
+					"None",
+					"Even",
+					"Odd",
+					"High/Mark",
+					"Low/Space"
+				],
+				"control": "select"
+			},
+			"refresh": 1
 		},
 		{
 			"name": "battery_config_id",
@@ -1026,6 +1165,22 @@
 			"refresh": 60
 		},
 		{
+			"name": "total_generation",
+			"register": "0x0687",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Solar Generation Total",
+				"icon": "mdi:solar-power-variant",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.total_generation }}"
+			},
+			"refresh": 3600
+		},
+		{
 			"name": "today_consumption",
 			"register": "0x0689",
 			"function": "divide",
@@ -1040,6 +1195,22 @@
 				"value_template": "{{ value_json.today_consumption }}"
 			},
 			"refresh": 60
+		},
+		{
+			"name": "total_consumption",
+			"register": "0x068B",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Consumption Total",
+				"icon": "mdi:home-lightning-bolt-outline",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.total_consumption }}"
+			},
+			"refresh": 3600
 		},
 		{
 			"name": "today_import",
@@ -1058,6 +1229,22 @@
 			"refresh": 60
 		},
 		{
+			"name": "total_import",
+			"register": "0x068F",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Import Total",
+				"icon": "mdi:transmission-tower-import",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.total_import }}"
+			},
+			"refresh": 3600
+		},
+		{
 			"name": "today_export",
 			"register": "0x0691",
 			"function": "divide",
@@ -1072,6 +1259,54 @@
 				"value_template": "{{ value_json.today_export }}"
 			},
 			"refresh": 60
+		},
+		{
+			"name": "total_export",
+			"register": "0x0693",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Export Total",
+				"icon": "mdi:transmission-tower-export",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.total_export }}"
+			},
+			"refresh": 3600
+		},
+		{
+			"name": "today_battery_charge",
+			"register": "0x0695",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Battery Charge Today",
+				"icon": "mdi:battery-plus-variant",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.today_battery_charge }}"
+			},
+			"refresh": 60
+		},
+		{
+			"name": "total_battery_charge",
+			"register": "0x0697",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Battery Charge Total",
+				"icon": "mdi:battery-plus-variant",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.total_battery_charge }}"
+			},
+			"refresh": 3600
 		},
 		{
 			"name": "today_battery_discharge",
@@ -1090,20 +1325,20 @@
 			"refresh": 60
 		},
 		{
-			"name": "today_battery_charge",
-			"register": "0x0695",
+			"name": "total_battery_discharge",
+			"register": "0x069B",
 			"function": "divide",
 			"factor": 100,
 			"ha": {
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
-				"name": "Battery Charge Today",
-				"icon": "mdi:battery-plus-variant",
+				"name": "Battery Discharge Total",
+				"icon": "mdi:battery-minus-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_battery_charge }}"
+				"value_template": "{{ value_json.total_battery_discharge }}"
 			},
-			"refresh": 60
+			"refresh": 3600
 		},
 		{
 			"name": "battery_voltage",
@@ -1187,9 +1422,41 @@
 				"0": "Off",
 				"1": "On"
 			},
-			"write": true,
-			"untested": true,
-			"refresh": 86400
+			"ha": {
+				"name": "EPS Control",
+				"icon": "mdi:toggle-switch",
+				"entity_category": "config",
+				"command_topic": "sofar/rw/eps_config/eps_control",
+				"options": [
+					"Off",
+					"On"
+				],
+				"control": "select",
+				"value_template": "{{ value_json.eps_control }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "eps_wait_time",
+			"register": "0x102A",
+			"desc": "Waiting time for emergency power start",
+			"type": "U16",
+			"min": 0,
+			"max": 65535,
+			"ha": {
+				"name": "EPS Wait Time",
+				"icon": "mdi:alpha-s-box",
+				"entity_category": "config",
+				"min": 0,
+				"max": 65535,
+				"mode": "box",
+				"command_topic": "sofar/rw/eps_config/eps_wait_time",
+				"control": "number",
+				"device_class": "duration",
+				"unit_of_measurement": "s",
+				"value_template": "{{ value_json.eps_wait_time }}"
+			},
+			"refresh": 1
 		},
 		{
 			"name": "remote_on_off_control",
