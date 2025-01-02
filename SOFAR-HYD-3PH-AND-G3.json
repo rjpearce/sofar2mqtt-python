@@ -82,6 +82,8 @@
 			"register": "0x1044",
 			"desc": "battery id",
 			"type": "U16",
+			"min": 0,
+			"max": 7,
 			"ha": {
 				"name": "Battery ID",
 				"icon": "mdi:identifier",
@@ -102,6 +104,8 @@
 			"register": "0x1045",
 			"desc": "battery address",
 			"type": "U16",
+			"min": 0,
+			"max": 99,
 			"ha": {
 				"name": "Battery Address",
 				"icon": "mdi:identifier",
@@ -164,6 +168,8 @@
 			"type": "U16",
 			"function": "divide",
 			"factor": 10,
+			"min": 0.0,
+			"max": 65535.0,
 			"ha": {
 				"name": "Battery Over Voltage",
 				"icon": "mdi:alpha-v-box",
@@ -208,6 +214,8 @@
 			"type": "U16",
 			"function": "divide",
 			"factor": 10,
+			"min": 0.0,
+			"max": 65535.0,
 			"ha": {
 				"name": "Battery Lack Voltage",
 				"icon": "mdi:alpha-v-box",
@@ -230,6 +238,8 @@
 			"type": "U16",
 			"function": "divide",
 			"factor": 10,
+			"min": 0.0,
+			"max": 65535.0,
 			"ha": {
 				"name": "Battery Discharge Stop Voltage",
 				"icon": "mdi:alpha-v-box",
@@ -252,6 +262,8 @@
 			"type": "U16",
 			"function": "divide",
 			"factor": 100,
+			"min": 0,
+			"max": 65535,
 			"ha": {
 				"name": "Battery Charge Current Limit",
 				"icon": "mdi:alpha-a-box",
@@ -274,6 +286,8 @@
 			"type": "U16",
 			"function": "divide",
 			"factor": 100,
+			"min": 0,
+			"max": 65535,
 			"ha": {
 				"name": "Battery Discharge Current Limit",
 				"icon": "mdi:alpha-a-box",
@@ -302,7 +316,7 @@
 				"name": "Battery Depth of Discharge SOC",
 				"icon": "mdi:percent-outline",
 				"entity_category": "config",
-				"min": 10,
+				"min": 1,
 				"max": 90,
 				"mode": "box",
 				"command_topic": "sofar/rw/battery_config/depth_of_discharge",
@@ -317,6 +331,8 @@
 			"register": "0x104E",
 			"desc": "EOD indicate the max discharge power on off grid mode, when SOC<1-EOD, inverter will stop power discharge , inverter will stop power discharge caused by other issues",
 			"type": "U16",
+			"min": 1,
+			"max": 90,
 			"ha": {
 				"name": "Battery Off-Grid Depth of Discharge",
 				"icon": "mdi:percent-outline",
@@ -405,6 +421,8 @@
 			"register": "0x1052",
 			"desc": "battery eps buffer",
 			"type": "U16",
+			"min": 5,
+			"max": 100,
 			"ha": {
 				"name": "Battery EPS Buffer",
 				"icon": "mdi:percent-outline",
