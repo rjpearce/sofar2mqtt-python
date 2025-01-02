@@ -338,9 +338,14 @@ class Sofar():
 
     def publish_mqtt_discovery(self):
         logging.info(f"Publishing controls via MQTT")
+        while not self.raw_data.get("sw_version_com") and not self.raw_data.get("hw_version"):
+            logging.info(f"SW Version and HW Version not available yet. Waiting for 5 seconds")
+            time.sleep(5)
+
         for register in self.config['registers']:
             if 'ha' not in register:
                 continue
+
             try:
                 default_payload = {
                     "name": register['name'],
