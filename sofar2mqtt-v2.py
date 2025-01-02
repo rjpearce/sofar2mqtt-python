@@ -61,6 +61,7 @@ class Sofar():
         self.mutex = threading.Lock()
         self.setup_instrument()
         self.raw_data['serial_number'] = self.determine_serial_number()
+        self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         if not self.raw_data['serial_number']:
             logging.error("Failed to determine serial number. Exiting")
             self.terminate(status_code=1)
@@ -87,7 +88,6 @@ class Sofar():
                     self.write_registers.append(register)
 
         logging.info(f"Starting sofar2mqtt-python for serial number: {self.raw_data.get('serial_number')}")
-        self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         self.setup_mqtt(logging)
         self.update_state()
         
