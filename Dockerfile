@@ -1,8 +1,8 @@
-FROM python:3.12.2-alpine
+FROM python:3-alpine3.20 
 
 WORKDIR /opt/sofar2mqtt
 
-COPY requirements.txt sofar2mqtt-v2.py *.json ./
+COPY requirements.txt ./
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -24,6 +24,8 @@ ENV CONFIG_FILE=sofar-hyd-ep.json \
     TTY_DEVICE= \
     WRITE_RETRY_ATTEMPTS=5 \
     WRITE_RETRY_DELAY=5 
+
+COPY sofar2mqtt-v2.py *.json ./
 
 CMD [ "python", "sofar2mqtt-v2.py" ]
 
