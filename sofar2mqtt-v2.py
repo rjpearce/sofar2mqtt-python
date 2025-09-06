@@ -327,11 +327,12 @@ class Sofar():
             "state_topic": "sofar2mqtt_python/bridge",
             "unique_id": f"bridge_{self.raw_data.get('serial_number')}_connection_state_sofar2mqtt_python",
         }
-        topic = f"homeassistant/binary_sensor/{self.raw_data.get('serial_number')}/connection_state/config"
 
         try:
+            topic = f"homeassistant/binary_sensor/{self.raw_data.get('serial_number')}/connection_state/config"
             logging.info(f"Publishing bridge via MQTT to {topic}")
             self.client.publish(topic, json.dumps(payload), retain=False)
+            logging.info(f"Publishing bridge online")
             self.client.publish("sofar2mqtt_python/bridge", "online", retain=False)
         except Exception:
             logging.info(traceback.format_exc())
@@ -401,6 +402,10 @@ class Sofar():
             self.failures = 0
             self.failed = []
             self.retries = 0
+            try:
+                self.client.publish("sofar2mqtt_python/bridge", "online", retain=False)
+            except Exception:
+                logging.info(traceback.format_exc())
             self.update_state()
             self.publish_state()
             time.sleep(self.refresh_interval)
