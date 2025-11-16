@@ -174,63 +174,26 @@ class Sofar():
             self.instrument.serial.timeout  = 0.2   # seconds
             self.instrument.close_port_after_each_call = True
 
-    def build_fc21_request(self, registeraddress, number_of_registers):
-        frame = bytearray()
-        frame.append(instrument.address)
-        frame.append(0x21)
-        frame.append((registeraddress >> 8) & 0xFF)
-        frame.append(registeraddress & 0xFF)
-        frame.append((number_of_registers >> 8) & 0xFF)
-        frame.append(number_of_registers & 0xFF)
-
-        # CRC16 (Modbus polynomial 0xA001)
-        crc = 0xFFFF
-        for pos in frame:
-            crc ^= pos
-            for _ in range(8):
-                if crc & 0x0001:
-                    crc >>= 1
-                    crc ^= 0xA001
-                else:
-                    crc >>= 1
-
-        frame.append(crc & 0xFF)        # CRC Lo
-        frame.append((crc >> 8) & 0xFF) # CRC Hi
-        return frame
-
-
     def read_fc21(self, registeraddress, number_of_registers=1):
         """
-        Custom Modbus read using Function Code 0x21 (Ext Code).
-        Reads 'number_of_registers' starting at 'registeraddress'.
+        Read extended registers using Function Code 0x21 (Ext Code).
+        Returns a list of register values.
         """
-        # Build request frame
-        request = self.build_fc21_request(registeraddress, number_of_registers)
-        logging.info(f"Sending FC21 request: {request.hex().upper()}")
-    
-        # Send raw request
-        self.instrument.serial.write(request)
-    
-        # Expected response length: slave + func + bytecount + (2*registers) + CRC
-        expected_bytes = 1 + 1 + 1 + (2 * number_of_registers) + 2
-        response = self.instrument.serial.read(expected_bytes)
-        logging(f"Received FC21 response: {response.hex().upper()}")
-    
-        # Parse response
-        if len(response) < expected_bytes:
-            raise IOError("Incomplete FC21 response")
-    
-        slave, func, bytecount = response[0], response[1], response[2]
-        if func != 0x21:
-            raise IOError(f"Unexpected function code {func}")
-    
-        data = response[3:3+bytecount]
-        # Convert to list of register values (16-bit ints)
-        registers = []
-        for i in range(0, len(data), 2):
-            registers.append((data[i] << 8) + data[i+1])
-    
-        return registers
+        # Call MinimalModbus internal helper
+        response = self.instrument._generic_command(
+            functioncode=0x21,
+            registeraddress=registeraddress,
+            number_of_registers=number_of_registers,
+            payload=None,
+            signed=False
+        )
+
+        logging.info(f"Received FC21 response: {response.hex().upper()}")
+        data = bytearray()
+        for val in response:
+          data.append((val >> 8) & 0xFF)  # high byte
+          data.append(val & 0xFF)         # low byte
+        return minimalmodbus._bytes_to_textstring(data)
 
     def read_and_publish(self):
         for register in self.config['registers']:
