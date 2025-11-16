@@ -206,6 +206,7 @@ class Sofar():
         """
         # Build request frame
         request = self.build_fc21_request(registeraddress, number_of_registers)
+        logging.info(f"Sending FC21 request: {request.hex().upper()}")
     
         # Send raw request
         self.instrument.serial.write(request)
@@ -213,6 +214,7 @@ class Sofar():
         # Expected response length: slave + func + bytecount + (2*registers) + CRC
         expected_bytes = 1 + 1 + 1 + (2 * number_of_registers) + 2
         response = self.instrument.serial.read(expected_bytes)
+        logging(f"Received FC21 response: {response.hex().upper()}")
     
         # Parse response
         if len(response) < expected_bytes:
