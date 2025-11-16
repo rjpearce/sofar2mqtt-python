@@ -1,6 +1,46 @@
 {
 	"registers": [
 		{
+                        "name": "serial_number",
+                        "register": "0x2001",
+                        "read_type": "fc21_string",
+                        "registers": 7,
+			"refresh": 86400,
+			"ha": {
+                                "name": "Serial Number",
+                                "icon": "mdi:numeric",
+                                "entity_category": "diagnostic",
+                                "value_template": "{{ value_json.serial_number }}"
+                        },
+                        "refresh": 86400
+                },
+		{
+                        "name": "hw_version",
+                        "register": "0x2009",
+                        "read_type": "fc21_string",
+                        "registers": 2,
+                        "ha": {
+                                "name": "HW Version",
+                                "icon": "mdi:numeric",
+                                "entity_category": "diagnostic",
+                                "value_template": "{{ value_json.hw_version }}"
+                        },
+                        "refresh": 86400
+                },
+                {
+                        "name": "sw_version_com",
+                        "register": "0x02007",
+                        "read_type": "fc21_string",
+                        "registers": 2,
+                        "ha": {
+                                "name": "Software Version",
+                                "icon": "mdi:numeric",
+                                "entity_category": "diagnostic",
+                                "value_template": "{{ value_json.sw_version_com }}"
+                        },
+                        "refresh": 86400
+                },
+		{
 			"name": "running_state",
 			"register": "0x200",
 			"function": "mode",
