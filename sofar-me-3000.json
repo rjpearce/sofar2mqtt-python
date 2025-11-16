@@ -1,153 +1,152 @@
 {
-	"registers": [
-		{
-                        "name": "serial_number",
-                        "register": "0x2001",
-                        "read_type": "fc21_string",
-                        "registers": 7,
-			"refresh": 86400,
-			"ha": {
-                                "name": "Serial Number",
-                                "icon": "mdi:numeric",
-                                "entity_category": "diagnostic",
-                                "value_template": "{{ value_json.serial_number }}"
-                        },
-                        "refresh": 86400
-                },
-		{
-                        "name": "hw_version",
-                        "register": "0x2009",
-                        "read_type": "fc21_string",
-                        "registers": 2,
-                        "ha": {
-                                "name": "HW Version",
-                                "icon": "mdi:numeric",
-                                "entity_category": "diagnostic",
-                                "value_template": "{{ value_json.hw_version }}"
-                        },
-                        "refresh": 86400
-                },
-                {
-                        "name": "sw_version_com",
-                        "register": "0x02007",
-                        "read_type": "fc21_string",
-                        "registers": 2,
-                        "ha": {
-                                "name": "Software Version",
-                                "icon": "mdi:numeric",
-                                "entity_category": "diagnostic",
-                                "value_template": "{{ value_json.sw_version_com }}"
-                        },
-                        "refresh": 86400
-                },
-		{
-			"name": "running_state",
-			"register": "0x200",
-			"function": "mode",
-			"modes": {
-				"0": "Standby",
-				"2": "Charging",
-				"4": "Discharging",
-				"6": "Fault"
-			}
-		},
-		{
-			"name": "grid_voltage",
-			"register": "0x0206",
-			"function": "divide",
-			"factor": 10
-		},
-		{
-			"name": "battery_power",
-			"register": "0x20d",
-			"function": "multiply",
-			"factor": 10
-		},
-		{
-			"name": "grid_freq",
-			"register": "0x20c",
-			"function": "divide",
-			"factor": 100
-		},
-		{
-			"name": "batterySOC",
-			"register": "0x210"
-		},
-		{
-			"name": "battery_voltage",
-			"register": "0x20e",
-			"function": "divide",
-			"factor": 100
-		},
-		{
-			"name": "battery_cycles",
-			"register": "0x22c"
-		},
-		{
-			"name": "battery_temp",
-			"register": "0x211"
-		},
-		{
-			"name": "grid_power",
-			"register": "0x212",
-			"function": "multiply",
-			"factor": 10
-		},
-		{
-			"name": "consumption",
-			"register": "0x213",
-			"function": "multiply",
-			"factor": 10
-		},
-		{
-			"name": "solarPV",
-			"register": "0x215",
-			"function": "multiply",
-			"factor": 10
-		},
-		{
-			"name": "today_generation",
-			"register": "0x218",
-			"function": "divide",
-			"factor": 100
-		},
-		{
-			"name": "today_exported",
-			"register": "0x219",
-			"function": "divide",
-			"factor": 100
-		},
-		{
-			"name": "today_purchase",
-			"register": "0x21a",
-			"function": "divide",
-			"factor": 100
-		},
-		{
-			"name": "today_consumption",
-			"register": "0x21b",
-			"function": "divide",
-			"factor": 100
-		},
-		{
-			"name": "inverter_temp",
-			"register": "0x238"
-		},
-		{
-			"name": "inverterHS_temp",
-			"register": "0x239"
-		},
-		{
-			"name": "solarPVAmps",
-			"register": "0x236",
-			"function": "divide",
-			"factor": 100
-		},
-		{
-			"name": "battery_current",
-			"register": "0x207",
-			"function": "divide",
-			"factor": 100
-		}
-	]
+  "registers": [
+    {
+      "name": "serial_number",
+      "register": "0x2001",
+      "read_type": "fc21_string",
+      "registers": 7,
+      "refresh": 86400,
+      "ha": {
+        "name": "Serial Number",
+        "icon": "mdi:numeric",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.serial_number }}"
+      }
+    },
+    {
+      "name": "hw_version",
+      "register": "0x2009",
+      "read_type": "fc21_string",
+      "registers": 2,
+      "ha": {
+        "name": "HW Version",
+        "icon": "mdi:numeric",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.hw_version }}"
+      },
+      "refresh": 86400
+    },
+    {
+      "name": "sw_version_com",
+      "register": "0x02007",
+      "read_type": "fc21_string",
+      "registers": 2,
+      "ha": {
+        "name": "Software Version",
+        "icon": "mdi:numeric",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.sw_version_com }}"
+      },
+      "refresh": 86400
+    },
+    {
+      "name": "running_state",
+      "register": "0x200",
+      "function": "mode",
+      "modes": {
+        "0": "Standby",
+        "2": "Charging",
+        "4": "Discharging",
+        "6": "Fault"
+      }
+    },
+    {
+      "name": "grid_voltage",
+      "register": "0x0206",
+      "function": "divide",
+      "factor": 10
+    },
+    {
+      "name": "battery_power",
+      "register": "0x20d",
+      "function": "multiply",
+      "factor": 10
+    },
+    {
+      "name": "grid_freq",
+      "register": "0x20c",
+      "function": "divide",
+      "factor": 100
+    },
+    {
+      "name": "batterySOC",
+      "register": "0x210"
+    },
+    {
+      "name": "battery_voltage",
+      "register": "0x20e",
+      "function": "divide",
+      "factor": 100
+    },
+    {
+      "name": "battery_cycles",
+      "register": "0x22c"
+    },
+    {
+      "name": "battery_temp",
+      "register": "0x211"
+    },
+    {
+      "name": "grid_power",
+      "register": "0x212",
+      "function": "multiply",
+      "factor": 10
+    },
+    {
+      "name": "consumption",
+      "register": "0x213",
+      "function": "multiply",
+      "factor": 10
+    },
+    {
+      "name": "solarPV",
+      "register": "0x215",
+      "function": "multiply",
+      "factor": 10
+    },
+    {
+      "name": "today_generation",
+      "register": "0x218",
+      "function": "divide",
+      "factor": 100
+    },
+    {
+      "name": "today_exported",
+      "register": "0x219",
+      "function": "divide",
+      "factor": 100
+    },
+    {
+      "name": "today_purchase",
+      "register": "0x21a",
+      "function": "divide",
+      "factor": 100
+    },
+    {
+      "name": "today_consumption",
+      "register": "0x21b",
+      "function": "divide",
+      "factor": 100
+    },
+    {
+      "name": "inverter_temp",
+      "register": "0x238"
+    },
+    {
+      "name": "inverterHS_temp",
+      "register": "0x239"
+    },
+    {
+      "name": "solarPVAmps",
+      "register": "0x236",
+      "function": "divide",
+      "factor": 100
+    },
+    {
+      "name": "battery_current",
+      "register": "0x207",
+      "function": "divide",
+      "factor": 100
+    }
+  ]
 }
