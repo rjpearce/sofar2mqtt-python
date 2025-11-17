@@ -171,35 +171,14 @@ class Sofar():
             self.instrument.serial.bytesize = 8
             self.instrument.serial.parity = serial.PARITY_NONE
             self.instrument.serial.stopbits = 1
-            self.instrument.serial.timeout  = 0.2   # seconds
+            self.instrument.serial.timeout = 0.2   # seconds
             self.instrument.close_port_after_each_call = True
-
-    def read_fc21(self, registeraddress, number_of_registers=1):
-        """
-        Read extended registers using Function Code 0x21 (Ext Code).
-        Returns a list of register values.
-        """
-        # Call MinimalModbus internal helper
-        response = self.instrument._generic_command(
-            functioncode=0x21,
-            registeraddress=registeraddress,
-            number_of_registers=number_of_registers,
-            payload=None,
-            signed=False
-        )
-
-        logging.info(f"Received FC21 response: {response.hex().upper()}")
-        data = bytearray()
-        for val in response:
-          data.append((val >> 8) & 0xFF)  # high byte
-          data.append(val & 0xFF)         # low byte
-        return minimalmodbus._bytes_to_textstring(data)
 
     def read_and_publish(self):
         for register in self.config['registers']:
             refresh = 1
             if 'refresh' in register:
-                refresh = register['refresh'] 
+                refresh = register['refresh']
             if (self.iteration % refresh) != 0:
                 logging.debug(f"Skipping {register['name']}")
                 continue
@@ -234,11 +213,14 @@ class Sofar():
                     read_type = register['read_type']
                 if 'registers' in register:
                     registers = register['registers']
-                value = self.read_value(
-                        int(register['register'], 16),
-                        read_type,
-                        signed,
-                        registers
+                if read_type == 'static':
+                    value = register['value']
+                else:
+                    value = self.read_value(
+                            int(register['register'], 16),
+                            read_type,
+                            signed,
+                            registers
                 )
             if value is None:
                 continue
@@ -476,8 +458,6 @@ class Sofar():
                     elif read_type == "string":
                         value = self.instrument.read_string(
                             registeraddress, functioncode=3, number_of_registers=registers)
-                    elif read_type == "fc21_string":
-                        value = self.read_fc21(registeraddress, number_of_registers=registers)
                 except minimalmodbus.NoResponseError:
                     logging.debug(traceback.format_exc())
                     retry = retry - 1

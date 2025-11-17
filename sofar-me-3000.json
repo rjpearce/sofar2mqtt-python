@@ -2,9 +2,8 @@
   "registers": [
     {
       "name": "serial_number",
-      "register": "0x2001",
-      "read_type": "fc21_string",
-      "registers": 7,
+      "read_type": "static",
+      "value": "ME3000SP",
       "refresh": 86400,
       "ha": {
         "name": "Serial Number",
@@ -15,9 +14,8 @@
     },
     {
       "name": "hw_version",
-      "register": "0x2009",
-      "read_type": "fc21_string",
-      "registers": 2,
+      "value": "TBD",
+      "read_type": "static",
       "ha": {
         "name": "HW Version",
         "icon": "mdi:numeric",
@@ -28,9 +26,8 @@
     },
     {
       "name": "sw_version_com",
-      "register": "0x02007",
-      "read_type": "fc21_string",
-      "registers": 2,
+      "read_type": "static",
+      "value": "TBD",
       "ha": {
         "name": "Software Version",
         "icon": "mdi:numeric",
@@ -48,105 +45,273 @@
         "2": "Charging",
         "4": "Discharging",
         "6": "Fault"
+      },
+      "ha": {
+        "name": "Running State",
+        "icon": "mdi:power-standby",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.running_state }}"
       }
     },
     {
       "name": "grid_voltage",
       "register": "0x0206",
       "function": "divide",
-      "factor": 10
+      "factor": 10,
+      "ha": {
+        "device_class": "voltage",
+        "unit_of_measurement": "V",
+        "name": "Grid Voltage",
+        "icon": "mdi:alpha-v-box",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.grid_voltage }}"
+      }
     },
     {
       "name": "battery_power",
       "register": "0x20d",
       "function": "multiply",
-      "factor": 10
+      "factor": 10,
+      "ha": {
+        "device_class": "power",
+        "unit_of_measurement": "W",
+        "name": "Battery Power",
+        "icon": "mdi:battery-charging",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.battery_power }}"
+      }
     },
     {
       "name": "grid_freq",
       "register": "0x20c",
       "function": "divide",
-      "factor": 100
+      "factor": 100,
+      "ha": {
+        "device_class": "frequency",
+        "unit_of_measurement": "Hz",
+        "name": "Grid Frequency",
+        "icon": "mdi:sine-wave",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.grid_freq }}"
+      }
     },
     {
       "name": "batterySOC",
-      "register": "0x210"
+      "register": "0x210",
+      "ha": {
+        "device_class": "battery",
+        "unit_of_measurement": "%",
+        "name": "Battery SOC",
+        "icon": "mdi:battery-80",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.batterySOC }}"
+      }
     },
     {
       "name": "battery_voltage",
       "register": "0x20e",
       "function": "divide",
-      "factor": 100
+      "factor": 100,
+      "ha": {
+        "device_class": "voltage",
+        "unit_of_measurement": "V",
+        "name": "Battery Voltage",
+        "icon": "mdi:alpha-v-box",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.battery_voltage }}"
+      }
     },
     {
       "name": "battery_cycles",
-      "register": "0x22c"
+      "register": "0x22c",
+      "ha": {
+        "device_class": "battery",
+        "unit_of_measurement": "%",
+        "name": "Battery Cycles",
+        "icon": "mdi:battery-sync",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.battery_cycles }}"
+      }
     },
     {
       "name": "battery_temp",
-      "register": "0x211"
+      "register": "0x211",
+      "ha": {
+        "device_class": "temperature",
+        "unit_of_measurement": "°C",
+        "name": "Battery Temperature",
+        "icon": "mdi:temperature-celsius",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.battery_temp }}"
+      }
     },
     {
       "name": "grid_power",
       "register": "0x212",
       "function": "multiply",
-      "factor": 10
+      "factor": 10,
+      "ha": {
+        "device_class": "power",
+        "unit_of_measurement": "W",
+        "name": "Grid Power",
+        "icon": "mdi:lightning-bolt",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.grid_power }}"
+      }
     },
     {
       "name": "consumption",
       "register": "0x213",
       "function": "multiply",
-      "factor": 10
+      "factor": 10,
+      "ha": {
+        "device_class": "power",
+        "unit_of_measurement": "W",
+        "name": "Load Power",
+        "icon": "mdi:home-lightning-bolt-outline",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.consumption }}"
+      }
     },
     {
       "name": "solarPV",
       "register": "0x215",
       "function": "multiply",
-      "factor": 10
+      "factor": 10,
+      "ha": {
+        "device_class": "power",
+        "unit_of_measurement": "W",
+        "name": "Solar PV Power",
+        "icon": "mdi:solar-power",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.solarPV }}"
+      }
     },
     {
       "name": "today_generation",
       "register": "0x218",
       "function": "divide",
-      "factor": 100
+      "factor": 100,
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Solar Generation Today",
+        "icon": "mdi:solar-power-variant",
+        "state_class": "total_increasing",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.today_generation }}"
+      }
     },
     {
       "name": "today_exported",
       "register": "0x219",
       "function": "divide",
-      "factor": 100
+      "factor": 100,
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Export Today",
+        "icon": "mdi:transmission-tower-export",
+        "state_class": "total_increasing",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.today_exported }}"
+      }
     },
     {
       "name": "today_purchase",
       "register": "0x21a",
       "function": "divide",
-      "factor": 100
+      "factor": 100,
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Import Today",
+        "icon": "mdi:transmission-tower-import",
+        "state_class": "total_increasing",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.today_purchase }}"
+      }
     },
     {
       "name": "today_consumption",
       "register": "0x21b",
       "function": "divide",
-      "factor": 100
+      "factor": 100,
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Consumption Today",
+        "icon": "mdi:home-lightning-bolt-outline",
+        "state_class": "total_increasing",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.today_consumption }}"
+      }
     },
     {
       "name": "inverter_temp",
-      "register": "0x238"
+      "register": "0x238",
+      "ha": {
+        "device_class": "temperature",
+        "unit_of_measurement": "°C",
+        "name": "Inverter Temperature",
+        "icon": "mdi:temperature-celsius",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.inverter_temp }}"
+      }
     },
     {
       "name": "inverterHS_temp",
-      "register": "0x239"
+      "register": "0x239",
+      "ha": {
+        "device_class": "temperature",
+        "unit_of_measurement": "°C",
+        "name": "Heatsink Temperature",
+        "icon": "mdi:temperature-celsius",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.inverterHS_temp }}"
+      }
     },
     {
       "name": "solarPVAmps",
       "register": "0x236",
       "function": "divide",
-      "factor": 100
+      "factor": 100,
+      "ha": {
+        "device_class": "current",
+        "unit_of_measurement": "A",
+        "name": "Solar PV Current",
+        "icon": "mdi:alpha-a-box",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.solarPVAmps }}"
+      }
     },
     {
       "name": "battery_current",
       "register": "0x207",
       "function": "divide",
-      "factor": 100
+      "factor": 100,
+      "ha": {
+        "device_class": "current",
+        "unit_of_measurement": "A",
+        "name": "Battery Current",
+        "icon": "mdi:alpha-a-box",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "value_template": "{{ value_json.battery_current }}"
+      }
     }
   ]
 }
