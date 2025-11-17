@@ -16,6 +16,7 @@ from multiprocessing import Process
 import paho.mqtt.client as mqtt
 import requests
 
+
 def load_config(config_file_path):
     """ Load configuration file """
     config = {}
@@ -24,6 +25,8 @@ def load_config(config_file_path):
     return config
 
 # pylint: disable=too-many-instance-attributes
+
+
 class Sofar():
     """ Sofar """
 
@@ -59,22 +62,27 @@ class Sofar():
         self.legacy_publish = legacy_publish
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
-        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.getLevelName(log_level))
+        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
+                            level=logging.getLevelName(log_level))
         self.mutex = threading.Lock()
-        self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
+        self.client = mqtt.Client(
+            client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         self.setup_mqtt(logging)
         self.setup_instrument()
         self.iteration = 0
-        
+
     def on_connect(self, client, userdata, flags, rc, properties=None):
         logging.info("MQTT "+mqtt.connack_string(rc))
         if rc == 0:
             try:
                 logging.info(f"Subscribing to homeassistant/status")
-                client.subscribe(f"homeassistant/status", qos=0, options=None, properties=None)
+                client.subscribe(f"homeassistant/status", qos=0,
+                                 options=None, properties=None)
                 for register in self.write_registers:
-                    logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
-                    client.subscribe(f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
+                    logging.info(
+                        f"Subscribing to {self.write_topic}/{register['name']}")
+                    client.subscribe(
+                        f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
             except Exception:
                 logging.info(traceback.format_exc())
 
@@ -86,7 +94,7 @@ class Sofar():
         found = False
         valid = False
         topic = message.topic
-        payload = message.payload.decode("utf-8") 
+        payload = message.payload.decode("utf-8")
         if topic == "homeassistant/status":
             logging.info(f"Received message for {topic}:{payload}")
             if payload == "online":
@@ -102,53 +110,65 @@ class Sofar():
                         for key in register['modes']:
                             if register['modes'][key] == payload:
                               new_mode = key
-                        logging.info(f"Received a request for {register['name']} to set mode value to: {payload}({new_mode})")
+                        logging.info(
+                            f"Received a request for {register['name']} to set mode value to: {payload}({new_mode})")
                         if not new_mode:
-                            logging.error(f"Received a request for {register['name']} but mode value: {payload} is not a known mode. Ignoring")
+                            logging.error(
+                                f"Received a request for {register['name']} but mode value: {payload} is not a known mode. Ignoring")
                         if register['name'] in self.data:
                             retry = self.write_retry
                             while retry > 0:
                                 if self.data[register['name']] == payload:
-                                    logging.info(f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {payload}. Ignoring")
+                                    logging.info(
+                                        f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {payload}. Ignoring")
                                     retry = 0
                                 else:
-                                    logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to: {payload}. Retries remaining: {retry}")
+                                    logging.info(
+                                        f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to: {payload}. Retries remaining: {retry}")
                                     self.write_value(register, int(new_mode))
                                     time.sleep(self.write_retry_delay)
                                     retry = retry - 1
-                        else: 
-                            logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
+                        else:
+                            logging.error(
+                                f"No current read value for {register['name']} skipping write operation. Please try again.")
 
                     elif register['function'] == 'int':
                         value = int(payload)
-                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({value})")
+                        logging.info(
+                            f"Received a request for {register['name']} to set value to: {payload}({value})")
                         if value < register['min']:
-                            logging.error(f"Received a request for {register['name']} but value: {value} is less than the min value: {register['min']}. Ignoring")
+                            logging.error(
+                                f"Received a request for {register['name']} but value: {value} is less than the min value: {register['min']}. Ignoring")
                         elif value > register['max']:
-                            logging.error(f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
+                            logging.error(
+                                f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
                         else:
                             if register['name'] == 'desired_power':
                                  if 'energy_storage_mode' in self.data:
                                      if 'Passive mode' != self.data['energy_storage_mode']:
-                                         logging.info(f"Received a request for {register['name']} but not not in Passive mode. Ignoring")
+                                         logging.info(
+                                             f"Received a request for {register['name']} but not not in Passive mode. Ignoring")
                                          continue
                             if register['name'] in self.data:
                                 retry = self.write_retry
                                 while retry > 0:
                                     if self.data[register['name']] == value:
-                                        logging.info(f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {value}. Ignoring")
+                                        logging.info(
+                                            f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {value}. Ignoring")
                                         retry = 0
                                     else:
-                                        logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to {value}. Retries remaining: {retry}")
+                                        logging.info(
+                                            f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to {value}. Retries remaining: {retry}")
                                         self.write_value(register, value)
                                         time.sleep(self.write_retry_delay)
                                         retry = retry - 1
-                            else: 
-                                logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
+                            else:
+                                logging.error(
+                                    f"No current read value for {register['name']} skipping write operation. Please try again.")
 
         if not found:
-            logging.error(f"Received a request to set an unknown register: {register_name['name']} to {payload}")
-
+            logging.error(
+                f"Received a request to set an unknown register: {register['name']} to {payload}")
 
     def setup_mqtt(self, logging):
         self.client.enable_logger(logger=logging)
@@ -156,11 +176,14 @@ class Sofar():
         self.client.on_message = self.on_message
         if self.username is not None and self.password is not None:
             self.client.username_pw_set(self.username, self.password)
-            logging.info(f"MQTT connecting to broker {self.broker} port {self.port} with auth user {self.username}")
+            logging.info(
+                f"MQTT connecting to broker {self.broker} port {self.port} with auth user {self.username}")
         else:
-            logging.info(f"MQTT connecting to broker {self.broker} port {self.port} without auth")
+            logging.info(
+                f"MQTT connecting to broker {self.broker} port {self.port} without auth")
         self.client.reconnect_delay_set(min_delay=1, max_delay=300)
-        self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
+        self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="",
+                            bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
         self.client.loop_start()
 
     def setup_instrument(self):
@@ -200,12 +223,12 @@ class Sofar():
                                 value -= self.data[register_name]
                             elif register['agg_function'] == 'avg':
                                 value = int((value + self.data[register_name]) / 2)
-                if 'invert' in register:
-                    if register['invert']:
-                        if value > 0:
-                            value = -abs(value)
-                        else:
-                            value = abs(value)
+            if 'invert' in register:
+                if register['invert']:
+                    if value > 0:
+                        value = -abs(value)
+                    else:
+                        value = abs(value)
             else:
                 read_type = 'register'
                 registers = 1
