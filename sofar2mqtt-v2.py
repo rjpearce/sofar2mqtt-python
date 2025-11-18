@@ -106,7 +106,7 @@ class Sofar():
                 found = True
                 if 'function' in register:
                     if register['function'] == 'mode':
-                        new_mode = False
+                        new_mode = None
                         for key in register['modes']:
                             if register['modes'][key] == payload:
                               new_mode = key
@@ -115,7 +115,7 @@ class Sofar():
                         if not new_mode:
                             logging.error(
                                 f"Received a request for {register['name']} but mode value: {payload} is not a known mode. Ignoring")
-                        if register['name'] in self.data:
+                        if new_mode and register['name'] in self.data:
                             retry = self.write_retry
                             while retry > 0:
                                 if self.data[register['name']] == payload:
@@ -125,12 +125,22 @@ class Sofar():
                                 else:
                                     logging.info(
                                         f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to: {payload}. Retries remaining: {retry}")
-                                    self.write_value(register, int(new_mode))
+                                    # Convert hex string to int if needed
+                                    if isinstance(new_mode, str) and new_mode.startswith('0x'):
+                                        write_value = int(new_mode, 16)
+                                    else:
+                                        write_value = int(new_mode)
+                                    self.write_value(register, write_value)
                                     time.sleep(self.write_retry_delay)
                                     retry = retry - 1
-                        else:
-                            logging.error(
-                                f"No current read value for {register['name']} skipping write operation. Please try again.")
+                        elif new_mode and register['name'] not in self.data:
+                            logging.info(
+                                f"No current read value for {register['name']}, attempting write operation anyway.")
+                            if isinstance(new_mode, str) and new_mode.startswith('0x'):
+                                write_value = int(new_mode, 16)
+                            else:
+                                write_value = int(new_mode)
+                            self.write_value(register, write_value)
 
                     elif register['function'] == 'int':
                         value = int(payload)
@@ -433,9 +443,14 @@ class Sofar():
                 signed = register['signed']
             while retry > 0 and not success:
                 try:
-                    if register['type'] == 'U16':
+                    if 'type' in register:
+                        reg_type = register['type']
+                    else:
+                        reg_type = 'U16'
+                    
+                    if reg_type == 'U16':
                         self.instrument.write_register(int(register['register'],16), int(value))
-                    elif register['type'] == 'I32':
+                    elif reg_type == 'I32':
                         # split the value to a byte
                         values = struct.pack(">l", value)
                         # split low and high byte

@@ -12,6 +12,72 @@
       "refresh": 86400
     },
     {
+      "name": "operating_mode",
+      "desc": "Operating mode control",
+      "type": "U16",
+      "function": "mode",
+      "modes": {
+        "0x0100": "Standby",
+        "0x0101": "Discharge",
+        "0x0102": "Charge",
+        "0x0103": "Auto"
+      },
+      "write": true,
+      "ha": {
+        "command_topic": "sofar/rw/operating_mode",
+        "entity_category": "config",
+        "name": "Operating Mode",
+        "options": [
+          "Standby",
+          "Discharge",
+          "Charge",
+          "Auto"
+        ],
+        "value_template": "{{ value_json.operating_mode }}",
+        "icon": "mdi:auto-mode",
+        "control": "select"
+      }
+    },
+    {
+      "name": "charge_discharge_power",
+      "desc": "Charge/Discharge power in passive mode (0-3000W)",
+      "type": "U16",
+      "min": 0,
+      "max": 3000,
+      "write": true,
+      "passive": true,
+      "ha": {
+        "command_topic": "sofar/rw/charge_discharge_power",
+        "entity_category": "config",
+        "name": "Charge/Discharge Power",
+        "min": 0,
+        "max": 3000,
+        "step": 100,
+        "initial": 0,
+        "mode": "slider",
+        "value_template": "{{ value_json.charge_discharge_power }}",
+        "icon": "mdi:battery-charging",
+        "unit_of_measurement": "W",
+        "control": "number"
+      }
+    },
+    {
+      "name": "running_state",
+      "register": "0x200",
+      "function": "mode",
+      "modes": {
+        "0": "Standby",
+        "2": "Charging",
+        "4": "Discharging",
+        "6": "Fault"
+      },
+      "ha": {
+        "name": "Running State",
+        "icon": "mdi:power-standby",
+        "value_template": "{{ value_json.running_state }}"
+      }
+    },
+    {
       "name": "model",
       "value": "ME-3000SP",
       "read_type": "static",
@@ -43,22 +109,6 @@
         "value_template": "{{ value_json.sw_version_com }}"
       },
       "refresh": 86400
-    },
-    {
-      "name": "running_state",
-      "register": "0x200",
-      "function": "mode",
-      "modes": {
-        "0": "Standby",
-        "2": "Charging",
-        "4": "Discharging",
-        "6": "Fault"
-      },
-      "ha": {
-        "name": "Running State",
-        "icon": "mdi:power-standby",
-        "value_template": "{{ value_json.running_state }}"
-      }
     },
     {
       "name": "fault_list_1",
