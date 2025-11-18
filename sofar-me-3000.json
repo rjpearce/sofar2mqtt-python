@@ -61,6 +61,51 @@
       }
     },
     {
+      "name": "fault_list_1",
+      "register": "0x0201",
+      "ha": {
+        "name": "Fault List 1",
+        "icon": "mdi:alert",
+        "value_template": "{{ value_json.fault_list_1 }}"
+      }
+    },
+    {
+      "name": "fault_list_2",
+      "register": "0x0202",
+      "ha": {
+        "name": "Fault List 2",
+        "icon": "mdi:alert",
+        "value_template": "{{ value_json.fault_list_2 }}"
+      }
+    },
+    {
+      "name": "fault_list_3",
+      "register": "0x0203",
+      "ha": {
+        "name": "Fault List 3",
+        "icon": "mdi:alert",
+        "value_template": "{{ value_json.fault_list_3 }}"
+      }
+    },
+    {
+      "name": "fault_list_4",
+      "register": "0x0204",
+      "ha": {
+        "name": "Fault List 4",
+        "icon": "mdi:alert",
+        "value_template": "{{ value_json.fault_list_4 }}"
+      }
+    },
+    {
+      "name": "fault_list_5",
+      "register": "0x0205",
+      "ha": {
+        "name": "Fault List 5",
+        "icon": "mdi:alert",
+        "value_template": "{{ value_json.fault_list_5 }}"
+      }
+    },
+    {
       "name": "grid_voltage",
       "register": "0x0206",
       "function": "divide",
@@ -72,6 +117,20 @@
         "icon": "mdi:alpha-v-box",
         "state_class": "measurement",
         "value_template": "{{ value_json.grid_voltage }}"
+      }
+    },
+    {
+      "name": "grid_current",
+      "register": "0x0207",
+      "function": "divide",
+      "factor": 100,
+      "ha": {
+        "device_class": "current",
+        "unit_of_measurement": "A",
+        "name": "Grid Current",
+        "icon": "mdi:alpha-a-box",
+        "state_class": "measurement",
+        "value_template": "{{ value_json.grid_current }}"
       }
     },
     {
@@ -129,19 +188,21 @@
       }
     },
     {
-      "name": "battery_cycles",
-      "register": "0x22c",
+      "name": "battery_current",
+      "register": "0x020F",
+      "function": "divide",
+      "factor": 100,
       "ha": {
-        "device_class": "battery",
-        "unit_of_measurement": "cycles",
-        "name": "Battery Cycles",
-        "icon": "mdi:battery-sync",
-        "state_class": "total_increasing",
-        "value_template": "{{ value_json.battery_cycles }}"
+        "device_class": "current",
+        "unit_of_measurement": "A",
+        "name": "Battery Current",
+        "icon": "mdi:alpha-a-box",
+        "state_class": "measurement",
+        "value_template": "{{ value_json.battery_current }}"
       }
     },
     {
-      "name": "battery_temp",
+      "name": "batterySOC",
       "register": "0x211",
       "ha": {
         "device_class": "temperature",
@@ -181,6 +242,20 @@
       }
     },
     {
+      "name": "inverter_power",
+      "register": "0x0214",
+      "function": "multiply",
+      "factor": 10,
+      "ha": {
+        "device_class": "power",
+        "unit_of_measurement": "W",
+        "name": "Inverter Power",
+        "icon": "mdi:lightning-bolt",
+        "state_class": "measurement",
+        "value_template": "{{ value_json.inverter_power }}"
+      }
+    },
+    {
       "name": "solarPV",
       "register": "0x215",
       "function": "multiply",
@@ -192,6 +267,34 @@
         "icon": "mdi:solar-power",
         "state_class": "measurement",
         "value_template": "{{ value_json.solarPV }}"
+      }
+    },
+    {
+      "name": "eps_output_voltage",
+      "register": "0x0216",
+      "function": "divide",
+      "factor": 10,
+      "ha": {
+        "device_class": "voltage",
+        "unit_of_measurement": "V",
+        "name": "EPS Output Voltage",
+        "icon": "mdi:alpha-v-box",
+        "state_class": "measurement",
+        "value_template": "{{ value_json.eps_output_voltage }}"
+      }
+    },
+    {
+      "name": "eps_output_power",
+      "register": "0x0217",
+      "function": "multiply",
+      "factor": 10,
+      "ha": {
+        "device_class": "power",
+        "unit_of_measurement": "W",
+        "name": "EPS Output Power",
+        "icon": "mdi:lightning-bolt",
+        "state_class": "measurement",
+        "value_template": "{{ value_json.eps_output_power }}"
       }
     },
     {
@@ -248,6 +351,245 @@
         "icon": "mdi:home-lightning-bolt-outline",
         "state_class": "total_increasing",
         "value_template": "{{ value_json.today_consumption }}"
+      }
+    },
+    {
+      "name": "total_generation_hi",
+      "register": "0x021C",
+      "ha": {
+        "name": "Total Generation Hi",
+        "icon": "mdi:counter",
+        "value_template": "{{ value_json.total_generation_hi }}"
+      }
+    },
+    {
+      "name": "total_generation_lo",
+      "register": "0x021D",
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Total Generation",
+        "icon": "mdi:solar-power-variant",
+        "state_class": "total_increasing",
+        "value_template": "{{ value_json.total_generation_lo }}"
+      }
+    },
+    {
+      "name": "total_export_hi",
+      "register": "0x021E",
+      "ha": {
+        "name": "Total Export Hi",
+        "icon": "mdi:counter",
+        "value_template": "{{ value_json.total_export_hi }}"
+      }
+    },
+    {
+      "name": "total_export_lo",
+      "register": "0x021F",
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Total Export",
+        "icon": "mdi:transmission-tower-export",
+        "state_class": "total_increasing",
+        "value_template": "{{ value_json.total_export_lo }}"
+      }
+    },
+    {
+      "name": "total_import_hi",
+      "register": "0x0220",
+      "ha": {
+        "name": "Total Import Hi",
+        "icon": "mdi:counter",
+        "value_template": "{{ value_json.total_import_hi }}"
+      }
+    },
+    {
+      "name": "total_import_lo",
+      "register": "0x0221",
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Total Import",
+        "icon": "mdi:transmission-tower-import",
+        "state_class": "total_increasing",
+        "value_template": "{{ value_json.total_import_lo }}"
+      }
+    },
+    {
+      "name": "total_consumption_hi",
+      "register": "0x0222",
+      "ha": {
+        "name": "Total Consumption Hi",
+        "icon": "mdi:counter",
+        "value_template": "{{ value_json.total_consumption_hi }}"
+      }
+    },
+    {
+      "name": "total_consumption_lo",
+      "register": "0x0223",
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Total Consumption",
+        "icon": "mdi:home-lightning-bolt-outline",
+        "state_class": "total_increasing",
+        "value_template": "{{ value_json.total_consumption_lo }}"
+      }
+    },
+    {
+      "name": "battery_charge_today",
+      "register": "0x0224",
+      "function": "divide",
+      "factor": 100,
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Battery Charge Today",
+        "icon": "mdi:battery-charging-80",
+        "state_class": "total_increasing",
+        "value_template": "{{ value_json.battery_charge_today }}"
+      }
+    },
+    {
+      "name": "battery_discharge_today",
+      "register": "0x0225",
+      "function": "divide",
+      "factor": 100,
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Battery Discharge Today",
+        "icon": "mdi:battery-minus",
+        "state_class": "total_increasing",
+        "value_template": "{{ value_json.battery_discharge_today }}"
+      }
+    },
+    {
+      "name": "battery_total_charge_hi",
+      "register": "0x0226",
+      "ha": {
+        "name": "Battery Total Charge Hi",
+        "icon": "mdi:counter",
+        "value_template": "{{ value_json.battery_total_charge_hi }}"
+      }
+    },
+    {
+      "name": "battery_total_charge_lo",
+      "register": "0x0227",
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Battery Total Charge",
+        "icon": "mdi:battery-charging-80",
+        "state_class": "total_increasing",
+        "value_template": "{{ value_json.battery_total_charge_lo }}"
+      }
+    },
+    {
+      "name": "battery_total_discharge_hi",
+      "register": "0x0228",
+      "ha": {
+        "name": "Battery Total Discharge Hi",
+        "icon": "mdi:counter",
+        "value_template": "{{ value_json.battery_total_discharge_hi }}"
+      }
+    },
+    {
+      "name": "battery_total_discharge_lo",
+      "register": "0x0229",
+      "ha": {
+        "device_class": "energy",
+        "unit_of_measurement": "kWh",
+        "name": "Battery Total Discharge",
+        "icon": "mdi:battery-minus",
+        "state_class": "total_increasing",
+        "value_template": "{{ value_json.battery_total_discharge_lo }}"
+      }
+    },
+    {
+      "name": "countdown_time",
+      "register": "0x022A",
+      "ha": {
+        "name": "Countdown Time",
+        "unit_of_measurement": "s",
+        "icon": "mdi:timer",
+        "value_template": "{{ value_json.countdown_time }}"
+      }
+    },
+    {
+      "name": "inverter_alarm_info",
+      "register": "0x022B",
+      "ha": {
+        "name": "Inverter Alarm Information",
+        "icon": "mdi:alert-circle",
+        "value_template": "{{ value_json.inverter_alarm_info }}"
+      }
+    },
+    {
+      "name": "battery_cycles",
+      "register": "0x22c",
+      "ha": {
+        "device_class": "battery",
+        "unit_of_measurement": "cycles",
+        "name": "Battery Cycles",
+        "icon": "mdi:battery-sync",
+        "state_class": "total_increasing",
+        "value_template": "{{ value_json.battery_cycles }}"
+      }
+    },
+    {
+      "name": "inverter_bus_voltage",
+      "register": "0x022D",
+      "function": "divide",
+      "factor": 10,
+      "ha": {
+        "device_class": "voltage",
+        "unit_of_measurement": "V",
+        "name": "Inverter Bus Voltage",
+        "icon": "mdi:alpha-v-box",
+        "state_class": "measurement",
+        "value_template": "{{ value_json.inverter_bus_voltage }}"
+      }
+    },
+    {
+      "name": "llc_bus_voltage",
+      "register": "0x022E",
+      "function": "divide",
+      "factor": 10,
+      "ha": {
+        "device_class": "voltage",
+        "unit_of_measurement": "V",
+        "name": "LLC Bus Voltage",
+        "icon": "mdi:alpha-v-box",
+        "state_class": "measurement",
+        "value_template": "{{ value_json.llc_bus_voltage }}"
+      }
+    },
+    {
+      "name": "buck_current",
+      "register": "0x022F",
+      "function": "divide",
+      "factor": 100,
+      "ha": {
+        "device_class": "current",
+        "unit_of_measurement": "A",
+        "name": "Buck Current",
+        "icon": "mdi:alpha-a-box",
+        "state_class": "measurement",
+        "value_template": "{{ value_json.buck_current }}"
+      }
+    },
+    {
+      "name": "battery_health_soh",
+      "register": "0x0237",
+      "ha": {
+        "device_class": "battery",
+        "unit_of_measurement": "%",
+        "name": "Battery Health (SOH)",
+        "icon": "mdi:battery-heart",
+        "state_class": "measurement",
+        "value_template": "{{ value_json.battery_health_soh }}"
       }
     },
     {
