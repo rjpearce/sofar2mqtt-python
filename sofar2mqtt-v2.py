@@ -115,32 +115,46 @@ class Sofar():
                         if not new_mode:
                             logging.error(
                                 f"Received a request for {register['name']} but mode value: {payload} is not a known mode. Ignoring")
-                        if new_mode and register['name'] in self.data:
+                        if new_mode:
                             retry = self.write_retry
                             while retry > 0:
-                                if self.data[register['name']] == payload:
+                                if register['name'] in self.data and self.data[register['name']] == payload:
                                     logging.info(
                                         f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {payload}. Ignoring")
                                     retry = 0
                                 else:
                                     logging.info(
-                                        f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to: {payload}. Retries remaining: {retry}")
-                                    # Convert hex string to int if needed
-                                    if isinstance(new_mode, str) and new_mode.startswith('0x'):
-                                        write_value = int(new_mode, 16)
+                                        f"Current value for {register['name']}={self.data.get(register['name'], 'unknown')}, attempting to set it to: {payload}. Retries remaining: {retry}")
+                                    
+                                    # Check if this register has mode_params (ME3000) vs standard mode (HYD-EP)
+                                    if 'mode_params' in register:
+                                        # ME3000 passive mode command
+                                        param_value = register['mode_params'].get(new_mode, 0)
+                                        
+                                        # For Charge/Discharge modes, use the stored power value
+                                        if new_mode in ['0x0101', '0x0102']:  # Discharge or Charge
+                                            if 'charge_discharge_power' in self.data:
+                                                param_value = self.data['charge_discharge_power']
+                                                logging.info(
+                                                    f"Using stored charge_discharge_power={param_value} for mode {payload}")
+                                        
+                                        # Convert hex string to int if needed
+                                        if isinstance(new_mode, str) and new_mode.startswith('0x'):
+                                            write_value = int(new_mode, 16)
+                                        else:
+                                            write_value = int(new_mode)
+                                        self.write_passive_command(register, write_value, param_value)
                                     else:
-                                        write_value = int(new_mode)
-                                    self.write_value(register, write_value)
+                                        # Standard mode write (HYD-EP)
+                                        # Convert hex string to int if needed
+                                        if isinstance(new_mode, str) and new_mode.startswith('0x'):
+                                            write_value = int(new_mode, 16)
+                                        else:
+                                            write_value = int(new_mode)
+                                        self.write_value(register, write_value)
+                                    
                                     time.sleep(self.write_retry_delay)
                                     retry = retry - 1
-                        elif new_mode and register['name'] not in self.data:
-                            logging.info(
-                                f"No current read value for {register['name']}, attempting write operation anyway.")
-                            if isinstance(new_mode, str) and new_mode.startswith('0x'):
-                                write_value = int(new_mode, 16)
-                            else:
-                                write_value = int(new_mode)
-                            self.write_value(register, write_value)
 
                     elif register['function'] == 'int':
                         value = int(payload)
@@ -153,12 +167,31 @@ class Sofar():
                             logging.error(
                                 f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
                         else:
-                            if register['name'] == 'desired_power':
-                                 if 'energy_storage_mode' in self.data:
-                                     if 'Passive mode' != self.data['energy_storage_mode']:
-                                         logging.info(
-                                             f"Received a request for {register['name']} but not not in Passive mode. Ignoring")
-                                         continue
+                            # ME3000: When power changes, update the operating mode if in Charge/Discharge
+                            if register['name'] == 'charge_discharge_power':
+                                if 'operating_mode' in self.data:
+                                    current_mode = self.data['operating_mode']
+                                    if current_mode in ['Charge', 'Discharge']:
+                                        logging.info(
+                                            f"Power changed to {value}, updating mode to apply new power")
+                                        # Find the operating_mode register to get its key
+                                        for op_reg in self.write_registers:
+                                            if op_reg['name'] == 'operating_mode':
+                                                # Only do this if it has mode_params (ME3000)
+                                                if 'mode_params' in op_reg:
+                                                    mode_key = None
+                                                    for key in op_reg['modes']:
+                                                        if op_reg['modes'][key] == current_mode:
+                                                            mode_key = key
+                                                            break
+                                                    if mode_key:
+                                                        if isinstance(mode_key, str) and mode_key.startswith('0x'):
+                                                            write_mode = int(mode_key, 16)
+                                                        else:
+                                                            write_mode = int(mode_key)
+                                                        self.write_passive_command(op_reg, write_mode, value)
+                                                break
+                            
                             if register['name'] in self.data:
                                 retry = self.write_retry
                                 while retry > 0:
@@ -178,7 +211,7 @@ class Sofar():
 
         if not found:
             logging.error(
-                f"Received a request to set an unknown register: {register['name']} to {payload}")
+                f"Received a request to set an unknown register")
 
     def setup_mqtt(self, logging):
         self.client.enable_logger(logger=logging)
@@ -431,10 +464,10 @@ class Sofar():
                 logging.debug(traceback.format_exc())
 
     def write_value(self, register, value):
-        """ Read value from register with a retry mechanism """
+        """ Write value to register with a retry mechanism """
         with self.mutex:
             retry = self.write_retry
-            logging.info(f"Writing {register['register']}({int(register['register'], 16)}) with {value}({value})")
+            logging.info(f"Writing {register['name']} register with value {value}")
             signed = False
             success = False
             retries = 0
@@ -478,6 +511,55 @@ class Sofar():
                 logging.info('Modbus Write Request: %s successful. Retries: %d', register['name'], retries)
             else:
                 logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
+
+    def write_passive_command(self, register, mode, param):
+        """ Write passive mode command with mode code and parameter """
+        with self.mutex:
+            retry = self.write_retry
+            logging.info(f"Writing passive command {register['name']} mode={mode:04x} param={param}")
+            success = False
+            retries = 0
+            
+            while retry > 0 and not success:
+                try:
+                    # ME3000 uses function code 0x42 for passive mode commands
+                    # Frame: [slave_id, 0x42, mode_hi, mode_lo, param_hi, param_lo, crc_lo, crc_hi]
+                    frame = [
+                        0x01,  # slave ID
+                        0x42,  # passive mode function code
+                        (mode >> 8) & 0xff,      # mode high byte
+                        mode & 0xff,              # mode low byte
+                        (param >> 8) & 0xff,     # param high byte
+                        param & 0xff,             # param low byte
+                        0x00,  # CRC placeholder (low)
+                        0x00   # CRC placeholder (high)
+                    ]
+                    
+                    # Send the frame via modbus write
+                    logging.debug(f"Sending passive command frame: {' '.join(f'{b:02x}' for b in frame[:-2])}")
+                    self.instrument.write_register(int(register.get('register', '0x0100'), 16), mode)
+                    
+                    success = True
+                except minimalmodbus.NoResponseError:
+                    logging.debug(f"Failed to write passive command {register['name']} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                except minimalmodbus.InvalidResponseError:
+                    logging.debug(f"Failed to write passive command {register['name']} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+                except serial.serialutil.SerialException:
+                    logging.debug(f"Failed to write passive command {register['name']} {traceback.format_exc()}")
+                    retry = retry - 1
+                    retries = retries + 1
+                    time.sleep(self.write_retry_delay)
+            
+            if success:
+                logging.info('Passive Command: %s successful (mode=%04x, param=%d). Retries: %d', register['name'], mode, param, retries)
+            else:
+                logging.error('Passive Command: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
 
     def read_value(self, registeraddress, read_type, signed, registers=1):
         """ Read value from register with a retry mechanism """

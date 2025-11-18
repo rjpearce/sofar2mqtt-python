@@ -13,7 +13,7 @@
     },
     {
       "name": "operating_mode",
-      "desc": "Operating mode control",
+      "desc": "Operating mode control - determines charge/discharge behavior",
       "type": "U16",
       "function": "mode",
       "modes": {
@@ -23,6 +23,12 @@
         "0x0103": "Auto"
       },
       "write": true,
+      "mode_params": {
+        "0x0100": 21845,
+        "0x0101": 0,
+        "0x0102": 0,
+        "0x0103": 21845
+      },
       "ha": {
         "command_topic": "sofar/rw/operating_mode",
         "entity_category": "config",
@@ -40,12 +46,13 @@
     },
     {
       "name": "charge_discharge_power",
-      "desc": "Charge/Discharge power in passive mode (0-3000W)",
+      "desc": "Charge/Discharge power (0-3000W) - used with Charge/Discharge modes",
       "type": "U16",
       "min": 0,
       "max": 3000,
       "write": true,
       "passive": true,
+      "linked_register": "operating_mode",
       "ha": {
         "command_topic": "sofar/rw/charge_discharge_power",
         "entity_category": "config",
@@ -252,7 +259,7 @@
       }
     },
     {
-      "name": "batterySOC",
+      "name": "battery_temp",
       "register": "0x211",
       "ha": {
         "device_class": "temperature",
