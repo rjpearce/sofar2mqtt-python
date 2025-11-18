@@ -6,8 +6,19 @@
       "value": "ME3000SP",
       "ha": {
         "name": "Serial Number",
-        "icon": "mdi:numeric",
+        "icon": "mdi:identifier",
         "value_template": "{{ value_json.serial_number }}"
+      },
+      "refresh": 86400
+    },
+    {
+      "name": "model",
+      "value": "ME-3000SP",
+      "read_type": "static",
+      "ha": {
+        "name": "Model",
+        "icon": "mdi:tag-text",
+        "value_template": "{{ value_json.model }}"
       },
       "refresh": 86400
     },

@@ -361,7 +361,7 @@ class Sofar():
                         "sw_version": self.data["sw_version_com"],
                         "hw_version": self.data["hw_version"],
                         "manufacturer": "SOFAR",
-                        "model": "HYD-6000-EP",
+                        "model": self.data["model"],
                         "configuration_url": "https://github.com/rjpearce/sofar2mqtt-python",
                         "identifiers": [f"{sn}"]
                     },
