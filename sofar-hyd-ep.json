@@ -11,7 +11,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.serial_number }}"
 			},
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "hw_version",
@@ -24,7 +24,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.hw_version }}"
 			},
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "sw_version_com",
@@ -37,7 +37,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.sw_version_com }}"
 			},
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "sw_version_master",
@@ -50,7 +50,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.sw_version_master }}"
 			},
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "sw_version_slave",
@@ -63,7 +63,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.sw_version_slave }}"
 			},
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "energy_storage_mode",
@@ -98,36 +98,36 @@
 		{
 			"name": "charge_start_time",
 			"register": "0x1113",
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "charge_end_time",
 			"register": "0x1114",
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "discharge_start_time",
 			"register": "0x1115",
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "discharge_end_time",
 			"register": "0x1116",
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "charge_power",
 			"register": "0x1117",
 			"function": "multiply",
 			"factor": 10,
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "discharge_power",
 			"register": "0x1118",
 			"function": "multiply",
 			"factor": 10,
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "time_of_use",
@@ -143,7 +143,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_start_time",
@@ -156,7 +156,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_charge_start_time }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_end_time",
@@ -169,7 +169,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_charge_end_time }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_soc",
@@ -188,7 +188,7 @@
 				"state_class": "measurement",
 				"value_template": "{{ value_json.time_of_use_charge_soc }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "time_of_use_charge_power",
@@ -203,7 +203,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_charge_power }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "time_of_use_start_date",
@@ -216,7 +216,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_start_date }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "time_of_use_end_date",
@@ -229,7 +229,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_end_date }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "time_of_use_dow",
@@ -250,7 +250,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_dow }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "desired_power",
@@ -461,12 +461,10 @@
 		},
 		{
 			"name": "grid",
-			"aggregate": [
-				"load_power",
-				"active_power"
-			],
-			"agg_function": "subtract",
-			"invert": false,
+			"register": "0x0488",
+			"function": "multiply",
+			"factor": -10,
+			"signed": true,
 			"ha": {
 				"device_class": "power",
 				"name": "On-Grid Power",
@@ -487,7 +485,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.insulation_resistance }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "ongrid_frequency",
@@ -503,7 +501,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.ongrid_frequency }}"
 			},
-                        "refresh": 60
+			"refresh": 60
 		},
 		{
 			"name": "ongrid_voltage",
@@ -519,7 +517,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.ongrid_voltage }}"
 			},
-                        "refresh": 60
+			"refresh": 60
 		},
 		{
 			"name": "inverter_temp_internal",
@@ -576,7 +574,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_frequency }}"
 			},
-                        "refresh": 60
+			"refresh": 60
 		},
 		{
 			"name": "offgrid_voltage",
@@ -592,7 +590,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_voltage }}"
 			},
-                        "refresh": 60
+			"refresh": 60
 		},
 		{
 			"name": "battery_current",
@@ -640,7 +638,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_generation }}"
 			},
-                        "refresh": 60
+			"refresh": 60
 		},
 		{
 			"name": "today_consumption",
@@ -656,7 +654,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_consumption }}"
 			},
-                        "refresh": 60
+			"refresh": 60
 		},
 		{
 			"name": "today_import",
@@ -672,7 +670,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_import }}"
 			},
-                        "refresh": 60
+			"refresh": 60
 		},
 		{
 			"name": "today_export",
@@ -688,7 +686,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_export }}"
 			},
-                        "refresh": 60
+			"refresh": 60
 		},
 		{
 			"name": "today_battery_discharge",
@@ -704,7 +702,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_battery_discharge }}"
 			},
-                        "refresh": 60
+			"refresh": 60
 		},
 		{
 			"name": "today_battery_charge",
@@ -720,7 +718,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_battery_charge }}"
 			},
-                        "refresh": 60
+			"refresh": 60
 		},
 		{
 			"name": "battery_voltage",
@@ -778,7 +776,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_soh }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "battery_cycles",
@@ -792,7 +790,7 @@
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_cycles }}"
 			},
-                        "refresh": 3600
+			"refresh": 3600
 		},
 		{
 			"name": "eps_control",
@@ -806,7 +804,7 @@
 			},
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "remote_on_off_control",
@@ -820,7 +818,7 @@
 			},
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "power_control",
@@ -831,7 +829,7 @@
 			"max": 100,
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "active_power_export_limit",
@@ -842,7 +840,7 @@
 			"max": 100,
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "active_power_import_limit",
@@ -853,7 +851,7 @@
 			"max": 100,
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "reactive_power_setting",
@@ -865,7 +863,7 @@
 			"signed": true,
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "power_factor_setting",
@@ -877,7 +875,7 @@
 			"signed": true,
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "active_power_limit_speed",
@@ -889,7 +887,7 @@
 			"signed": true,
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "reactive_power_response_time",
@@ -901,7 +899,7 @@
 			"signed": true,
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "passive_timeout",
@@ -911,7 +909,7 @@
 			"type": "U16",
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "passive_timeout_action",
@@ -925,7 +923,7 @@
 			},
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		},
 		{
 			"name": "desired_power_grid",
@@ -940,7 +938,7 @@
 			"max": 999999,
 			"write": true,
 			"untested": true,
-                        "refresh": 86400
+			"refresh": 86400
 		}
 	]
 }
