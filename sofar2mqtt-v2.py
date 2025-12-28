@@ -147,33 +147,11 @@ class Sofar():
                             logging.error(
                                 f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
                         else:
-                            # ME3000: When power changes, update the operating mode if in Charge/Discharge
-                            if register['name'] == 'charge_discharge_power':
-                                if 'operating_mode' in self.data:
-                                    current_mode = self.data['operating_mode']
-                                    if current_mode in ['Charge', 'Discharge']:
-                                        logging.info(
-                                            f"Power changed to {value}, updating mode to apply new power")
-                                        # Find the operating_mode register to get its key
-                                        for op_reg in self.write_registers:
-                                            if op_reg['name'] == 'operating_mode':
-                                                # Only do this if it has mode_params (ME3000)
-                                                if 'mode_params' in op_reg:
-                                                    mode_key = None
-                                                    for key in op_reg['modes']:
-                                                        if op_reg['modes'][key] == current_mode:
-                                                            mode_key = key
-                                                            break
-                                                    if mode_key:
-                                                        if isinstance(mode_key, str) and mode_key.startswith('0x'):
-                                                            write_mode = int(
-                                                                mode_key, 16)
-                                                        else:
-                                                            write_mode = int(
-                                                                mode_key)
-                                                        self.write_passive_command(
-                                                            op_reg, write_mode, value)
-                                                break
+                            if register['name'] == 'desired_power':
+                                if 'energy_storage_mode' in self.data:
+                                     if 'Passive mode' != self.data['energy_storage_mode']:
+                                         logging.info(f"Received a request for {register['name']} but not not in Passive mode. Ignoring")
+                                         continue
 
                             if register['name'] in self.data:
                                 retry = self.write_retry
@@ -266,12 +244,13 @@ class Sofar():
                 if read_type == 'static':
                     value = register['value']
                 else:
-                    value = self.read_value(
-                        int(register['register'], 16),
-                        read_type,
-                        signed,
-                        registers
-                    )
+                    if 'register' in register:
+                        value = self.read_value(
+                            int(register['register'], 16),
+                            read_type,
+                            signed,
+                            registers
+                        )
             if value is None:
                 continue
             else:
@@ -363,7 +342,7 @@ class Sofar():
                 "manufacturer": "Sofar2Mqtt-Python",
                 "model": "Bridge",
                 "name": "Sofar2Mqtt Python Bridge",
-                "sw_version": "3.0.3"
+                "sw_version": "3.0.6"
             },
             "device_class": "connectivity",
             "entity_category": "diagnostic",
