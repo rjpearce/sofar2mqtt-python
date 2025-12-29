@@ -1,18 +1,51 @@
 {
-	"registers": [
+	"write_register_blocks": [
 		{
-			"name": "serial_number",
-			"register": "0x0445",
-			"read_type": "string",
-			"registers": 7,
-			"ha": {
-				"name": "Serial Number",
-				"icon": "mdi:numeric",
-				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.serial_number }}"
-			},
-			"refresh": 86400
+			"name": "battery_config",
+			"start_register": "0x1044",
+			"length": "16",
+			"registers": [
+				"battery_config_id",
+				"battery_config_address",
+				"battery_config_protocol",
+				"battery_config_voltage_over",
+				"battery_config_voltage_charge",
+				"battery_config_voltage_lack",
+				"battery_config_voltage_discharge_stop",
+				"battery_config_current_charge_limit",
+				"battery_config_current_discharge_limit",
+				"battery_config_depth_of_discharge",
+				"battery_config_end_of_discharge",
+				"battery_config_capacity",
+				"battery_config_voltage_nominal",
+				"battery_config_cell_type",
+				"battery_config_eps_buffer"
+			],
+			"append": [1]
 		},
+		{
+			"name": "eps_config",
+			"start_register": "0x1029",
+			"length": "2",
+			"registers": [
+				"eps_control",
+				"eps_wait_time"
+			]
+		},
+		{
+			"name": "rs485_config",
+			"start_register": "0x100B",
+			"length": "5",
+			"registers": [
+				"rs485_config_address",
+				"rs485_config_baud",
+				"rs485_config_stop_bit",
+				"rs485_config_parity_bit"
+			],
+			"append": [1]
+		}
+	],
+	"registers": [
 		{
 			"name": "hw_version",
 			"register": "0x044D",
@@ -66,6 +99,491 @@
 			"refresh": 86400
 		},
 		{
+			"name": "rs485_config_address",
+			"register": "0x100B",
+			"desc": "RS 485 configuration- communication address",
+			"type": "U16",
+			"min": 1,
+			"max": 63,
+			"ha": {
+				"name": "RS485 Address",
+				"icon": "mdi:identifier",
+				"entity_category": "config",
+				"min": 1,
+				"max": 63,
+				"initial": 0,
+				"mode": "box",
+				"command_topic": "sofar/rw/rs485_config/address",
+				"control": "number",
+				"value_template": "{{ value_json.rs485_config_address | int }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "rs485_config_baud",
+			"register": "0x100C",
+			"desc": "RS485 Baud Rate Selection",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "4800",
+				"1": "9600",
+				"2": "19200",
+				"3": "38400",
+				"4": "57600"
+			},
+			"ha": {
+				"name": "RS485 Baud",
+				"icon": "mdi:identifier",
+				"entity_category": "config",
+				"min": 0,
+				"max": 4,
+				"initial": 0,
+				"mode": "box",
+				"unit_of_measurement": "bps",
+				"value_template": "{{ value_json.rs485_config_baud }}",
+				"command_topic": "sofar/rw/rs485_config/baud",
+				"options": [
+					"4800",
+					"9600",
+					"19200",
+					"38400",
+					"57600"
+				],
+				"control": "select"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "rs485_config_stop_bit",
+			"register": "0x100C",
+			"desc": "RS485 Stop Bit Selection",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "1",
+				"1": "1.5",
+				"2": "2"
+			},
+			"ha": {
+				"name": "RS485 Stop Bit",
+				"icon": "mdi:identifier",
+				"entity_category": "config",
+				"min": 0,
+				"max": 2,
+				"initial": 0,
+				"value_template": "{{ value_json.rs485_config_stop_bit }}",
+				"command_topic": "sofar/rw/rs485_config/stop_bit",
+				"options": [
+					"1",
+					"1.5",
+					"2"
+				],
+				"control": "select"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "rs485_config_parity_bit",
+			"register": "0x100C",
+			"desc": "RS485 Parity Bit Selection",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "None",
+				"1": "Even",
+				"2": "Odd",
+				"3": "High/Mark",
+				"4": "Low/Space"
+			},
+			"ha": {
+				"name": "RS485 Parity Bit",
+				"icon": "mdi:identifier",
+				"entity_category": "config",
+				"min": 0,
+				"max": 4,
+				"initial": 0,
+				"value_template": "{{ value_json.rs485_config_parity_bit }}",
+				"command_topic": "sofar/rw/rs485_config/parity_bit",
+				"options": [
+					"None",
+					"Even",
+					"Odd",
+					"High/Mark",
+					"Low/Space"
+				],
+				"control": "select"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_id",
+			"register": "0x1044",
+			"desc": "battery id",
+			"type": "U16",
+			"min": 0,
+			"max": 7,
+			"ha": {
+				"name": "Battery ID",
+				"icon": "mdi:identifier",
+				"entity_category": "config",
+				"min": 0,
+				"max": 7,
+				"step": 1,
+				"initial": 0,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/id",
+				"control": "number",
+				"value_template": "{{ value_json.battery_config_id | int }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_address",
+			"register": "0x1045",
+			"desc": "battery address",
+			"type": "U16",
+			"min": 0,
+			"max": 99,
+			"ha": {
+				"name": "Battery Address",
+				"icon": "mdi:identifier",
+				"entity_category": "config",
+				"min": 0,
+				"max": 99,
+				"step": 1,
+				"initial": 0,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/address",
+				"control": "number",
+				"value_template": "{{ value_json.battery_config_address }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_protocol",
+			"register": "0x1046",
+			"desc": "battery protocol",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Default",
+				"1": "Pylon",
+				"2": "General",
+				"3": "Amass",
+				"4": "LG",
+				"5": "Alpha.ESS",
+				"6": "CATL",
+				"7": "Weco",
+				"8": "Unknown",
+				"9": "EMS"
+			},
+			"ha": {
+				"name": "Battery Protocol",
+				"icon": "mdi:protocol",
+				"entity_category": "config",
+				"value_template": "{{ value_json.battery_config_protocol }}",
+				"command_topic": "sofar/rw/battery_config/protocol",
+				"options": [
+					"Default",
+					"Pylon",
+					"General",
+					"Amass",
+					"LG",
+					"Alpha.ESS",
+					"CATL",
+					"Weco",
+					"Unknown",
+					"EMS"
+				],
+				"control": "select"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_voltage_over",
+			"register": "0x1047",
+			"desc": "battery over voltage",
+			"type": "U16",
+			"function": "divide",
+			"factor": 10,
+			"min": 0.0,
+			"max": 65535.0,
+			"ha": {
+				"name": "Battery Over Voltage",
+				"icon": "mdi:alpha-v-box",
+				"entity_category": "config",
+				"min": 0.0,
+				"max": 65535.0,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/voltage_over",
+				"control": "number",
+				"device_class": "voltage",
+				"unit_of_measurement": "V",
+				"value_template": "{{ value_json.battery_config_voltage_over }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_voltage_charge",
+			"register": "0x1048",
+			"desc": "battery charge voltage",
+			"type": "U16",
+			"function": "divide",
+			"factor": 10,
+			"ha": {
+				"name": "Battery Charge Voltage",
+				"icon": "mdi:alpha-v-box",
+				"entity_category": "config",
+				"min": 0.0,
+				"max": 65535.0,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/voltage_charge",
+				"control": "number",
+				"device_class": "voltage",
+				"unit_of_measurement": "V",
+				"value_template": "{{ value_json.battery_config_voltage_charge }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_voltage_lack",
+			"register": "0x1049",
+			"desc": "battery lack voltage",
+			"type": "U16",
+			"function": "divide",
+			"factor": 10,
+			"min": 0.0,
+			"max": 65535.0,
+			"ha": {
+				"name": "Battery Lack Voltage",
+				"icon": "mdi:alpha-v-box",
+				"entity_category": "config",
+				"min": 0.0,
+				"max": 65535.0,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/voltage_lack",
+				"control": "number",
+				"device_class": "voltage",
+				"unit_of_measurement": "V",
+				"value_template": "{{ value_json.battery_config_voltage_lack }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_voltage_discharge_stop",
+			"register": "0x104A",
+			"desc": "battery discharge stop voltage",
+			"type": "U16",
+			"function": "divide",
+			"factor": 10,
+			"min": 0.0,
+			"max": 65535.0,
+			"ha": {
+				"name": "Battery Discharge Stop Voltage",
+				"icon": "mdi:alpha-v-box",
+				"entity_category": "config",
+				"min": 0.0,
+				"max": 65535.0,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/voltage_discharge_stop",
+				"control": "number",
+				"device_class": "voltage",
+				"unit_of_measurement": "V",
+				"value_template": "{{ value_json.battery_config_voltage_discharge_stop }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_current_charge_limit",
+			"register": "0x104B",
+			"desc": "battery charge current limit",
+			"type": "U16",
+			"function": "divide",
+			"factor": 100,
+			"min": 0,
+			"max": 65535,
+			"ha": {
+				"name": "Battery Charge Current Limit",
+				"icon": "mdi:alpha-a-box",
+				"entity_category": "config",
+				"min": 0,
+				"max": 65535,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/voltage_charge",
+				"control": "number",
+				"device_class": "current",
+				"unit_of_measurement": "A",
+				"value_template": "{{ value_json.battery_config_current_charge_limit }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_current_discharge_limit",
+			"register": "0x104C",
+			"desc": "battery discharge current limit",
+			"type": "U16",
+			"function": "divide",
+			"factor": 100,
+			"min": 0,
+			"max": 65535,
+			"ha": {
+				"name": "Battery Discharge Current Limit",
+				"icon": "mdi:alpha-a-box",
+				"entity_category": "config",
+				"min": 0,
+				"max": 65535,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/voltage_discharge_stop",
+				"control": "number",
+				"device_class": "current",
+				"unit_of_measurement": "A",
+				"value_template": "{{ value_json.battery_config_current_discharge_limit }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_depth_of_discharge",
+			"register": "0x104D",
+			"desc": "Dod indicates the max discharge power, when SOC<1-DOD, inverter will stop power discharge , inverter will stop power discharge caused by other issues.        DOD<=EOD",
+			"function": "int",
+			"min": 1,
+			"max": 90,
+			"write": true,
+			"type": "U16",
+			"ha": {
+				"name": "Battery Depth of Discharge SOC",
+				"icon": "mdi:percent-outline",
+				"entity_category": "config",
+				"min": 1,
+				"max": 90,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/depth_of_discharge",
+				"control": "number",
+				"unit_of_measurement": "%",
+				"value_template": "{{ value_json.battery_config_depth_of_discharge | int }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_end_of_discharge",
+			"register": "0x104E",
+			"desc": "EOD indicate the max discharge power on off grid mode, when SOC<1-EOD, inverter will stop power discharge , inverter will stop power discharge caused by other issues",
+			"type": "U16",
+			"min": 1,
+			"max": 90,
+			"ha": {
+				"name": "Battery Off-Grid Depth of Discharge",
+				"icon": "mdi:percent-outline",
+				"entity_category": "config",
+				"min": 1,
+				"max": 90,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/end_of_discharge",
+				"control": "number",
+				"unit_of_measurement": "%",
+				"value_template": "{{ value_json.battery_config_end_of_discharge }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_capacity",
+			"register": "0x104F",
+			"desc": "battery capacity",
+			"type": "U16",
+			"ha": {
+				"name": "Battery Capacity",
+				"icon": "mdi:battery",
+				"entity_category": "config",
+				"min": 1,
+				"max": 65535,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/capacity",
+				"control": "number",
+				"unit_of_measurement": "Ah",
+				"value_template": "{{ value_json.battery_config_capacity }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_voltage_nominal",
+			"register": "0x1050",
+			"desc": "battery nominal voltage",
+			"type": "U16",
+			"function": "divide",
+			"factor": 10,
+			"ha": {
+				"name": "Battery Nominal Voltage",
+				"icon": "mdi:alpha-v-box",
+				"entity_category": "config",
+				"min": 0.0,
+				"max": 65535.0,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/voltage_nominal",
+				"control": "number",
+				"device_class": "voltage",
+				"unit_of_measurement": "V",
+				"value_template": "{{ value_json.battery_config_voltage_nominal }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_cell_type",
+			"register": "0x1051",
+			"desc": "battery cell type",
+			"type": "U16",
+			"function": "mode",
+			"modes": {
+				"0": "Lead-acid",
+				"1": "Lithium Iron Phosphate (LiFePO4)",
+				"2": "Lithium Ternary (NCM)",
+				"3": "Lithium Titanate (LTO)"
+			},
+			"ha": {
+				"name": "Battery Cell Type",
+				"icon": "mdi:battery-unknown",
+				"entity_category": "config",
+				"command_topic": "sofar/rw/battery_config/cell_type",
+				"options": [
+					"Lead-acid",
+					"Lithium Iron Phosphate (LiFePO4)",
+					"Lithium Ternary (NCM)",
+					"Lithium Titanate (LTO)"
+				],
+				"control": "select",
+				"value_template": "{{ value_json.battery_config_cell_type }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_eps_buffer",
+			"register": "0x1052",
+			"desc": "battery eps buffer",
+			"type": "U16",
+			"min": 5,
+			"max": 100,
+			"ha": {
+				"name": "Battery EPS Buffer",
+				"icon": "mdi:percent-outline",
+				"entity_category": "config",
+				"min": 5,
+				"max": 100,
+				"step": 1,
+				"initial": 0,
+				"mode": "box",
+				"command_topic": "sofar/rw/battery_config/eps_buffer",
+				"control": "number",
+				"unit_of_measurement": "%",
+				"value_template": "{{ value_json.battery_config_eps_buffer }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "battery_config_control",
+			"register": "0x1053",
+			"desc": "Battery Control - Always 1"
+		},
+		{
 			"name": "energy_storage_mode",
 			"register": "0x1110",
 			"desc": "Storage mode",
@@ -79,6 +597,7 @@
 				"4": "Peak cut mode"
 			},
 			"write": true,
+			"notify_on_change": true,
 			"ha": {
 				"command_topic": "sofar/rw/energy_storage_mode",
 				"entity_category": "config",
@@ -418,6 +937,8 @@
 				"pv_2_power"
 			],
 			"agg_function": "add",
+			"function": "multiply",
+			"factor": 10,
 			"ha": {
 				"device_class": "power",
 				"unit_of_measurement": "W",
@@ -641,6 +1162,22 @@
 			"refresh": 60
 		},
 		{
+			"name": "total_generation",
+			"register": "0x0687",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Solar Generation Total",
+				"icon": "mdi:solar-power-variant",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.total_generation }}"
+			},
+			"refresh": 3600
+		},
+		{
 			"name": "today_consumption",
 			"register": "0x0689",
 			"function": "divide",
@@ -655,6 +1192,22 @@
 				"value_template": "{{ value_json.today_consumption }}"
 			},
 			"refresh": 60
+		},
+		{
+			"name": "total_consumption",
+			"register": "0x068B",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Consumption Total",
+				"icon": "mdi:home-lightning-bolt-outline",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.total_consumption }}"
+			},
+			"refresh": 3600
 		},
 		{
 			"name": "today_import",
@@ -673,6 +1226,22 @@
 			"refresh": 60
 		},
 		{
+			"name": "total_import",
+			"register": "0x068F",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Import Total",
+				"icon": "mdi:transmission-tower-import",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.total_import }}"
+			},
+			"refresh": 3600
+		},
+		{
 			"name": "today_export",
 			"register": "0x0691",
 			"function": "divide",
@@ -687,6 +1256,54 @@
 				"value_template": "{{ value_json.today_export }}"
 			},
 			"refresh": 60
+		},
+		{
+			"name": "total_export",
+			"register": "0x0693",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Export Total",
+				"icon": "mdi:transmission-tower-export",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.total_export }}"
+			},
+			"refresh": 3600
+		},
+		{
+			"name": "today_battery_charge",
+			"register": "0x0695",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Battery Charge Today",
+				"icon": "mdi:battery-plus-variant",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.today_battery_charge }}"
+			},
+			"refresh": 60
+		},
+		{
+			"name": "total_battery_charge",
+			"register": "0x0697",
+			"function": "divide",
+			"factor": 100,
+			"ha": {
+				"device_class": "energy",
+				"unit_of_measurement": "kWh",
+				"name": "Battery Charge Total",
+				"icon": "mdi:battery-plus-variant",
+				"state_class": "total_increasing",
+				"entity_category": "diagnostic",
+				"value_template": "{{ value_json.total_battery_charge }}"
+			},
+			"refresh": 3600
 		},
 		{
 			"name": "today_battery_discharge",
@@ -705,20 +1322,20 @@
 			"refresh": 60
 		},
 		{
-			"name": "today_battery_charge",
-			"register": "0x0695",
+			"name": "total_battery_discharge",
+			"register": "0x069B",
 			"function": "divide",
 			"factor": 100,
 			"ha": {
 				"device_class": "energy",
 				"unit_of_measurement": "kWh",
-				"name": "Battery Charge Today",
-				"icon": "mdi:battery-plus-variant",
+				"name": "Battery Discharge Total",
+				"icon": "mdi:battery-minus-variant",
 				"state_class": "total_increasing",
 				"entity_category": "diagnostic",
-				"value_template": "{{ value_json.today_battery_charge }}"
+				"value_template": "{{ value_json.total_battery_discharge }}"
 			},
-			"refresh": 60
+			"refresh": 3600
 		},
 		{
 			"name": "battery_voltage",
@@ -802,9 +1419,41 @@
 				"0": "Off",
 				"1": "On"
 			},
-			"write": true,
-			"untested": true,
-			"refresh": 86400
+			"ha": {
+				"name": "EPS Control",
+				"icon": "mdi:toggle-switch",
+				"entity_category": "config",
+				"command_topic": "sofar/rw/eps_config/eps_control",
+				"options": [
+					"Off",
+					"On"
+				],
+				"control": "select",
+				"value_template": "{{ value_json.eps_control }}"
+			},
+			"refresh": 1
+		},
+		{
+			"name": "eps_wait_time",
+			"register": "0x102A",
+			"desc": "Waiting time for emergency power start",
+			"type": "U16",
+			"min": 0,
+			"max": 65535,
+			"ha": {
+				"name": "EPS Wait Time",
+				"icon": "mdi:alpha-s-box",
+				"entity_category": "config",
+				"min": 0,
+				"max": 65535,
+				"mode": "box",
+				"command_topic": "sofar/rw/eps_config/eps_wait_time",
+				"control": "number",
+				"device_class": "duration",
+				"unit_of_measurement": "s",
+				"value_template": "{{ value_json.eps_wait_time }}"
+			},
+			"refresh": 1
 		},
 		{
 			"name": "remote_on_off_control",
