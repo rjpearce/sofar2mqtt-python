@@ -66,6 +66,29 @@
 			"refresh": 86400
 		},
 		{
+			"name": "depth_of_discharge",
+			"register": "0x104D",
+			"desc": "Depth of Discharge SOC",
+			"function": "int",
+			"min": 1,
+			"max": 90,
+			"write": true,
+			"type": "U16",
+			"ha": {
+				"name": "Depth of Discharge SOC",
+				"icon": "mdi:percent-outline",
+				"entity_category": "config",
+				"min": 10,
+				"max": 90,
+				"step": 1,
+				"initial": 0,
+				"mode": "slider",
+				"command_topic": "sofar/rw/depth_of_discharge",
+				"control": "number",
+				"value_template": "{{ value_json.depth_of_discharge | int }}"
+			}
+		},
+		{
 			"name": "energy_storage_mode",
 			"register": "0x1110",
 			"desc": "Storage mode",
