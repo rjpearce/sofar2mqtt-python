@@ -118,7 +118,7 @@ class Sofar():
                         if not new_mode:
                             logging.error(
                                 f"Received a request for {register['name']} but mode value: {payload} is not a known mode. Ignoring")
-                        if new_mode:
+                        if register['name'] in self.data:
                             retry = self.write_retry
                             while retry > 0:
                                 if register['name'] in self.data and self.data[register['name']] == payload:
@@ -138,6 +138,8 @@ class Sofar():
 
                                     time.sleep(self.write_retry_delay)
                                     retry = retry - 1
+                        else:
+                            logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
 
                     elif register['function'] == 'int':
                         value = int(payload)
