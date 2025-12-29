@@ -7,11 +7,22 @@
 			"registers": 7,
 			"ha": {
 				"name": "Serial Number",
-				"icon": "mdi:numeric",
+				"icon": "mdi:identifier",
 				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.serial_number }}"
 			},
 			"refresh": 86400
+		},
+		{
+		"name": "model",
+		"value": "HYD-6000-EP",
+		"read_type": "static",
+		"ha": {
+			"name": "Model",
+			"icon": "mdi:tag-text",
+			"value_template": "{{ value_json.model }}"
+		},
+		"refresh": 86400
 		},
 		{
 			"name": "hw_version",

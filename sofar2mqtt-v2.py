@@ -16,6 +16,7 @@ from multiprocessing import Process
 import paho.mqtt.client as mqtt
 import requests
 
+
 def load_config(config_file_path):
     """ Load configuration file """
     config = {}
@@ -24,6 +25,8 @@ def load_config(config_file_path):
     return config
 
 # pylint: disable=too-many-instance-attributes
+
+
 class Sofar():
     """ Sofar """
 
@@ -59,22 +62,27 @@ class Sofar():
         self.legacy_publish = legacy_publish
         self.data = {}
         self.log_level = logging.getLevelName(log_level)
-        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.getLevelName(log_level))
+        logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
+                            level=logging.getLevelName(log_level))
         self.mutex = threading.Lock()
-        self.client = mqtt.Client(client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
+        self.client = mqtt.Client(
+            client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         self.setup_mqtt(logging)
         self.setup_instrument()
         self.iteration = 0
-        
+
     def on_connect(self, client, userdata, flags, rc, properties=None):
         logging.info("MQTT "+mqtt.connack_string(rc))
         if rc == 0:
             try:
                 logging.info(f"Subscribing to homeassistant/status")
-                client.subscribe(f"homeassistant/status", qos=0, options=None, properties=None)
+                client.subscribe(f"homeassistant/status", qos=0,
+                                 options=None, properties=None)
                 for register in self.write_registers:
-                    logging.info(f"Subscribing to {self.write_topic}/{register['name']}")
-                    client.subscribe(f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
+                    logging.info(
+                        f"Subscribing to {self.write_topic}/{register['name']}")
+                    client.subscribe(
+                        f"{self.write_topic}/{register['name']}", qos=0, options=None, properties=None)
             except Exception:
                 logging.info(traceback.format_exc())
 
@@ -83,10 +91,13 @@ class Sofar():
             logging.info("MQTT un-expected disconnect")
 
     def on_message(self, client, userdata, message, properties=None):
+        if message.retain: 
+           logging.info(f"Ignoring retained message on topic {message.topic}") 
+           return
         found = False
         valid = False
         topic = message.topic
-        payload = message.payload.decode("utf-8") 
+        payload = message.payload.decode("utf-8")
         if topic == "homeassistant/status":
             logging.info(f"Received message for {topic}:{payload}")
             if payload == "online":
@@ -98,57 +109,75 @@ class Sofar():
                 found = True
                 if 'function' in register:
                     if register['function'] == 'mode':
-                        new_mode = False
+                        new_mode = None
                         for key in register['modes']:
                             if register['modes'][key] == payload:
-                              new_mode = key
-                        logging.info(f"Received a request for {register['name']} to set mode value to: {payload}({new_mode})")
+                                new_mode = key
+                        logging.info(
+                            f"Received a request for {register['name']} to set mode value to: {payload}({new_mode})")
                         if not new_mode:
-                            logging.error(f"Received a request for {register['name']} but mode value: {payload} is not a known mode. Ignoring")
+                            logging.error(
+                                f"Received a request for {register['name']} but mode value: {payload} is not a known mode. Ignoring")
                         if register['name'] in self.data:
                             retry = self.write_retry
                             while retry > 0:
-                                if self.data[register['name']] == payload:
-                                    logging.info(f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {payload}. Ignoring")
+                                if register['name'] in self.data and self.data[register['name']] == payload:
+                                    logging.info(
+                                        f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {payload}. Ignoring")
                                     retry = 0
                                 else:
-                                    logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to: {payload}. Retries remaining: {retry}")
-                                    self.write_value(register, int(new_mode))
+                                    logging.info(
+                                        f"Current value for {register['name']}={self.data.get(register['name'], 'unknown')}, attempting to set it to: {payload}. Retries remaining: {retry}")
+
+                                    # Convert hex string to int if needed
+                                    if isinstance(new_mode, str) and new_mode.startswith('0x'):
+                                        write_value = int(new_mode, 16)
+                                    else:
+                                        write_value = int(new_mode)
+                                    self.write_value(register, write_value)
+
                                     time.sleep(self.write_retry_delay)
                                     retry = retry - 1
-                        else: 
+                        else:
                             logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
 
                     elif register['function'] == 'int':
                         value = int(payload)
-                        logging.info(f"Received a request for {register['name']} to set value to: {payload}({value})")
+                        logging.info(
+                            f"Received a request for {register['name']} to set value to: {payload}({value})")
                         if value < register['min']:
-                            logging.error(f"Received a request for {register['name']} but value: {value} is less than the min value: {register['min']}. Ignoring")
+                            logging.error(
+                                f"Received a request for {register['name']} but value: {value} is less than the min value: {register['min']}. Ignoring")
                         elif value > register['max']:
-                            logging.error(f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
+                            logging.error(
+                                f"Received a request for {register['name']} but value: {value} is more than the max value: {register['max']}. Ignoring")
                         else:
                             if register['name'] == 'desired_power':
-                                 if 'energy_storage_mode' in self.data:
+                                if 'energy_storage_mode' in self.data:
                                      if 'Passive mode' != self.data['energy_storage_mode']:
                                          logging.info(f"Received a request for {register['name']} but not not in Passive mode. Ignoring")
                                          continue
+
                             if register['name'] in self.data:
                                 retry = self.write_retry
                                 while retry > 0:
                                     if self.data[register['name']] == value:
-                                        logging.info(f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {value}. Ignoring")
+                                        logging.info(
+                                            f"Current value for {register['name']}={self.data[register['name']]} matches desired value: {value}. Ignoring")
                                         retry = 0
                                     else:
-                                        logging.info(f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to {value}. Retries remaining: {retry}")
+                                        logging.info(
+                                            f"Current value for {register['name']}={self.data[register['name']]}, attempting to set it to {value}. Retries remaining: {retry}")
                                         self.write_value(register, value)
                                         time.sleep(self.write_retry_delay)
                                         retry = retry - 1
-                            else: 
-                                logging.error(f"No current read value for {register['name']} skipping write operation. Please try again.")
+                            else:
+                                logging.error(
+                                    f"No current read value for {register['name']} skipping write operation. Please try again.")
 
         if not found:
-            logging.error(f"Received a request to set an unknown register: {register_name['name']} to {payload}")
-
+            logging.error(
+                f"Received a request to set an unknown register")
 
     def setup_mqtt(self, logging):
         self.client.enable_logger(logger=logging)
@@ -156,11 +185,14 @@ class Sofar():
         self.client.on_message = self.on_message
         if self.username is not None and self.password is not None:
             self.client.username_pw_set(self.username, self.password)
-            logging.info(f"MQTT connecting to broker {self.broker} port {self.port} with auth user {self.username}")
+            logging.info(
+                f"MQTT connecting to broker {self.broker} port {self.port} with auth user {self.username}")
         else:
-            logging.info(f"MQTT connecting to broker {self.broker} port {self.port} without auth")
+            logging.info(
+                f"MQTT connecting to broker {self.broker} port {self.port} without auth")
         self.client.reconnect_delay_set(min_delay=1, max_delay=300)
-        self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="", bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
+        self.client.connect(self.broker, port=self.port, keepalive=60, bind_address="",
+                            bind_port=0, clean_start=mqtt.MQTT_CLEAN_START_FIRST_ONLY, properties=None)
         self.client.loop_start()
 
     def setup_instrument(self):
@@ -171,14 +203,14 @@ class Sofar():
             self.instrument.serial.bytesize = 8
             self.instrument.serial.parity = serial.PARITY_NONE
             self.instrument.serial.stopbits = 1
-            self.instrument.serial.timeout  = 0.2   # seconds
+            self.instrument.serial.timeout = 0.2   # seconds
             self.instrument.close_port_after_each_call = True
 
     def read_and_publish(self):
         for register in self.config['registers']:
             refresh = 1
             if 'refresh' in register:
-                refresh = register['refresh'] 
+                refresh = register['refresh']
             if (self.iteration % refresh) != 0:
                 logging.debug(f"Skipping {register['name']}")
                 continue
@@ -199,13 +231,14 @@ class Sofar():
                             elif register['agg_function'] == 'subtract':
                                 value -= self.data[register_name]
                             elif register['agg_function'] == 'avg':
-                                value = int((value + self.data[register_name]) / 2)
-                if 'invert' in register:
-                    if register['invert']:
-                        if value > 0:
-                            value = -abs(value)
-                        else:
-                            value = abs(value)
+                                value = int(
+                                    (value + self.data[register_name]) / 2)
+            if 'invert' in register:
+                if register['invert']:
+                    if value > 0:
+                        value = -abs(value)
+                    else:
+                        value = abs(value)
             else:
                 read_type = 'register'
                 registers = 1
@@ -213,12 +246,16 @@ class Sofar():
                     read_type = register['read_type']
                 if 'registers' in register:
                     registers = register['registers']
-                value = self.read_value(
-                        int(register['register'], 16),
-                        read_type,
-                        signed,
-                        registers
-                )
+                if read_type == 'static':
+                    value = register['value']
+                else:
+                    if 'register' in register:
+                        value = self.read_value(
+                            int(register['register'], 16),
+                            read_type,
+                            signed,
+                            registers
+                        )
             if value is None:
                 continue
             else:
@@ -227,11 +264,13 @@ class Sofar():
                     value = 0
                 if 'min' in register:
                     if value < register['min']:
-                        logging.error(f"Value for {register['name']}: {str(value)} is lower than min allowed value: {register['min']}. Ignoring value")
+                        logging.error(
+                            f"Value for {register['name']}: {str(value)} is lower than min allowed value: {register['min']}. Ignoring value")
                         continue
                 if 'max' in register:
                     if value > register['max']:
-                        logging.error(f"Value for {register['name']}: {str(value)} is greater than max allowed value: {register['max']}. Ignoring value")
+                        logging.error(
+                            f"Value for {register['name']}: {str(value)} is greater than max allowed value: {register['max']}. Ignoring value")
                         continue
                 if 'function' in register:
                     if register['function'] == 'multiply':
@@ -242,7 +281,8 @@ class Sofar():
                         try:
                             value = register['modes'][str(value)]
                         except KeyError:
-                            logging.error(f"Unknown mode value for {register['name']} value: {str(value)}")
+                            logging.error(
+                                f"Unknown mode value for {register['name']} value: {str(value)}")
                     elif register['function'] == 'bit_field':
                         length = len(register['fields'])
                         fields = []
@@ -251,16 +291,19 @@ class Sofar():
                                 fields.append(register['fields'][n])
                         value = (','.join(fields))
                     elif register['function'] == 'high_bit_low_bit':
-                        high = value >> 8 # shift right 
-                        low = value & 255 # apply bitmask 
-                        value = f"{high:02}{register['join']}{low:02}" # combine and pad 2 zeros 
+                        high = value >> 8  # shift right
+                        low = value & 255  # apply bitmask
+                        # combine and pad 2 zeros
+                        value = f"{high:02}{register['join']}{low:02}"
             logging.debug('Read %s:%s', register['name'], value)
 
             self.publish(register['name'], value)
 
-        failure_percentage = round(self.failures / (self.requests+self.retries)*100,2)
-        retry_percentage = round(self.retries / (self.requests)*100,2)
-        logging.info(f"Modbus Requests: {self.requests} Retries: {self.retries} ({retry_percentage}%) Failures: {self.failures} ({failure_percentage}%)")
+        failure_percentage = round(
+            self.failures / (self.requests+self.retries)*100, 2)
+        retry_percentage = round(self.retries / (self.requests)*100, 2)
+        logging.info(
+            f"Modbus Requests: {self.requests} Retries: {self.retries} ({retry_percentage}%) Failures: {self.failures} ({failure_percentage}%)")
         self.data['modbus_failures'] = self.failures
         self.data['modbus_requests'] = self.requests
         self.data['modbus_retries'] = self.retries
@@ -282,7 +325,8 @@ class Sofar():
     def publish_state(self):
         try:
             data = json.dumps(self.data, indent=2)
-            self.client.publish("sofar2mqtt_python/bridge", "online", retain=False)
+            self.client.publish("sofar2mqtt_python/bridge",
+                                "online", retain=False)
             self.client.publish(self.topic + "state_all", data, retain=True)
             with open("data.json", "w") as write_file:
                 write_file.write(data)
@@ -292,17 +336,18 @@ class Sofar():
 
     def publish_mqtt_discovery(self):
         if 'serial_number' not in self.data:
-            logging.error("Serial number could not be determined, skipping publish")
+            logging.error(
+                "Serial number could not be determined, skipping publish")
             return False
 
         sn = self.data['serial_number']
         payload = {
             "device": {
-               "identifiers": [f"sofar2mqtt_python_bridge_{sn}"],
-               "manufacturer": "Sofar2Mqtt-Python",
-               "model": "Bridge",
-               "name": "Sofar2Mqtt Python Bridge",
-               "sw_version": "3.0.3"
+                "identifiers": [f"sofar2mqtt_python_bridge_{sn}"],
+                "manufacturer": "Sofar2Mqtt-Python",
+                "model": "Bridge",
+                "name": "Sofar2Mqtt Python Bridge",
+                "sw_version": "3.0.6"
             },
             "device_class": "connectivity",
             "entity_category": "diagnostic",
@@ -335,7 +380,7 @@ class Sofar():
                         "sw_version": self.data["sw_version_com"],
                         "hw_version": self.data["hw_version"],
                         "manufacturer": "SOFAR",
-                        "model": "HYD-6000-EP",
+                        "model": self.data["model"],
                         "configuration_url": "https://github.com/rjpearce/sofar2mqtt-python",
                         "identifiers": [f"{sn}"]
                     },
@@ -343,7 +388,7 @@ class Sofar():
                         {
                             "topic": "sofar2mqtt_python/bridge",
                             "value": "online"
-                       }
+                        }
                     ],
                 }
                 payload = default_payload | register['ha']
@@ -356,36 +401,38 @@ class Sofar():
                 logging.info(traceback.format_exc())
 
     def signal_handler(self, sig, _frame):
-      logging.info(f"Received signal {sig}, attempting to stop")
-      self.daemon = False
+        logging.info(f"Received signal {sig}, attempting to stop")
+        self.daemon = False
 
     def terminate(self):
-      logging.info("Terminating")
-      logging.info(f"Publishing offline to sofar2mqtt_python/bridge")
-      self.client.publish("sofar2mqtt_python/bridge", "offline", retain=False)
-      self.client.loop_stop()
-      exit(0)
+        logging.info("Terminating")
+        logging.info(f"Publishing offline to sofar2mqtt_python/bridge")
+        self.client.publish("sofar2mqtt_python/bridge",
+                            "offline", retain=False)
+        self.client.loop_stop()
+        exit(0)
 
     def main(self):
         """ Main method """
         signal.signal(signal.SIGTERM, self.signal_handler)
         signal.signal(signal.SIGINT, self.signal_handler)
         if not self.daemon:
-          self.read_and_publish()
+            self.read_and_publish()
         while (self.daemon):
             self.read()
             if self.iteration == 0:
                 self.publish_mqtt_discovery()
             self.publish_state()
             time.sleep(self.refresh_interval)
-            self.iteration+=1
+            self.iteration += 1
         self.terminate()
 
     def publish(self, key, value):
         if key == 'energy_storage_mode':
             if key in self.data:
                 if value != self.data[key]:
-                    logging.info(f"energy_storage_mode has changed to: {value}")
+                    logging.info(
+                        f"energy_storage_mode has changed to: {value}")
         self.data[key] = value
         if self.legacy_publish:
             logging.debug('Publishing %s:%s', self.topic + key, value)
@@ -395,48 +442,63 @@ class Sofar():
                 logging.debug(traceback.format_exc())
 
     def write_value(self, register, value):
-        """ Read value from register with a retry mechanism """
+        """ Write value to register with a retry mechanism """
         with self.mutex:
             retry = self.write_retry
-            logging.info(f"Writing {register['register']}({int(register['register'], 16)}) with {value}({value})")
+            logging.info(
+                f"Writing {register['name']} register with value {value}")
             signed = False
             success = False
             retries = 0
-            failed = 0 
+            failed = 0
             if 'signed' in register:
                 signed = register['signed']
             while retry > 0 and not success:
                 try:
-                    if register['type'] == 'U16':
-                        self.instrument.write_register(int(register['register'],16), int(value))
-                    elif register['type'] == 'I32':
+                    if 'type' in register:
+                        reg_type = register['type']
+                    else:
+                        reg_type = 'U16'
+
+                    if reg_type == 'U16':
+                        self.instrument.write_register(
+                            int(register['register'], 16), int(value))
+                    elif reg_type == 'I32':
                         # split the value to a byte
                         values = struct.pack(">l", value)
                         # split low and high byte
-                        low = struct.unpack(">H", bytearray([values[0], values[1]]))[0]
-                        high = struct.unpack(">H", bytearray([values[2], values[3]]))[0]
+                        low = struct.unpack(">H", bytearray(
+                            [values[0], values[1]]))[0]
+                        high = struct.unpack(
+                            ">H", bytearray([values[2], values[3]]))[0]
                         # send the registers
-                        self.instrument.write_registers(int(register['register'],16), [0, 0, low, high, low, high])
+                        self.instrument.write_registers(int(register['register'], 16), [
+                                                        0, 0, low, high, low, high])
                 except minimalmodbus.NoResponseError:
-                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                    logging.debug(
+                        f"Failed to write_register {register['name']} {traceback.format_exc()}")
                     retry = retry - 1
                     retries = retries + 1
                     time.sleep(self.write_retry_delay)
                 except minimalmodbus.InvalidResponseError:
-                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                    logging.debug(
+                        f"Failed to write_register {register['name']} {traceback.format_exc()}")
                     retry = retry - 1
                     retries = retries + 1
                     time.sleep(self.write_retry_delay)
                 except serial.serialutil.SerialException:
-                    logging.debug(f"Failed to write_register {register['name']} {traceback.format_exc()}")
+                    logging.debug(
+                        f"Failed to write_register {register['name']} {traceback.format_exc()}")
                     retry = retry - 1
                     retries = retries + 1
                     time.sleep(self.write_retry_delay)
                 success = True
             if success:
-                logging.info('Modbus Write Request: %s successful. Retries: %d', register['name'], retries)
+                logging.info(
+                    'Modbus Write Request: %s successful. Retries: %d', register['name'], retries)
             else:
-                logging.error('Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
+                logging.error(
+                    'Modbus Write Request: %s failed. Retry exhausted. Retries: %d', register['name'], retries)
 
     def read_value(self, registeraddress, read_type, signed, registers=1):
         """ Read value from register with a retry mechanism """
@@ -445,7 +507,7 @@ class Sofar():
             retry = self.retry
             while retry > 0 and value is None:
                 try:
-                    self.requests +=1
+                    self.requests += 1
                     if read_type == "register":
                         value = self.instrument.read_register(
                             registeraddress, 0, functioncode=3, signed=signed)
@@ -475,6 +537,7 @@ class Sofar():
                 self.failures = self.failures + 1
                 self.failed.append(registeraddress)
             return value
+
 
 @click.command("cli", context_settings={'show_default': True})
 @click.option(
@@ -584,8 +647,10 @@ class Sofar():
 # pylint: disable=too-many-arguments
 def main(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish):
     """Main"""
-    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval, broker, port, username, password, topic, write_topic, log_level, device, legacy_publish)
+    sofar = Sofar(config_file, daemon, retry, retry_delay, write_retry, write_retry_delay, refresh_interval,
+                  broker, port, username, password, topic, write_topic, log_level, device, legacy_publish)
     sofar.main()
+
 
 # pylint: disable=no-value-for-parameter
 if __name__ == '__main__':
