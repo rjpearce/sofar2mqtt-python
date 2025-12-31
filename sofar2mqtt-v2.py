@@ -189,6 +189,31 @@ class Sofar():
                                     logging.info(
                                         f"Received a request for {register['name']} but energy_storage_mode is not in Passive mode. Ignoring")
                                     continue
+                            if register['name'] == 'charge_discharge_power':
+                                if int(self.raw_data.get('working_mode', None)) == 3:
+                                    logging.info(
+                                        f"Received a request for {register['name']} but working_mode is not in Passive mode. Ignoring")
+                                    continue
+                            if 'write_addresses' in register:
+                                write_register = None
+                                write_functioncode = None
+                                if new_raw_value == 0:
+                                    write_register = register['write_addresses'].get("standby", None)
+                                elif new_raw_value < 0:
+                                    write_register = register['write_addresses'].get("discharge", None)
+                                elif new_raw_value > 0:
+                                    write_register = register['write_addresses'].get("charge", None)
+                                if write_register is None:
+                                    logging.error(
+                                        f"No write address found for value: {new_raw_value} on register: {register['name']}. Ignoring")
+                                    continue
+                                if write_functioncode in register:
+                                    write_functioncode = register.get('write_functioncode', '16')
+                                else:
+                                    logging.info(
+                                        f"Mapping value: {new_raw_value} to write register: {write_register} for register: {register['name']}")
+                                    self.write_register_special(write_register, write_functioncode, abs(new_raw_value))
+                                    continue
                             if register['name'] in self.raw_data:
                                 retry = self.write_retry
                                 while retry > 0:
@@ -206,6 +231,7 @@ class Sofar():
                             else:
                                 logging.error(
                                     f"No current read value for {register['name']} skipping write operation. Please try again.")
+                            
 
         if not found:
             for block in self.config.get('write_register_blocks', []):
@@ -299,7 +325,7 @@ class Sofar():
                     register.get('signed', False),
                     register.get('registers', 1)
                 )
-                
+
             if 'aggregate_datetime_bitmap' in register:
                 continue
                 #raw_value =  self.aggregate_datetime_bitmap(register)
@@ -482,8 +508,22 @@ class Sofar():
             self.iteration += 1
         self.terminate(status_code=0)
 
+    def write_register_special(self, registeraddress, functioncode, value):
+        with self.mutex:
+            logging.info(
+                f"Writing {registeraddress}({int(registeraddress, 16)}) functioncode: {functioncode} with {value}({value})")
+            self.instrument._generic_command(
+                functioncode,
+                int(registeraddress, 16),
+                value,
+                number_of_decimals=0,
+                number_of_registers=1,
+                signed=False,
+                payloadformat= self.instrument._Payloadformat.REGISTER,
+            )
+
     def write_register(self, register, value):
-        """ Read value from register with a retry mechanism """
+        """ Write value to register """
         with self.mutex:
             retry = self.write_retry
             logging.info(
