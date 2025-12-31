@@ -21,7 +21,9 @@
 				"battery_config_cell_type",
 				"battery_config_eps_buffer"
 			],
-			"append": [1]
+			"append": [
+				1
+			]
 		},
 		{
 			"name": "eps_config",
@@ -42,7 +44,9 @@
 				"rs485_config_stop_bit",
 				"rs485_config_parity_bit"
 			],
-			"append": [1]
+			"append": [
+				1
+			]
 		}
 	],
 	"registers": [
@@ -54,7 +58,6 @@
 			"ha": {
 				"name": "Serial Number",
 				"icon": "mdi:identifier",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.serial_number }}"
 			},
 			"refresh": 86400
@@ -78,7 +81,6 @@
 			"ha": {
 				"name": "HW Version",
 				"icon": "mdi:numeric",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.hw_version }}"
 			},
 			"refresh": 86400
@@ -91,7 +93,6 @@
 			"ha": {
 				"name": "Software Version",
 				"icon": "mdi:numeric",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.sw_version_com }}"
 			},
 			"refresh": 86400
@@ -104,7 +105,6 @@
 			"ha": {
 				"name": "DSP1 Software Version",
 				"icon": "mdi:numeric",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.sw_version_master }}"
 			},
 			"refresh": 86400
@@ -117,7 +117,6 @@
 			"ha": {
 				"name": "DSP2 Software Version",
 				"icon": "mdi:numeric",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.sw_version_slave }}"
 			},
 			"refresh": 86400
@@ -683,7 +682,6 @@
 			"ha": {
 				"name": "Time of use",
 				"icon": "mdi:home-clock",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use }}"
 			},
 			"refresh": 3600
@@ -696,7 +694,6 @@
 			"ha": {
 				"name": "Time of use - Start time",
 				"icon": "mdi:clock-digital",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_charge_start_time }}"
 			},
 			"refresh": 3600
@@ -709,7 +706,6 @@
 			"ha": {
 				"name": "Time of use - End time",
 				"icon": "mdi:clock-digital",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_charge_end_time }}"
 			},
 			"refresh": 3600
@@ -725,7 +721,6 @@
 			"ha": {
 				"name": "Time of use - Target SOC",
 				"icon": "mdi:percent-outline",
-				"entity_category": "diagnostic",
 				"device_class": "battery",
 				"unit_of_measurement": "%",
 				"state_class": "measurement",
@@ -743,7 +738,6 @@
 				"device_class": "power",
 				"unit_of_measurement": "W",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_charge_power }}"
 			},
 			"refresh": 3600
@@ -756,7 +750,6 @@
 			"ha": {
 				"name": "Time of use - Start date",
 				"icon": "mdi:calendar",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_start_date }}"
 			},
 			"refresh": 3600
@@ -769,7 +762,6 @@
 			"ha": {
 				"name": "Time of use - End date",
 				"icon": "mdi:calendar",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_end_date }}"
 			},
 			"refresh": 3600
@@ -790,7 +782,6 @@
 			"ha": {
 				"name": "Time of use - Days of week",
 				"icon": "mdi:calendar-today",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_dow }}"
 			},
 			"refresh": 3600
@@ -860,8 +851,86 @@
 			"ha": {
 				"name": "State",
 				"icon": "mdi:power-standby",
-				"entity_category": "diagnostic",
+				"entity_category": "None",
 				"value_template": "{{ value_json.state }}"
+			}
+		},
+		{
+			"name": "history_event_list_1",
+			"register": "0x1480",
+			"function": "history_event_map",
+			"ha": {
+				"name": "History Event List 1",
+				"icon": "mdi:calendar-alert",
+				"value_template": "{{ value_json.history_event_list_1 }}"
+			},
+			"notify_on_change": true
+		},
+		{
+			"name": "history_event_list_1_datetime",
+			"aggregate_datetime_bitmap": {
+				"year_month": "0x1481",
+				"day_hour": "0x1482",
+				"minute_second": "0x1483"
+			},
+			"ha": {
+				"name": "History Event List 1 - DateTime",
+				"icon": "mdi:calendar-clock",
+				"value_template": "{{ value_json.history_event_list_1_datetime }}"
+			}
+		},
+		{
+			"name": "fault_list_1",
+			"register": "0x0405",
+			"ha": {
+				"name": "Fault List 1",
+				"icon": "mdi:alert",
+				"value_template": "{{ value_json.fault_list_1 }}"
+			}
+		},
+		{
+			"name": "fault_list_2",
+			"register": "0x0406",
+			"ha": {
+				"name": "Fault List 2",
+				"icon": "mdi:alert",
+				"value_template": "{{ value_json.fault_list_2 }}"
+			}
+		},
+		{
+			"name": "fault_list_3",
+			"register": "0x0407",
+			"ha": {
+				"name": "Fault List 3",
+				"icon": "mdi:alert",
+				"value_template": "{{ value_json.fault_list_3 }}"
+			}
+		},
+		{
+			"name": "fault_list_4",
+			"register": "0x0408",
+			"ha": {
+				"name": "Fault List 4",
+				"icon": "mdi:alert",
+				"value_template": "{{ value_json.fault_list_4 }}"
+			}
+		},
+		{
+			"name": "fault_list_5",
+			"register": "0x0409",
+			"ha": {
+				"name": "Fault List 5",
+				"icon": "mdi:alert",
+				"value_template": "{{ value_json.fault_list_5 }}"
+			}
+		},
+		{
+			"name": "countdown",
+			"register": "0x0417",
+			"ha": {
+				"name": "Countdown",
+				"icon": "mdi:counter",
+				"value_template": "{{ value_json.countdown }}"
 			}
 		},
 		{
@@ -875,7 +944,6 @@
 				"name": "PV1 Voltage",
 				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_1_voltage }}"
 			}
 		},
@@ -890,7 +958,6 @@
 				"name": "PV1 Current",
 				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_1_current }}"
 			}
 		},
@@ -905,7 +972,6 @@
 				"name": "PV1 Power",
 				"icon": "mdi:solar-power",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_1_power }}"
 			}
 		},
@@ -920,7 +986,6 @@
 				"name": "PV2 Voltage",
 				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_2_voltage }}"
 			}
 		},
@@ -935,7 +1000,6 @@
 				"name": "PV2 Current",
 				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_2_current }}"
 			}
 		},
@@ -950,7 +1014,6 @@
 				"name": "PV2 Power",
 				"icon": "mdi:solar-power",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_2_power }}"
 			}
 		},
@@ -969,7 +1032,6 @@
 				"name": "PV Total Power",
 				"icon": "mdi:solar-power",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_total_power }}"
 			}
 		},
@@ -985,7 +1047,6 @@
 				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
 				"unit_of_measurement": "W",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.active_power }}"
 			}
 		},
@@ -1000,7 +1061,6 @@
 				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "measurement",
 				"unit_of_measurement": "W",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.load_power }}"
 			}
 		},
@@ -1016,7 +1076,6 @@
 				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
 				"unit_of_measurement": "W",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.grid }}"
 			}
 		},
@@ -1027,7 +1086,6 @@
 				"name": "Insulation resistance",
 				"icon": "mdi:omega",
 				"unit_of_measurement": "Ohms",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.insulation_resistance }}"
 			},
 			"refresh": 3600
@@ -1043,7 +1101,6 @@
 				"icon": "mdi:sine-wave",
 				"state_class": "measurement",
 				"unit_of_measurement": "Hz",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.ongrid_frequency }}"
 			},
 			"refresh": 60
@@ -1059,7 +1116,6 @@
 				"name": "On-grid Voltage",
 				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.ongrid_voltage }}"
 			},
 			"refresh": 60
@@ -1073,7 +1129,6 @@
 				"name": "Internal Temperature",
 				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.inverter_temp_internal }}"
 			}
 		},
@@ -1086,7 +1141,6 @@
 				"name": "Heatsink Temperature",
 				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.inverter_temp_heatsink }}"
 			}
 		},
@@ -1101,7 +1155,6 @@
 				"name": "Off-Grid Power",
 				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_active_power }}"
 			}
 		},
@@ -1116,7 +1169,6 @@
 				"name": "Off-Grid Frequency",
 				"icon": "mdi:sine-wave",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_frequency }}"
 			},
 			"refresh": 60
@@ -1132,7 +1184,6 @@
 				"name": "Off-Grid Voltage",
 				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_voltage }}"
 			},
 			"refresh": 60
@@ -1149,7 +1200,6 @@
 				"name": "Battery Current",
 				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_current }}"
 			}
 		},
@@ -1165,7 +1215,6 @@
 				"name": "Battery Power",
 				"icon": "mdi:battery-charging",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_power }}"
 			}
 		},
@@ -1180,7 +1229,6 @@
 				"name": "Solar Generation Today",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_generation }}"
 			},
 			"refresh": 60
@@ -1196,7 +1244,6 @@
 				"name": "Solar Generation Total",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_generation }}"
 			},
 			"refresh": 3600
@@ -1212,7 +1259,6 @@
 				"name": "Consumption Today",
 				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_consumption }}"
 			},
 			"refresh": 60
@@ -1228,7 +1274,6 @@
 				"name": "Consumption Total",
 				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_consumption }}"
 			},
 			"refresh": 3600
@@ -1244,7 +1289,6 @@
 				"name": "Import Today",
 				"icon": "mdi:transmission-tower-import",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_import }}"
 			},
 			"refresh": 60
@@ -1260,7 +1304,6 @@
 				"name": "Import Total",
 				"icon": "mdi:transmission-tower-import",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_import }}"
 			},
 			"refresh": 3600
@@ -1276,7 +1319,6 @@
 				"name": "Export Today",
 				"icon": "mdi:transmission-tower-export",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_export }}"
 			},
 			"refresh": 60
@@ -1292,7 +1334,6 @@
 				"name": "Export Total",
 				"icon": "mdi:transmission-tower-export",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_export }}"
 			},
 			"refresh": 3600
@@ -1308,7 +1349,6 @@
 				"name": "Battery Charge Today",
 				"icon": "mdi:battery-plus-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_battery_charge }}"
 			},
 			"refresh": 60
@@ -1324,7 +1364,6 @@
 				"name": "Battery Charge Total",
 				"icon": "mdi:battery-plus-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_battery_charge }}"
 			},
 			"refresh": 3600
@@ -1340,7 +1379,6 @@
 				"name": "Battery Discharge Today",
 				"icon": "mdi:battery-minus-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_battery_discharge }}"
 			},
 			"refresh": 60
@@ -1356,7 +1394,6 @@
 				"name": "Battery Discharge Total",
 				"icon": "mdi:battery-minus-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_battery_discharge }}"
 			},
 			"refresh": 3600
@@ -1372,7 +1409,6 @@
 				"name": "Battery Voltage",
 				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_voltage }}"
 			}
 		},
@@ -1386,7 +1422,6 @@
 				"name": "Battery Temperature",
 				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_temp }}"
 			}
 		},
@@ -1399,7 +1434,6 @@
 				"name": "Battery SOC",
 				"icon": "mdi:battery-80",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_soc }}"
 			},
 			"min": 0,
@@ -1414,7 +1448,6 @@
 				"name": "Battery SOH",
 				"icon": "mdi:battery-heart-variant",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_soh }}"
 			},
 			"refresh": 3600
@@ -1428,7 +1461,6 @@
 				"name": "Battery Cycles",
 				"icon": "mdi:battery-sync",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_cycles }}"
 			},
 			"refresh": 3600
@@ -1613,5 +1645,317 @@
 			"untested": true,
 			"refresh": 86400
 		}
-	]
+	],
+	"error_codes": {
+		"1": "GridOVP",
+		"2": "GridUVP",
+		"3": "GridOFP",
+		"4": "GridUFP",
+		"5": "GFCI",
+		"6": "OVRT",
+		"7": "LVRT",
+		"8": "IslandFault",
+		"9": "GridOVPInstant1",
+		"10": "GridOVPInstant2",
+		"11": "VGridLineFault",
+		"12": "InvOVP",
+		"17": "HwADFaultIGrid",
+		"18": "HwADFaultDCI(AC)",
+		"19": "HwADFaultVGrid(DC)",
+		"20": "HwADFaultVGrid(AC)",
+		"21": "GFCIDeviceFault(DC)",
+		"22": "GFCIDeviceFault(AC)",
+		"23": "HwADFaultDCV",
+		"24": "HwADFaultIdc",
+		"25": "HwADFaultDCI(DC)",
+		"26": "HwADFaultIdcBranch",
+		"29": "ConsistentFault_GFCI",
+		"30": "ConsistentFault_Vgrid",
+		"31": "ConsistentFault_DCI",
+		"33": "SpiCommFault(DC)",
+		"34": "SpiCommFault(AC)",
+		"35": "SChip_Fault",
+		"36": "MChip_Fault",
+		"37": "HwAuxPowerFault",
+		"38": "InverterSoftStartFail",
+		"41": "RelayFail",
+		"42": "IsoFault",
+		"43": "PEConnectFault",
+		"44": "PvConfigError",
+		"45": "CTDisconnect",
+		"46": "ReversalConnection",
+		"47": "ParallelFault",
+		"48": "SNTypeFault",
+		"49": "TempFault_Bat",
+		"50": "TempFault_HeatSink1",
+		"51": "TempFault_HeatSink2",
+		"52": "TempFault_HeatSink3",
+		"53": "TempFault_HeatSink4",
+		"54": "TempFault_HeatSink5",
+		"55": "TempFault_HeatSink6",
+		"57": "TempFault_Env1",
+		"58": "TempFault_Env2",
+		"59": "TempFault_Inv1",
+		"60": "TempFault_Inv2",
+		"61": "TempFault_Inv3",
+		"65": "VbusRmsUnbalance",
+		"66": "VbusInstantUnbalance",
+		"67": "BusUVP",
+		"68": "BusZVP",
+		"69": "PVOVP",
+		"70": "BatOVP",
+		"71": "LLCBusOVP",
+		"72": "SwBusRmsOVP",
+		"73": "SwBusInstantOVP",
+		"74": "FlyingCapOVP",
+		"81": "SwBatOCP",
+		"82": "DciOCP",
+		"83": "SwOCPInstant",
+		"84": "SwBuckBoostOCP",
+		"85": "SwAcRmsOCP",
+		"86": "SwPvOCPInstant",
+		"87": "IpvUnbalance",
+		"88": "IacUnbalance",
+		"89": "SwPvOCP",
+		"97": "HwLLCBusOVP",
+		"98": "HwBusOVP",
+		"99": "HwBuckBoostOCP",
+		"100": "HwBatOCP",
+		"102": "HwPVOCP",
+		"103": "HwACOCP",
+		"110": "Overload1",
+		"111": "Overload2",
+		"112": "Overload3",
+		"113": "OverTempDerating",
+		"114": "FreqDerating",
+		"115": "FreqLoading",
+		"116": "VoltDerating",
+		"117": "VoltLoading",
+		"124": "BatLowVoltageAlarm",
+		"125": "BatLowVoltageShut",
+		"129": "unrecoverHwAcOCP",
+		"130": "unrecoverBusOVP",
+		"131": "unrecoverHwBusOVP",
+		"132": "unrecoverIpvUnbalance",
+		"133": "unrecoverEPSBatOCP",
+		"134": "unrecoverAcOCPInstant",
+		"135": "unrecoverIacUnbalance",
+		"137": "unrecoverPvConfigError",
+		"138": "unrecoverPVOCPInstant",
+		"139": "unrecoverHwPVOCP",
+		"140": "unrecoverRelayFail",
+		"141": "unrecoverVbusUnbalance",
+		"142": "unrecoverSpdFail(DC)",
+		"143": "unrecoverSpdFail(AC)",
+		"145": "USBFault",
+		"146": "WifiFault",
+		"147": "BluetoothFault",
+		"148": "RTCFault",
+		"149": "CommEEPROMFault",
+		"150": "FlashFault",
+		"152": "SafetyVerFault",
+		"153": "SciCommLose(DC)",
+		"154": "SciCommLose(AC)",
+		"155": "SciCommLose(Fuse)",
+		"156": "SoftVerError",
+		"157": "BMS1CommunicatonFault",
+		"158": "BMS2CommunicatonFault",
+		"159": "BMS3CommunicatonFault",
+		"160": "BMS4CommunicatonFault",
+		"161": "ForceShutdown",
+		"162": "RemoteShutdown",
+		"163": "Drms0Shutdown",
+		"165": "RemoteDerating",
+		"166": "LogicInterfaceDerating",
+		"167": "AlarmAntiRefluxing",
+		"169": "FanFault1",
+		"170": "FanFault2",
+		"171": "FanFault3",
+		"172": "FanFault4",
+		"173": "FanFault5",
+		"174": "FanFault6",
+		"176": "MeterCommLose",
+		"177": "BMS OVP",
+		"178": "BMS UVP",
+		"179": "BMS OTP",
+		"180": "BMS UTP",
+		"181": "BMS OCP",
+		"182": "BMS Short",
+		"193": "StringFuse_Fault0",
+		"194": "StringFuse_Fault1",
+		"195": "StringFuse_Fault2",
+		"196": "StringFuse_Fault3",
+		"197": "StringFuse_Fault4",
+		"198": "StringFuse_Fault5",
+		"199": "StringFuse_Fault6",
+		"200": "StringFuse_Fault7",
+		"201": "StringFuse_Fault8",
+		"202": "StringFuse_Fault9",
+		"203": "StringFuse_Fault10",
+		"204": "StringFuse_Fault11",
+		"205": "StringFuse_Fault12",
+		"206": "StringFuse_Fault13",
+		"207": "StringFuse_Fault14",
+		"208": "StringFuse_Fault15",
+		"209": "StringFuse_Fault16",
+		"210": "StringFuse_Fault17",
+		"211": "StringFuse_Fault18",
+		"212": "StringFuse_Fault19",
+		"213": "StringFuse_Fault20",
+		"214": "StringFuse_Fault21",
+		"215": "StringFuse_Fault22",
+		"216": "StringFuse_Fault23",
+		"217": "StringFuse_Fault24",
+		"218": "StringFuse_Fault25",
+		"219": "StringFuse_Fault26",
+		"220": "StringFuse_Fault27",
+		"221": "StringFuse_Fault28",
+		"222": "StringFuse_Fault29",
+		"223": "StringFuse_Fault30",
+		"224": "StringFuse_Fault31",
+		"225": "InputFuse_Fault0",
+		"226": "InputFuse_Fault1",
+		"227": "InputFuse_Fault2",
+		"228": "InputFuse_Fault3",
+		"229": "InputFuse_Fault4",
+		"230": "InputFuse_Fault5",
+		"231": "InputFuse_Fault6",
+		"232": "InputFuse_Fault7",
+		"233": "InputFuse_Fault8",
+		"234": "InputFuse_Fault9",
+		"235": "InputFuse_Fault10",
+		"236": "InputFuse_Fault11",
+		"237": "InputFuse_Fault12",
+		"238": "InputFuse_Fault13",
+		"239": "InputFuse_Fault14",
+		"240": "InputFuse_Fault15",
+		"241": "CombinerOverVoltageGroup1",
+		"242": "CombinerOverVoltageGroup2",
+		"243": "CombinerOverVoltageGroup3",
+		"244": "CombinerOverVoltageGroup4",
+		"245": "CombinerOverVoltageGroup5",
+		"246": "CombinerOverVoltageGroup6",
+		"247": "CombinerOverVoltageGroup7",
+		"248": "CombinerOverVoltageGroup8",
+		"249": "CombinerOverVoltageGroup9",
+		"250": "CombinerOverVoltageGroup10",
+		"251": "CombinerOverVoltageGroup11",
+		"252": "CombinerOverVoltageGroup12",
+		"253": "CombinerOverVoltageGroup13",
+		"254": "CombinerOverVoltageGroup14",
+		"255": "CombinerOverVoltageGroup15",
+		"256": "CombinerOverVoltageGroup16",
+		"257": "CombinerUnderVoltageGroup1",
+		"258": "CombinerUnderVoltageGroup2",
+		"259": "CombinerUnderVoltageGroup3",
+		"260": "CombinerUnderVoltageGroup4",
+		"261": "CombinerUnderVoltageGroup5",
+		"262": "CombinerUnderVoltageGroup6",
+		"263": "CombinerUnderVoltageGroup7",
+		"264": "CombinerUnderVoltageGroup8",
+		"265": "CombinerUnderVoltageGroup9",
+		"266": "CombinerUnderVoltageGroup10",
+		"267": "CombinerUnderVoltageGroup11",
+		"268": "CombinerUnderVoltageGroup12",
+		"269": "CombinerUnderVoltageGroup13",
+		"270": "CombinerUnderVoltageGroup14",
+		"271": "CombinerUnderVoltageGroup15",
+		"272": "CombinerUnderVoltageGroup16",
+		"273": "CombinerOverCurrent1",
+		"274": "CombinerOverCurrent2",
+		"275": "CombinerOverCurrent3",
+		"276": "CombinerOverCurrent4",
+		"277": "CombinerOverCurrent5",
+		"278": "CombinerOverCurrent6",
+		"279": "CombinerOverCurrent7",
+		"280": "CombinerOverCurrent8",
+		"281": "CombinerOverCurrent9",
+		"282": "CombinerOverCurrent10",
+		"283": "CombinerOverCurrent11",
+		"284": "CombinerOverCurrent12",
+		"285": "CombinerOverCurrent13",
+		"286": "CombinerOverCurrent14",
+		"287": "CombinerOverCurrent15",
+		"288": "CombinerOverCurrent16",
+		"289": "CombinerOverCurrent17",
+		"290": "CombinerOverCurrent18",
+		"291": "CombinerOverCurrent19",
+		"292": "CombinerOverCurrent20",
+		"293": "CombinerOverCurrent21",
+		"294": "CombinerOverCurrent22",
+		"295": "CombinerOverCurrent23",
+		"296": "CombinerOverCurrent24",
+		"297": "CombinerOverCurrent25",
+		"298": "CombinerOverCurrent26",
+		"299": "CombinerOverCurrent27",
+		"300": "CombinerOverCurrent28",
+		"301": "CombinerOverCurrent29",
+		"302": "CombinerOverCurrent30",
+		"303": "CombinerOverCurrent31",
+		"304": "CombinerOverCurrent32",
+		"337": "CombinerRefluxFault1",
+		"338": "CombinerRefluxFault2",
+		"339": "CombinerRefluxFault3",
+		"340": "CombinerRefluxFault4",
+		"341": "CombinerRefluxFault5",
+		"342": "CombinerRefluxFault6",
+		"343": "CombinerRefluxFault7",
+		"344": "CombinerRefluxFault8",
+		"345": "CombinerRefluxFault9",
+		"346": "CombinerRefluxFault10",
+		"347": "CombinerRefluxFault11",
+		"348": "CombinerRefluxFault12",
+		"349": "CombinerRefluxFault13",
+		"350": "CombinerRefluxFault14",
+		"351": "CombinerRefluxFault15",
+		"352": "CombinerRefluxFault16",
+		"353": "CombinerRefluxFault17",
+		"354": "CombinerRefluxFault18",
+		"355": "CombinerRefluxFault19",
+		"356": "CombinerRefluxFault20",
+		"357": "CombinerRefluxFault21",
+		"358": "CombinerRefluxFault22",
+		"359": "CombinerRefluxFault23",
+		"360": "CombinerRefluxFault24",
+		"361": "CombinerRefluxFault25",
+		"362": "CombinerRefluxFault26",
+		"363": "CombinerRefluxFault27",
+		"364": "CombinerRefluxFault28",
+		"365": "CombinerRefluxFault29",
+		"366": "CombinerRefluxFault30",
+		"367": "CombinerRefluxFault31",
+		"368": "CombinerRefluxFault32",
+		"401": "AFCI0",
+		"402": "AFCI1",
+		"403": "AFCI2",
+		"404": "AFCI3",
+		"405": "AFCI4",
+		"406": "AFCI5",
+		"407": "AFCI6",
+		"408": "AFCI7",
+		"409": "AFCI8",
+		"410": "AFCI9",
+		"411": "AFCI10",
+		"412": "AFCI11",
+		"413": "AFCI12",
+		"414": "AFCI13",
+		"415": "AFCI14",
+		"416": "AFCI15",
+		"417": "AFCI16",
+		"418": "AFCI17",
+		"419": "AFCI18",
+		"420": "AFCI19",
+		"421": "AFCI20",
+		"422": "AFCI21",
+		"423": "AFCI22",
+		"424": "AFCI23",
+		"425": "AFCI24",
+		"426": "AFCI25",
+		"427": "AFCI26",
+		"428": "AFCI27",
+		"429": "AFCI28",
+		"430": "AFCI29",
+		"431": "AFCI30",
+		"432": "AFCI31"
+	}
 }

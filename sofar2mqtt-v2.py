@@ -250,6 +250,18 @@ class Sofar():
             self.instrument.close_port_after_each_call = False
             self.instrument.clear_buffers_before_each_transaction = True
 
+    def aggregate_datetime_bitmap(self, register):
+        additional_registers = register.get('aggregate_datetime_bitmap', {})
+        ts = self.read_event_timestamp(
+            additional_registers.get("year_month",""),
+            additional_registers.get("day_hour",""),
+            additional_registers.get("minute_second","")
+        )
+        if ts is None: 
+            return "No valid timestamp available"
+        else: 
+            return ts.strftime("%Y-%m-%d %H:%M:%S")
+
     def combine_aggregate_registers(self, register):
         """ Combine registers from the 'aggregate' field using the arithmetic function in 'agg_function' """
         raw_value = 0
@@ -278,13 +290,19 @@ class Sofar():
             logging.debug('Reading %s', register['name'])
             if 'aggregate' in register:
                 raw_value = self.combine_aggregate_registers(register)
-            else:
+            if register.get('read_type') == 'static':
+                raw_value = register['value']
+            if register.get('register', False):
                 raw_value = self.read_register(
                     int(register['register'], 16),
                     register.get('read_type', 'register'),
                     register.get('signed', False),
                     register.get('registers', 1)
                 )
+                
+            if 'aggregate_datetime_bitmap' in register:
+                continue
+                #raw_value =  self.aggregate_datetime_bitmap(register)
             if raw_value is None:
                 logging.error(f"Value for {register['name']}: is none")
                 continue
@@ -293,12 +311,14 @@ class Sofar():
                 # Inverter will return maximum 16-bit integer value when data not available (eg. grid usage when grid down)
                 if value == 65535:
                     value = 0
-                if 'min' in register and value < register['min']:
-                    logging.error(
-                        f"Value for {register['name']}: {str(value)} is lower than min allowed value: {register['min']}")
-                if 'max' in register and value > register['max']:
-                    logging.error(
-                        f"Value for {register['name']}: {str(raw_value)} is greater than max allowed value: {register['max']}")
+                if 'min' in register:
+                    if int(value) < register.get('min'):
+                        logging.error(
+                            f"Value for {register['name']}: {str(value)} is lower than min allowed value: {register['min']}")
+                if 'max' in register:
+                    if int(value) > register.get('max', 0):
+                        logging.error(
+                            f"Value for {register['name']}: {str(raw_value)} is greater than max allowed value: {register['max']}")
                 logging.debug(f"Read {register['name']} {value}")
 
             if not self.raw_data.get(register.get('name')) == raw_value:
@@ -868,6 +888,55 @@ class Sofar():
             logging.error(
                 f"Register {register_name} not found in configuration")
         return register
+    
+    def read_event_timestamp(self,
+                            reg_yM,
+                            reg_dH,
+                            reg_mS):
+        """
+        Reads inverter history timestamp registers and returns a datetime object.
+
+        Register format:
+        reg_yM (0x1481):
+            High byte = year (last two digits)
+            Low byte  = month
+
+        reg_dH (0x1482):
+            High byte = day
+            Low byte  = hour
+
+        reg_mS (0x1483):
+            High byte = minute
+            Low byte  = second
+        """
+        logging.info(f"Reading event timestamp from registers: yM={reg_yM}, dH={reg_dH}, mS={reg_mS}")
+        if reg_yM == "" or reg_dH == "" or reg_mS == "": return None
+
+        # Read raw register values
+        yM = self.instrument.read_register(int(reg_yM, 16), 0, 3)
+        dH = self.instrument.read_register(int(reg_dH, 16), 0, 3)
+        mS = self.instrument.read_register(int(reg_mS, 16), 0, 3)
+
+        logging.info(f"Read event timestamp registers: yM={yM}, dH={dH}, mS={mS}")
+
+        # Extract bytes
+        year_2digit = (yM >> 8) & 0xFF
+        month       = yM & 0xFF
+
+        day         = (dH >> 8) & 0xFF
+        hour        = dH & 0xFF
+
+        minute      = (mS >> 8) & 0xFF
+        second      = mS & 0xFF
+
+        # Convert 2‑digit year to full year (assume 2000–2099)
+        year_full = 2000 + year_2digit
+
+        # Build datetime
+        timestamp = datetime.datetime(year_full, month, day, hour, minute, second)
+
+        return timestamp
+
 
     def translate_from_raw_value(self, register, raw_value):
         """ Translate raw value to a normalized value using the function and factor """
@@ -878,6 +947,8 @@ class Sofar():
                 return raw_value / register['factor']
             elif register['function'] == 'mode':
                 return register['modes'].get(str(raw_value), raw_value)
+            elif register['function'] == 'history_event_map':
+                return self.config.get('error_codes', {}).get(str(raw_value), raw_value)
             elif register['function'] == 'bit_field':
                 length = len(register['fields'])
                 fields = []
