@@ -48,6 +48,7 @@
 			"max": 3000,
 			"write": true,
 			"write_functioncode": "42",
+			"notify_on_change": true,
 			"write_addresses": {
 				"standby": "0x0100",
 				"discharge": "0x0101",
