@@ -68,22 +68,31 @@ class Sofar():
         self.client = mqtt.Client(
             client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         if not self.raw_data['serial_number']:
-            logging.error("Failed to determine serial number. Exiting")
-            self.terminate(status_code=1)
+            logging.error("Failed to determine serial number, assuming device is an ME3000SP")
+            self.raw_data['serial_number'] = "E1" # ME3000SP
         self.raw_data['model'] = self.determine_model()
         self.raw_data['protocol'] = self.determine_modbus_protocol()
+        protocol_file = self.raw_data.get('protocol', False)
 
-        if self.raw_data.get('protocol') == "SOFAR-1-40KTL.json":
-            logging.error("Unsupported protocol detected. Exiting")
+        if protocol_file == "SOFAR-1-40KTL.json":
+            logging.error(f"Sorry {self.raw_data['model']} is not currently supported. Exiting")
             self.terminate(status_code=1)
-
-        protocol_file = self.raw_data.get('protocol')
+        if not protocol_file:
+            logging.error(f"Unknown protocol for model: {self.raw_data['model']}. Exiting")
+            self.terminate(status_code=1)
         if not os.path.isfile(protocol_file):
             logging.error(
                 f"Protocol file {protocol_file} does not exist. Exiting")
             self.terminate(status_code=1)
 
         self.config = load_config(protocol_file)
+
+        if 'registers' in self.config:
+            if 'serial_number' in self.config['registers']:
+                serial_number = self.config['registers']['serial_number']['value']
+                logging.error(f"Using static serial number from config file. Serial Number: {serial_number}")
+                self.raw_data['serial_number'] = serial_number
+
         self.write_registers = []
         untested = False
         for register in self.config['registers']:
@@ -825,7 +834,7 @@ class Sofar():
             "SOFAR ESI 2.5...5.0K": "SOFAR-HYD-3PH-AND-G3.json"
         }
 
-        modbus_protocol = protocol_mapping.get(self.raw_data.get('model'))
+        modbus_protocol = protocol_mapping.get(self.raw_data.get('model'), False)
         if modbus_protocol:
             logging.info(f"Modbus protocol determined: {modbus_protocol}")
         else:
