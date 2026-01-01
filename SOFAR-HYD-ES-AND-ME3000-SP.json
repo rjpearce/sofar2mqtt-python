@@ -44,6 +44,7 @@
 			"name": "charge_discharge_power",
 			"desc": "Charge/Discharge power (-3000 to 3000W) - used with Charge/Discharge modes",
 			"type": "U16",
+			"function": "int",
 			"min": -3000,
 			"max": 3000,
 			"write": true,
