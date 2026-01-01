@@ -205,7 +205,7 @@ class Sofar():
                                     continue
                             if 'write_addresses' in register:
                                 write_register = None
-                                write_functioncode = None
+                                write_functioncode = register.get('write_functioncode', '16')
                                 if new_raw_value == 0:
                                     write_register = register['write_addresses'].get("standby", None)
                                 elif new_raw_value < 0:
@@ -216,13 +216,10 @@ class Sofar():
                                     logging.error(
                                         f"No write address found for value: {new_raw_value} on register: {register['name']}. Ignoring")
                                     continue
-                                if write_functioncode in register:
-                                    write_functioncode = register.get('write_functioncode', '16')
-                                else:
-                                    logging.info(
-                                        f"Mapping value: {new_raw_value} to write register: {write_register} for register: {register['name']}")
-                                    self.write_register_special(write_register, write_functioncode, abs(new_raw_value))
-                                    continue
+                                logging.info(
+                                    f"Mapping value: {new_raw_value} to write register: {write_register} for register: {register['name']}")
+                                self.write_register_special(write_register, write_functioncode, abs(new_raw_value))
+                                continue
                             if register['name'] in self.raw_data:
                                 retry = self.write_retry
                                 while retry > 0:
