@@ -42,11 +42,14 @@
 		},
 		{
 			"name": "charge_discharge_power",
+			"register": "0x020d",
 			"desc": "Charge/Discharge power (-3000 to 3000W) - used with Charge/Discharge modes",
-			"type": "U16",
+			"type": "I16",
 			"function": "int",
 			"min": -3000,
 			"max": 3000,
+			"signed": true,
+			"passive": true,
 			"write": true,
 			"write_functioncode": "42",
 			"notify_on_change": true,
@@ -191,20 +194,6 @@
 				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
 				"value_template": "{{ value_json.grid_current }}"
-			}
-		},
-		{
-			"name": "battery_power",
-			"register": "0x20d",
-			"function": "divide",
-			"factor": 100,
-			"ha": {
-				"device_class": "power",
-				"unit_of_measurement": "W",
-				"name": "Battery Power",
-				"icon": "mdi:battery-charging",
-				"state_class": "measurement",
-				"value_template": "{{ value_json.battery_power }}"
 			}
 		},
 		{
