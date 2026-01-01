@@ -69,7 +69,7 @@ class Sofar():
             client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         if not self.raw_data['serial_number']:
             logging.error("Failed to determine serial number, assuming device is an ME3000SP")
-            self.raw_data['serial_number'] = "E1" # ME3000SP
+            self.raw_data['serial_number'] = "E1234567890123" # ME3000SP
         self.raw_data['model'] = self.determine_model()
         self.raw_data['protocol'] = self.determine_modbus_protocol()
         protocol_file = self.raw_data.get('protocol', False)
