@@ -272,7 +272,7 @@ class Sofar():
             self.instrument.serial.bytesize = 8
             self.instrument.serial.parity = serial.PARITY_NONE
             self.instrument.serial.stopbits = 1
-            self.instrument.serial.timeout = 0.1   # seconds
+            self.instrument.serial.timeout = 0.5   # seconds
             self.instrument.close_port_after_each_call = False
             self.instrument.clear_buffers_before_each_transaction = True
 
@@ -658,7 +658,9 @@ class Sofar():
                 self.failures = self.failures + 1
                 self.failure_pattern += "f"
                 self.failed.append(registeraddress)
-            if value:
+            if value is None:
+                self.failure_pattern += "n"
+            else:
                 self.failure_pattern += "."
             return value
 
