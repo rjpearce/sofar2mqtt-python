@@ -237,7 +237,10 @@ class Sofar():
                             else:
                                 logging.error(
                                     f"No current read value for {register['name']} skipping write operation. Please try again.")
-                            
+                    else:
+                        logging.error(f"Function provided {register['function']} is not known for register {register['name']} skipping write operation. Check the JSON is configured correctly.") 
+                else:
+                    logging.error(f"No function was provided for register {register['name']} skipping write operation. Check the JSON is configured correctly.")                            
 
         if not found:
             for block in self.config.get('write_register_blocks', []):
