@@ -58,7 +58,7 @@
 				"command_topic": "sofar/rw/charge_discharge_power",
 				"entity_category": "config",
 				"name": "Charge/Discharge Power",
-				"min": 0,
+				"min": -3000,
 				"max": 3000,
 				"step": 100,
 				"initial": 0,
