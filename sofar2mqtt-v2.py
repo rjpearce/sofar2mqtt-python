@@ -693,50 +693,51 @@ class Sofar():
         return False
 
     def determine_serial_number(self):
-        """ Determine the serial number from the inverter """
-        serial_number = None
+        """Determine the serial number from the inverter."""
+        
+        def read_ascii(registers):
+            chars = []
+            for reg in registers:
+                val = self.read_register(reg, "string", False, 1)
+                if val is None:
+                    return None
+                val = val.replace("\x00", "").strip()
+                if len(val) > 1:
+                    return None
+                chars.append(val)
+            return "".join(chars)
 
-        # Try first location: 0x2001 ... 0x2007
-        try:
-            serial_number = ''.join([self.read_register(
-                register, 'string', False, 1) for register in range(0x2001, 0x2008)])
-            if self.is_valid_serial_number(serial_number):
-                logging.info(
-                    f"Valid Serial number found at first location: {serial_number}")
-                return serial_number
-        except Exception as e:
-            logging.info(
-                f"Failed to validate serial number from first location: {str(e)}")
+        # 1) First location: 0x2001–0x2007 (14 chars)
+        serial = read_ascii(range(0x2001, 0x2008))
+        if serial and self.is_valid_serial_number(serial):
+            logging.info(f"Valid Serial number found at first location: {serial}")
+            return serial
 
-        # Try second location: 0x0445 ... 0x044B (14 digits)
-        try:
-            serial_number = ''.join([self.read_register(
-                register, 'string', False, 1) for register in range(0x0445, 0x044C)])
-            if self.is_valid_serial_number(serial_number):
-                logging.info(
-                    f"Valid Serial number found at second location: {serial_number}")
-                return serial_number
-        except Exception as e:
-            logging.info(
-                f"Failed to validate serial number from second location: {str(e)}")
+        # 2) Second location: 0x0445–0x044B (14 chars)
+        serial = read_ascii(range(0x0445, 0x044C))
+        if serial and self.is_valid_serial_number(serial):
+            logging.info(f"Valid Serial number found at second location: {serial}")
+            return serial
 
-        # Try third location: 0x0445 ... 0x044C and 0x0470...0x0471 (20 digits)
-        try:
-            serial_number_part1 = ''.join([self.read_register(
-                register, 'string', False, 1) for register in range(0x0445, 0x044C)])
-            serial_number_part2 = ''.join([self.read_register(
-                register, 'string', False, 1) for register in range(0x0470, 0x0472)])
-            serial_number = serial_number_part1 + serial_number_part2
-            if self.is_valid_serial_number(serial_number):
-                logging.info(
-                    f"Valid Serial number found at third location: {serial_number}")
-                return serial_number
-        except Exception as e:
-            logging.info(
-                f"Failed to validate serial number from third location: {str(e)}")
+        # 3) Third location: 0x0445–0x044C (16 chars) + 0x0470–0x0471 (4 chars)
+        part1 = read_ascii(range(0x0445, 0x044C))
+        part2 = read_ascii(range(0x0470, 0x0472))
+
+        if part1 is not None and part2 is not None:
+            # Sofar rule: if part2 is empty → 14-digit serial
+            if part2.strip("") == "":
+                if self.is_valid_serial_number(part1):
+                    logging.info(f"Valid 14-digit Serial number found at third location: {part1}")
+                    return part1
+            else:
+                serial = part1 + part2
+                if self.is_valid_serial_number(serial):
+                    logging.info(f"Valid 20-digit Serial number found at third location: {serial}")
+                    return serial
 
         logging.error("Failed to determine serial number")
         return None
+
 
     def determine_model(self):
         """ Determine the model of the inverter based on the serial number """
