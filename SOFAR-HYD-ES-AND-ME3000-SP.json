@@ -59,6 +59,10 @@
 				"charge": "0x0102",
 				"auto": "0x0103"
 			},
+			"write_values": {
+				"standby": 21845,
+				"auto": 21845
+			},
 			"ha": {
 				"command_topic": "sofar/rw/charge_discharge_power",
 				"entity_category": "config",
