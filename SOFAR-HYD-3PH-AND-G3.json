@@ -796,6 +796,7 @@
 			"function": "int",
 			"signed": true,
 			"passive": true,
+			"notify_on_change": true,
 			"min": -999999,
 			"max": 999999,
 			"write": true,
