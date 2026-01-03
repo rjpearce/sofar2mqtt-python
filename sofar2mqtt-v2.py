@@ -69,7 +69,7 @@ class Sofar():
             client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         if not self.raw_data['serial_number']:
             logging.error("Failed to determine serial number, assuming device is an ME3000SP")
-            self.raw_data['serial_number'] = "E1234567890123" # ME3000SP
+            self.raw_data['serial_number'] = "XE101010101010" # ME3000SP
         self.raw_data['model'] = self.determine_model()
         self.raw_data['protocol'] = self.determine_modbus_protocol()
         protocol_file = self.raw_data.get('protocol', False)
@@ -208,6 +208,7 @@ class Sofar():
                                 write_functioncode = register.get('write_functioncode', '16')
                                 if new_raw_value == 0:
                                     write_register = register['write_addresses'].get("standby", None)
+                                    new_raw_value = register['write_values'].get("standby", new_raw_value)
                                 elif new_raw_value < 0:
                                     write_register = register['write_addresses'].get("discharge", None)
                                 elif new_raw_value > 0:
@@ -517,19 +518,27 @@ class Sofar():
             self.iteration += 1
         self.terminate(status_code=0)
 
+
     def write_register_special(self, registeraddress, functioncode, value):
         with self.mutex:
+            reg_int = int(registeraddress, 16)
+
             logging.info(
-                f"Writing {registeraddress}({int(registeraddress, 16)}) functioncode: {functioncode} with {value}({value})")
-            self.instrument._generic_command(
-                functioncode,
-                int(registeraddress, 16),
-                value,
-                number_of_decimals=0,
-                number_of_registers=1,
-                signed=False,
-                payloadformat= self.instrument._Payloadformat.REGISTER,
+                f"Writing {registeraddress}({reg_int}) functioncode: {functioncode} with {value}"
             )
+
+            # Payload = [cmd][param] (each uint16)
+            payload = struct.pack(">HH", reg_int, value)
+
+            logging.info("Payload (no CRC): %s", payload.hex(" "))
+
+            response = self.instrument._perform_command(
+                functioncode,   # 0x42
+                payload
+            )
+
+            logging.info("Raw response: %s", response.hex(" "))
+        return response
 
     def write_register(self, register, value):
         """ Write value to register """
@@ -731,7 +740,7 @@ class Sofar():
 
     def determine_model(self):
         """ Determine the model of the inverter based on the serial number """
-        serial_number = self.raw_data.get('serial_number')
+        serial_number = self.raw_data.get('serial_number') 
         model = None
         if len(serial_number) == 14:
             code = serial_number[1:3]
