@@ -68,8 +68,8 @@ class Sofar():
         self.client = mqtt.Client(
             client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         if not self.raw_data['serial_number']:
-            logging.error("Failed to determine serial number, assuming device is an ME3000SP")
-            self.raw_data['serial_number'] = "XE101010101010" # ME3000SP
+            logging.error("Failed to determine serial number, Exiting")
+            self.terminate(status_code=1)
         self.raw_data['model'] = self.determine_model()
         self.raw_data['protocol'] = self.determine_modbus_protocol()
         protocol_file = self.raw_data.get('protocol', False)
@@ -692,36 +692,47 @@ class Sofar():
             return serial_number[0] == 'S' and serial_number[1:].isalnum()
         return False
 
+    def read_ascii(self, start, count):
+        try:
+            regs = self.instrument.read_registers(start, count, functioncode=3)
+        except Exception as e:
+            logging.debug(f"Error reading registers at {hex(start)}: {e}")
+            return None
+
+        chars = []
+        for val in regs:
+            hi = (val >> 8) & 0xFF
+            lo = val & 0xFF
+
+            # Sofar stores ASCII in HIGH BYTE first for this model
+            for b in (hi, lo):
+                if b == 0:
+                    continue
+                c = chr(b)
+                if c.isprintable():
+                    chars.append(c)
+
+        return "".join(chars)
+
     def determine_serial_number(self):
         """Determine the serial number from the inverter."""
-        
-        def read_ascii(registers):
-            chars = []
-            for reg in registers:
-                val = self.read_register(reg, "string", False, 1)
-                if val is None:
-                    return None
-                val = val.replace("\x00", "").strip()
-                if len(val) > 1:
-                    return None
-                chars.append(val)
-            return "".join(chars)
-
+  
         # 1) First location: 0x2001–0x2007 (14 chars)
-        serial = read_ascii(range(0x2001, 0x2008))
+        serial = self.read_ascii(0x2001, 7)
         if serial and self.is_valid_serial_number(serial):
             logging.info(f"Valid Serial number found at first location: {serial}")
             return serial
 
         # 2) Second location: 0x0445–0x044B (14 chars)
-        serial = read_ascii(range(0x0445, 0x044C))
+        serial = self.read_ascii(0x0445, 7)
         if serial and self.is_valid_serial_number(serial):
             logging.info(f"Valid Serial number found at second location: {serial}")
             return serial
 
         # 3) Third location: 0x0445–0x044C (16 chars) + 0x0470–0x0471 (4 chars)
-        part1 = read_ascii(range(0x0445, 0x044C))
-        part2 = read_ascii(range(0x0470, 0x0472))
+        part1 = self.read_ascii(0x0445, 8)   # 16 chars
+        part2 = self.read_ascii(0x0470, 2)   # 4 chars
+        serial = part1 + part2
 
         if part1 is not None and part2 is not None:
             # Sofar rule: if part2 is empty → 14-digit serial
