@@ -64,15 +64,15 @@ class Sofar():
         logging.info(f"Starting sofar2mqtt-python {VERSION}")
         self.mutex = threading.Lock()
         self.setup_instrument()
-        self.raw_data['serial_number'] = self.determine_serial_number()
+        self.raw_data['serial_number'] = "E1xxx"
         self.client = mqtt.Client(
             client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         if not self.raw_data['serial_number']:
             logging.error("Failed to determine serial number, Exiting")
             self.terminate(status_code=1)
-        self.raw_data['model'] = self.determine_model()
-        self.raw_data['protocol'] = self.determine_modbus_protocol()
-        protocol_file = self.raw_data.get('protocol', False)
+        self.raw_data['model'] = "ME3000SP"
+        #self.raw_data['protocol'] = self.determine_modbus_protocol()
+        protocol_file = "SOFAR-HYD-ES-AND-ME3000-SP.json"
 
         if protocol_file == "SOFAR-1-40KTL.json":
             logging.error(f"Sorry {self.raw_data['model']} is not currently supported. Exiting")
