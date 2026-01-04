@@ -138,7 +138,6 @@ class Sofar():
             logging.info(f"Ignoring retained message on topic {message.topic}")
             return
         found = False
-        valid = False
         topic = message.topic
         payload = message.payload.decode("utf-8")
         if topic == "homeassistant/status":
@@ -152,8 +151,10 @@ class Sofar():
             if register['name'] == topic.split('/')[-1]:
                 new_raw_value = self.translate_to_raw_value(register, payload)
                 found = True
-                if 'function' in register:
-                    if register['function'] == 'mode':
+                if 'write_function' in register:
+                    logging.error(f"No function was provided for register {register['name']} skipping write operation. Check the JSON is configured correctly.")
+                    continue
+                if register['write_function'] == 'mode':
                         new_value = register['modes'].get(
                             str(new_raw_value), None)
                         logging.info(
@@ -182,8 +183,7 @@ class Sofar():
                         else:
                             logging.error(
                                 f"No current read value for {register['name']} skipping write operation. Please try again.")
-
-                    elif register['function'] == 'int':
+                else:
                         logging.info(
                             f"Received a request for {register['name']} to set value to: {payload}({new_raw_value})")
                         if int(new_raw_value) < register['min']:
@@ -238,10 +238,6 @@ class Sofar():
                             else:
                                 logging.error(
                                     f"No current read value for {register['name']} skipping write operation. Please try again.")
-                    else:
-                        logging.error(f"Function provided {register['function']} is not known for register {register['name']} skipping write operation. Check the JSON is configured correctly.") 
-                else:
-                    logging.error(f"No function was provided for register {register['name']} skipping write operation. Check the JSON is configured correctly.")                            
 
         if not found:
             for block in self.config.get('write_register_blocks', []):
@@ -902,10 +898,8 @@ class Sofar():
             logging.error(f"Block {block_name} not found in configuration")
             return
 
-        start_register = int(block['start_register'], 16)
         required_length = int(block['length'])
         values = []
-        raw_value = None
         for register_name in block['registers']:
             if register_name == update_register:
                 register = self.get_register(register_name)
@@ -1028,23 +1022,23 @@ class Sofar():
 
     def translate_from_raw_value(self, register, raw_value):
         """ Translate raw value to a normalized value using the function and factor """
-        if 'function' in register:
-            if register['function'] == 'multiply':
+        if 'read_function' in register:
+            if register['read_function'] == 'multiply':
                 return raw_value * register['factor']
-            elif register['function'] == 'divide':
+            elif register['read_function'] == 'divide':
                 return raw_value / register['factor']
-            elif register['function'] == 'mode':
+            elif register['read_function'] == 'mode':
                 return register['modes'].get(str(raw_value), raw_value)
-            elif register['function'] == 'history_event_map':
+            elif register['read_function'] == 'history_event_map':
                 return self.format_history_event(raw_value)
-            elif register['function'] == 'bit_field':
+            elif register['read_function'] == 'bit_field':
                 length = len(register['fields'])
                 fields = []
                 for n in reversed(range(length)):
                     if raw_value & (1 << ((length-1)-n)):
                         fields.append(register['fields'][n])
                 return ','.join(fields)
-            elif register['function'] == 'high_bit_low_bit':
+            elif register['read_function'] == 'high_bit_low_bit':
                 high = raw_value >> 8  # shift right
                 low = raw_value & 255  # apply bitmask
                 # combine and pad 2 zeros
@@ -1053,16 +1047,16 @@ class Sofar():
 
     def translate_to_raw_value(self, register, value):
         """ Undo the operation performed by translate_from_raw_value """
-        if 'function' in register:
-            if register['function'] == 'int':
+        if 'write_function' in register:
+            if register['write_function'] == 'int':
                 return int(value)
-            if register['function'] == 'multiply':
+            if register['write_function'] == 'multiply':
                 return int(float(value) / register['factor'])
-            elif register['function'] == 'divide':
+            elif register['write_function'] == 'divide':
                 return int(float(value) * register['factor'])
-            elif register['function'] == 'mode':
+            elif register['write_function'] == 'mode':
                 return int(next((k for k, v in register['modes'].items() if v == value), value))
-            elif register['function'] == 'bit_field':
+            elif register['write_function'] == 'bit_field':
                 fields = value.split(',')
                 raw_value = 0
                 for field in fields:
@@ -1070,7 +1064,7 @@ class Sofar():
                         raw_value |= (
                             1 << (len(register['fields']) - 1 - register['fields'].index(field)))
                 return raw_value
-            elif register['function'] == 'high_bit_low_bit':
+            elif register['write_function'] == 'high_bit_low_bit':
                 high, low = map(int, value.split(register['join']))
                 return (high << 8) | low
         return int(value)
@@ -1086,7 +1080,7 @@ def validate_new_value(register, new_value):
         logging.error(
             f"Value {new_value} is greater than the maximum allowed value {register['max']} for register {register['name']}")
         return False
-    if 'function' in register and register['function'] == 'mode' and str(new_value) not in register['modes']:
+    if 'write_function' in register and register['write_function'] == 'mode' and str(new_value) not in register['modes']:
         logging.error(
             f"Value {new_value} is not a valid mode for register {register['name']}")
         return False
