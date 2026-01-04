@@ -1206,21 +1206,6 @@
 			}
 		},
 		{
-			"name": "battery_current_2",
-			"register": "0x0669",
-			"function": "divide",
-			"factor": 100,
-			"signed": true,
-			"ha": {
-				"device_class": "current",
-				"unit_of_measurement": "A",
-				"name": "Battery Current 2",
-				"icon": "mdi:alpha-a-box",
-				"state_class": "measurement",
-				"value_template": "{{ value_json.battery_current_2 }}"
-			}
-		},
-		{
 			"name": "battery_power",
 			"register": "0x0606",
 			"function": "multiply",
