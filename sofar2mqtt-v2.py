@@ -363,11 +363,12 @@ class Sofar():
             if not self.raw_data.get(register.get('name')) == raw_value:
                 if register.get('notify_on_change', False):
                     from_raw = self.raw_data.get(register.get('name'))
-                    if from_raw is None:
-                        logging.error(f"Value for {register['name']}: is none")
+                    try:
+                        from_value = self.translate_from_raw_value(
+                            register, from_raw)
+                    except (ValueError, TypeError) as e:
+                        logging.error(f"Conversion failed for {from_raw}: {e}")
                         continue
-                    from_value = self.translate_from_raw_value(
-                        register, from_raw)
                     logging.info(
                         f"Notification - {register.get('name')} has changed from: {from_raw} ({from_value}) to: {raw_value} ({value})")
                 self.raw_data[register.get('name')] = raw_value
