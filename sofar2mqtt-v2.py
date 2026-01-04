@@ -536,7 +536,7 @@ class Sofar():
             logging.info("Payload (no CRC): %s", payload.hex(" "))
 
             response = self.instrument._perform_command(
-                int(functioncode),   # 0x42
+                int(functioncode),
                 payload
             )
 

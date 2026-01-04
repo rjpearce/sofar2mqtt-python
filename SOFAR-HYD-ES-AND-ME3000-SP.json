@@ -51,7 +51,7 @@
 			"signed": true,
 			"passive": true,
 			"write": true,
-			"write_functioncode": "42",
+			"write_functioncode": "66",
 			"notify_on_change": true,
 			"write_addresses": {
 				"standby": "0x0100",
