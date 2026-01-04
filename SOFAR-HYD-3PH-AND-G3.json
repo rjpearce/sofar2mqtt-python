@@ -21,7 +21,9 @@
 				"battery_config_cell_type",
 				"battery_config_eps_buffer"
 			],
-			"append": [1]
+			"append": [
+				1
+			]
 		},
 		{
 			"name": "eps_config",
@@ -42,10 +44,35 @@
 				"rs485_config_stop_bit",
 				"rs485_config_parity_bit"
 			],
-			"append": [1]
+			"append": [
+				1
+			]
 		}
 	],
 	"registers": [
+		{
+			"name": "serial_number",
+			"register": "0x0445",
+			"read_type": "string",
+			"registers": 7,
+			"ha": {
+				"name": "Serial Number",
+				"icon": "mdi:identifier",
+				"value_template": "{{ value_json.serial_number }}"
+			},
+			"refresh": 86400
+		},
+		{
+			"name": "model",
+			"value": "HYD-6000-EP",
+			"read_type": "static",
+			"ha": {
+				"name": "Model",
+				"icon": "mdi:tag-text",
+				"value_template": "{{ value_json.model }}"
+			},
+			"refresh": 86400
+		},
 		{
 			"name": "hw_version",
 			"register": "0x044D",
@@ -54,7 +81,6 @@
 			"ha": {
 				"name": "HW Version",
 				"icon": "mdi:numeric",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.hw_version }}"
 			},
 			"refresh": 86400
@@ -67,7 +93,6 @@
 			"ha": {
 				"name": "Software Version",
 				"icon": "mdi:numeric",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.sw_version_com }}"
 			},
 			"refresh": 86400
@@ -80,7 +105,6 @@
 			"ha": {
 				"name": "DSP1 Software Version",
 				"icon": "mdi:numeric",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.sw_version_master }}"
 			},
 			"refresh": 86400
@@ -93,7 +117,6 @@
 			"ha": {
 				"name": "DSP2 Software Version",
 				"icon": "mdi:numeric",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.sw_version_slave }}"
 			},
 			"refresh": 86400
@@ -659,7 +682,6 @@
 			"ha": {
 				"name": "Time of use",
 				"icon": "mdi:home-clock",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use }}"
 			},
 			"refresh": 3600
@@ -672,7 +694,6 @@
 			"ha": {
 				"name": "Time of use - Start time",
 				"icon": "mdi:clock-digital",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_charge_start_time }}"
 			},
 			"refresh": 3600
@@ -685,7 +706,6 @@
 			"ha": {
 				"name": "Time of use - End time",
 				"icon": "mdi:clock-digital",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_charge_end_time }}"
 			},
 			"refresh": 3600
@@ -701,7 +721,6 @@
 			"ha": {
 				"name": "Time of use - Target SOC",
 				"icon": "mdi:percent-outline",
-				"entity_category": "diagnostic",
 				"device_class": "battery",
 				"unit_of_measurement": "%",
 				"state_class": "measurement",
@@ -719,7 +738,6 @@
 				"device_class": "power",
 				"unit_of_measurement": "W",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_charge_power }}"
 			},
 			"refresh": 3600
@@ -732,7 +750,6 @@
 			"ha": {
 				"name": "Time of use - Start date",
 				"icon": "mdi:calendar",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_start_date }}"
 			},
 			"refresh": 3600
@@ -745,7 +762,6 @@
 			"ha": {
 				"name": "Time of use - End date",
 				"icon": "mdi:calendar",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_end_date }}"
 			},
 			"refresh": 3600
@@ -766,7 +782,6 @@
 			"ha": {
 				"name": "Time of use - Days of week",
 				"icon": "mdi:calendar-today",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.time_of_use_dow }}"
 			},
 			"refresh": 3600
@@ -779,8 +794,10 @@
 			"desc3": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189",
 			"type": "I32",
 			"function": "int",
+			"read": false,
 			"signed": true,
 			"passive": true,
+			"notify_on_change": true,
 			"min": -999999,
 			"max": 999999,
 			"write": true,
@@ -836,8 +853,86 @@
 			"ha": {
 				"name": "State",
 				"icon": "mdi:power-standby",
-				"entity_category": "diagnostic",
+				"entity_category": "None",
 				"value_template": "{{ value_json.state }}"
+			}
+		},
+		{
+			"name": "history_event_list_1",
+			"register": "0x1480",
+			"function": "history_event_map",
+			"ha": {
+				"name": "History Event List 1",
+				"icon": "mdi:calendar-alert",
+				"value_template": "{{ value_json.history_event_list_1 }}"
+			},
+			"notify_on_change": true
+		},
+		{
+			"name": "history_event_list_1_datetime",
+			"aggregate_datetime_bitmap": {
+				"year_month": "0x1481",
+				"day_hour": "0x1482",
+				"minute_second": "0x1483"
+			},
+			"ha": {
+				"name": "History Event List 1 - DateTime",
+				"icon": "mdi:calendar-clock",
+				"value_template": "{{ value_json.history_event_list_1_datetime }}"
+			}
+		},
+		{
+			"name": "fault_list_1",
+			"register": "0x0405",
+			"ha": {
+				"name": "Fault List 1",
+				"icon": "mdi:alert",
+				"value_template": "{{ value_json.fault_list_1 }}"
+			}
+		},
+		{
+			"name": "fault_list_2",
+			"register": "0x0406",
+			"ha": {
+				"name": "Fault List 2",
+				"icon": "mdi:alert",
+				"value_template": "{{ value_json.fault_list_2 }}"
+			}
+		},
+		{
+			"name": "fault_list_3",
+			"register": "0x0407",
+			"ha": {
+				"name": "Fault List 3",
+				"icon": "mdi:alert",
+				"value_template": "{{ value_json.fault_list_3 }}"
+			}
+		},
+		{
+			"name": "fault_list_4",
+			"register": "0x0408",
+			"ha": {
+				"name": "Fault List 4",
+				"icon": "mdi:alert",
+				"value_template": "{{ value_json.fault_list_4 }}"
+			}
+		},
+		{
+			"name": "fault_list_5",
+			"register": "0x0409",
+			"ha": {
+				"name": "Fault List 5",
+				"icon": "mdi:alert",
+				"value_template": "{{ value_json.fault_list_5 }}"
+			}
+		},
+		{
+			"name": "countdown",
+			"register": "0x0417",
+			"ha": {
+				"name": "Countdown",
+				"icon": "mdi:counter",
+				"value_template": "{{ value_json.countdown }}"
 			}
 		},
 		{
@@ -851,7 +946,6 @@
 				"name": "PV1 Voltage",
 				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_1_voltage }}"
 			}
 		},
@@ -866,7 +960,6 @@
 				"name": "PV1 Current",
 				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_1_current }}"
 			}
 		},
@@ -881,7 +974,6 @@
 				"name": "PV1 Power",
 				"icon": "mdi:solar-power",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_1_power }}"
 			}
 		},
@@ -896,7 +988,6 @@
 				"name": "PV2 Voltage",
 				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_2_voltage }}"
 			}
 		},
@@ -911,7 +1002,6 @@
 				"name": "PV2 Current",
 				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_2_current }}"
 			}
 		},
@@ -926,7 +1016,6 @@
 				"name": "PV2 Power",
 				"icon": "mdi:solar-power",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_2_power }}"
 			}
 		},
@@ -945,7 +1034,6 @@
 				"name": "PV Total Power",
 				"icon": "mdi:solar-power",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.pv_total_power }}"
 			}
 		},
@@ -961,7 +1049,6 @@
 				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
 				"unit_of_measurement": "W",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.active_power }}"
 			}
 		},
@@ -976,7 +1063,6 @@
 				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "measurement",
 				"unit_of_measurement": "W",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.load_power }}"
 			}
 		},
@@ -992,7 +1078,6 @@
 				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
 				"unit_of_measurement": "W",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.grid }}"
 			}
 		},
@@ -1003,7 +1088,6 @@
 				"name": "Insulation resistance",
 				"icon": "mdi:omega",
 				"unit_of_measurement": "Ohms",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.insulation_resistance }}"
 			},
 			"refresh": 3600
@@ -1019,7 +1103,6 @@
 				"icon": "mdi:sine-wave",
 				"state_class": "measurement",
 				"unit_of_measurement": "Hz",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.ongrid_frequency }}"
 			},
 			"refresh": 60
@@ -1035,7 +1118,6 @@
 				"name": "On-grid Voltage",
 				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.ongrid_voltage }}"
 			},
 			"refresh": 60
@@ -1049,7 +1131,6 @@
 				"name": "Internal Temperature",
 				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.inverter_temp_internal }}"
 			}
 		},
@@ -1062,7 +1143,6 @@
 				"name": "Heatsink Temperature",
 				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.inverter_temp_heatsink }}"
 			}
 		},
@@ -1077,7 +1157,6 @@
 				"name": "Off-Grid Power",
 				"icon": "mdi:lightning-bolt",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_active_power }}"
 			}
 		},
@@ -1092,7 +1171,6 @@
 				"name": "Off-Grid Frequency",
 				"icon": "mdi:sine-wave",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_frequency }}"
 			},
 			"refresh": 60
@@ -1108,7 +1186,6 @@
 				"name": "Off-Grid Voltage",
 				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.offgrid_voltage }}"
 			},
 			"refresh": 60
@@ -1125,7 +1202,6 @@
 				"name": "Battery Current",
 				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_current }}"
 			}
 		},
@@ -1141,7 +1217,6 @@
 				"name": "Battery Power",
 				"icon": "mdi:battery-charging",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_power }}"
 			}
 		},
@@ -1156,7 +1231,6 @@
 				"name": "Solar Generation Today",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_generation }}"
 			},
 			"refresh": 60
@@ -1172,7 +1246,6 @@
 				"name": "Solar Generation Total",
 				"icon": "mdi:solar-power-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_generation }}"
 			},
 			"refresh": 3600
@@ -1188,7 +1261,6 @@
 				"name": "Consumption Today",
 				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_consumption }}"
 			},
 			"refresh": 60
@@ -1204,7 +1276,6 @@
 				"name": "Consumption Total",
 				"icon": "mdi:home-lightning-bolt-outline",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_consumption }}"
 			},
 			"refresh": 3600
@@ -1220,7 +1291,6 @@
 				"name": "Import Today",
 				"icon": "mdi:transmission-tower-import",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_import }}"
 			},
 			"refresh": 60
@@ -1236,7 +1306,6 @@
 				"name": "Import Total",
 				"icon": "mdi:transmission-tower-import",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_import }}"
 			},
 			"refresh": 3600
@@ -1252,7 +1321,6 @@
 				"name": "Export Today",
 				"icon": "mdi:transmission-tower-export",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_export }}"
 			},
 			"refresh": 60
@@ -1268,7 +1336,6 @@
 				"name": "Export Total",
 				"icon": "mdi:transmission-tower-export",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_export }}"
 			},
 			"refresh": 3600
@@ -1284,7 +1351,6 @@
 				"name": "Battery Charge Today",
 				"icon": "mdi:battery-plus-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_battery_charge }}"
 			},
 			"refresh": 60
@@ -1300,7 +1366,6 @@
 				"name": "Battery Charge Total",
 				"icon": "mdi:battery-plus-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_battery_charge }}"
 			},
 			"refresh": 3600
@@ -1316,7 +1381,6 @@
 				"name": "Battery Discharge Today",
 				"icon": "mdi:battery-minus-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.today_battery_discharge }}"
 			},
 			"refresh": 60
@@ -1332,7 +1396,6 @@
 				"name": "Battery Discharge Total",
 				"icon": "mdi:battery-minus-variant",
 				"state_class": "total_increasing",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.total_battery_discharge }}"
 			},
 			"refresh": 3600
@@ -1348,7 +1411,6 @@
 				"name": "Battery Voltage",
 				"icon": "mdi:alpha-v-box",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_voltage }}"
 			}
 		},
@@ -1362,7 +1424,6 @@
 				"name": "Battery Temperature",
 				"icon": "mdi:temperature-celsius",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_temp }}"
 			}
 		},
@@ -1375,7 +1436,6 @@
 				"name": "Battery SOC",
 				"icon": "mdi:battery-80",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_soc }}"
 			},
 			"min": 0,
@@ -1390,7 +1450,6 @@
 				"name": "Battery SOH",
 				"icon": "mdi:battery-heart-variant",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_soh }}"
 			},
 			"refresh": 3600
@@ -1404,7 +1463,6 @@
 				"name": "Battery Cycles",
 				"icon": "mdi:battery-sync",
 				"state_class": "measurement",
-				"entity_category": "diagnostic",
 				"value_template": "{{ value_json.battery_cycles }}"
 			},
 			"refresh": 3600
@@ -1589,5 +1647,1092 @@
 			"untested": true,
 			"refresh": 86400
 		}
-	]
+	],
+	"error_codes": {
+		"1": {
+			"name": "GridOVP",
+			"description": "The grid voltage is too high",
+			"solution": "If the alarm occurs occasionally, the possible cause is that the electric grid is abnormal occasionally. Inverter will automatically return to normal operating status when the electric grid’s back to normal. If the alarm occurs frequently, check whether the grid voltage/frequency is within the acceptable range. If yes, please check the AC circuit breaker and AC wiring of the inverter. If the grid voltage/frequency is NOT within the acceptable range and AC wiring is correct, but the alarm occurs repeatedly, contact technical support to change the grid protection points after obtaining approval from the local electrical grid operator."
+		},
+		"2": {
+			"name": "GridUVP",
+			"description": "The grid voltage is too low"
+		},
+		"3": {
+			"name": "GridOFP",
+			"description": "The grid frequency is too high"
+		},
+		"4": {
+			"name": "GridUFP",
+			"description": "The grid frequency is too low"
+		},
+		"5": {
+			"name": "GFCI",
+			"description": "Charge Leakage Fault",
+			"solution": "Internal faults of inverter, switch OFF inverter, wait for 5 minutes, then switch ON inverter. Check whether the problem is solved. If no, please contact technical support."
+		},
+		"6": {
+			"name": "OVRT",
+			"description": "OVRT function is faulty"
+		},
+		"7": {
+			"name": "LVRT",
+			"description": "LVRT function is faulty"
+		},
+		"8": {
+			"name": "IslandFault",
+			"description": "Island protection error"
+		},
+		"9": {
+			"name": "GridOVPInstant1",
+			"description": "Transient overvoltage of grid voltage 1"
+		},
+		"10": {
+			"name": "GridOVPInstant2",
+			"description": "Transient overvoltage of grid voltage 2"
+		},
+		"11": {
+			"name": "VGridLineFault",
+			"description": "Power grid line voltage error"
+		},
+		"12": {
+			"name": "InvOVP",
+			"description": "Inverter voltage overvoltage"
+		},
+		"17": {
+			"name": "HwADFaultIGrid",
+			"description": "Power grid current sampling error"
+		},
+		"18": {
+			"name": "HwADFaultDCI(AC)",
+			"description": "Wrong sampling of DC component of grid current"
+		},
+		"19": {
+			"name": "HwADFaultVGrid(DC)",
+			"description": "Power grid voltage sampling error (DC)"
+		},
+		"20": {
+			"name": "HwADFaultVGrid(AC)",
+			"description": "Power grid voltage sampling error (AC)"
+		},
+		"21": {
+			"name": "GFCIDeviceFault(DC)",
+			"description": "Leakage current sampling error (DC)"
+		},
+		"22": {
+			"name": "GFCIDeviceFault(AC)",
+			"description": "Leakage current sampling error (AC)"
+		},
+		"23": {
+			"name": "HwADFaultDCV",
+			"description": "Error in DC component sampling of load voltage"
+		},
+		"24": {
+			"name": "HwADFaultIdc",
+			"description": "DC input current sampling error"
+		},
+		"25": {
+			"name": "HwADFaultDCI(DC)"
+		},
+		"26": {
+			"name": "HwADFaultIdcBranch"
+		},
+		"29": {
+			"name": "ConsistentFault_GFCI",
+			"description": "Leakage current consistency error"
+		},
+		"30": {
+			"name": "ConsistentFault_Vgrid",
+			"description": "Grid voltage consistency error"
+		},
+		"31": {
+			"name": "ConsistentFault_DCI"
+		},
+		"33": {
+			"name": "SpiCommFault(DC)",
+			"description": "SPI communication error (DC)"
+		},
+		"34": {
+			"name": "SpiCommFault(AC)",
+			"description": "SPI communication error (AC)"
+		},
+		"35": {
+			"name": "SChip_Fault",
+			"description": "Chip error (DC)"
+		},
+		"36": {
+			"name": "MChip_Fault",
+			"description": "Chip error (AC)"
+		},
+		"37": {
+			"name": "HwAuxPowerFault",
+			"description": "Auxiliary power error"
+		},
+		"38": {
+			"name": "InverterSoftStartFail"
+		},
+		"41": {
+			"name": "RelayFail",
+			"description": "Relay detection failure"
+		},
+		"42": {
+			"name": "IsoFault",
+			"description": "Low insulation impedance",
+			"solution": "Check the insulation resistance between the photovoltaic array and ground. If there is a short circuit, repair the fault in time."
+		},
+		"43": {
+			"name": "PEConnectFault",
+			"description": "Ground fault",
+			"solution": "Check AC output PE wire for grounding."
+		},
+		"44": {
+			"name": "PvConfigError",
+			"description": "Error setting input mode",
+			"solution": "Check the PV input mode (parallel/independent). If incorrect, change the PV input mode."
+		},
+		"45": {
+			"name": "CTDisconnect",
+			"description": "CT error",
+			"solution": "Check whether the CT wiring is correct."
+		},
+		"46": {
+			"name": "ReversalConnection"
+		},
+		"47": {
+			"name": "ParallelFault"
+		},
+		"48": {
+			"name": "SNTypeFault"
+		},
+		"49": {
+			"name": "TempFault_Bat",
+			"description": "Battery temperature protection",
+			"solution": "Ensure inverter is installed in a cool, ventilated place, not in direct sunlight, and ambient temperature is below inverter limits."
+		},
+		"50": {
+			"name": "TempFault_HeatSink1",
+			"description": "Radiator 1 temperature protection"
+		},
+		"51": {
+			"name": "TempFault_HeatSink2",
+			"description": "Radiator 2 temperature protection"
+		},
+		"52": {
+			"name": "TempFault_HeatSink3",
+			"description": "Radiator 3 temperature protection"
+		},
+		"53": {
+			"name": "TempFault_HeatSink4",
+			"description": "Radiator 4 temperature protection"
+		},
+		"54": {
+			"name": "TempFault_HeatSink5",
+			"description": "Radiator 5 temperature protection"
+		},
+		"55": {
+			"name": "TempFault_HeatSink6",
+			"description": "Radiator 6 temperature protection"
+		},
+		"57": {
+			"name": "TempFault_Env1",
+			"description": "Ambient temperature 1 protection"
+		},
+		"58": {
+			"name": "TempFault_Env2",
+			"description": "Ambient temperature 2 protection"
+		},
+		"59": {
+			"name": "TempFault_Inv1",
+			"description": "Module 1 temperature protection"
+		},
+		"60": {
+			"name": "TempFault_Inv2",
+			"description": "Module 2 temperature protection"
+		},
+		"61": {
+			"name": "TempFault_Inv3",
+			"description": "Module 3 temperature protection"
+		},
+		"65": {
+			"name": "VbusRmsUnbalance",
+			"description": "Unbalanced bus voltage RMS",
+			"solution": "Internal fault. Switch OFF inverter, wait 5 minutes, then switch ON. If unresolved, contact technical support."
+		},
+		"66": {
+			"name": "VbusInstantUnbalance",
+			"description": "Transient value of bus voltage unbalanced",
+			"solution": "Internal fault. Switch OFF inverter, wait 5 minutes, then switch ON. If unresolved, contact technical support."
+		},
+		"67": {
+			"name": "BusUVP",
+			"description": "Busbar undervoltage during grid-connection"
+		},
+		"68": {
+			"name": "BusZVP",
+			"description": "Bus voltage low"
+		},
+		"69": {
+			"name": "PVOVP",
+			"description": "PV over-voltage",
+			"solution": "Check whether PV series voltage (Voc) exceeds inverter max input voltage. Reduce number of modules in series if needed."
+		},
+		"70": {
+			"name": "BatOVP",
+			"description": "Battery over-voltage",
+			"solution": "Check whether the battery overvoltage setting matches battery specifications."
+		},
+		"71": {
+			"name": "LLCBusOVP",
+			"description": "LLC BUS overvoltage protection",
+			"solution": "Internal fault. Switch OFF inverter, wait 5 minutes, then switch ON. If unresolved, contact technical support."
+		},
+		"72": {
+			"name": "SwBusRmsOVP",
+			"description": "Inverter bus voltage RMS software overvoltage"
+		},
+		"73": {
+			"name": "SwBusInstantOVP",
+			"description": "Inverter bus voltage instantaneous value software overvoltage"
+		},
+		"74": {
+			"name": "FlyingCapOVP"
+		},
+		"81": {
+			"name": "SwBatOCP",
+			"description": "Battery overcurrent software protection"
+		},
+		"82": {
+			"name": "DciOCP",
+			"description": "DCI overcurrent protection"
+		},
+		"83": {
+			"name": "SwOCPInstant",
+			"description": "Output instantaneous current protection"
+		},
+		"84": {
+			"name": "SwBuckBoostOCP",
+			"description": "BuckBoost software overflow"
+		},
+		"85": {
+			"name": "SwAcRmsOCP",
+			"description": "Output effective value current protection"
+		},
+		"86": {
+			"name": "SwPvOCPInstant",
+			"description": "PV overcurrent software protection"
+		},
+		"87": {
+			"name": "IpvUnbalance",
+			"description": "PV flows in uneven parallel"
+		},
+		"88": {
+			"name": "IacUnbalance",
+			"description": "Unbalanced output current"
+		},
+		"89": {
+			"name": "SwPvOCP"
+		},
+		"97": {
+			"name": "HwLLCBusOVP",
+			"description": "LLC bus hardware overvoltage"
+		},
+		"98": {
+			"name": "HwBusOVP",
+			"description": "Inverter bus hardware overvoltage"
+		},
+		"99": {
+			"name": "HwBuckBoostOCP",
+			"description": "BuckBoost hardware overflows"
+		},
+		"100": {
+			"name": "HwBatOCP",
+			"description": "Battery hardware overflows"
+		},
+		"102": {
+			"name": "HwPVOCP",
+			"description": "PV hardware overflows"
+		},
+		"103": {
+			"name": "HwACOCP",
+			"description": "AC output hardware overflows"
+		},
+		"110": {
+			"name": "Overload1",
+			"description": "Overload protection 1",
+			"solution": "Check whether the inverter is operating under overload."
+		},
+		"111": {
+			"name": "Overload2",
+			"description": "Overload protection 2"
+		},
+		"112": {
+			"name": "Overload3",
+			"description": "Overload protection 3"
+		},
+		"113": {
+			"name": "OverTempDerating",
+			"description": "Internal temperature is too high",
+			"solution": "Ensure inverter is installed in a cool, ventilated place, not in direct sunlight, and ambient temperature is below limits."
+		},
+		"114": {
+			"name": "FreqDerating",
+			"description": "AC frequency is too high",
+			"solution": "Ensure grid frequency and voltage are within acceptable range."
+		},
+		"115": {
+			"name": "FreqLoading",
+			"description": "AC frequency is too low"
+		},
+		"116": {
+			"name": "VoltDerating",
+			"description": "AC voltage is too high"
+		},
+		"117": {
+			"name": "VoltLoading",
+			"description": "AC voltage is too low"
+		},
+		"124": {
+			"name": "BatLowVoltageAlarm",
+			"description": "Battery low voltage protection",
+			"solution": "Check whether the battery voltage of the inverter is too low."
+		},
+		"125": {
+			"name": "BatLowVoltageShut",
+			"description": "Battery low voltage shutdown"
+		},
+		"129": {
+			"name": "unrecoverHwAcOCP",
+			"description": "Output hardware overcurrent permanent failure",
+			"solution": "Internal fault. Switch OFF inverter, wait 5 minutes, then switch ON. If unresolved, contact technical support."
+		},
+		"130": {
+			"name": "unrecoverBusOVP",
+			"description": "Permanent Bus overvoltage failure"
+		},
+		"131": {
+			"name": "unrecoverHwBusOVP",
+			"description": "Permanent Bus hardware overvoltage failure"
+		},
+		"132": {
+			"name": "unrecoverIpvUnbalance",
+			"description": "PV uneven flow permanent failure"
+		},
+		"133": {
+			"name": "unrecoverEPSBatOCP",
+			"description": "Permanent battery overcurrent failure in EPS mode"
+		},
+		"134": {
+			"name": "unrecoverAcOCPInstant",
+			"description": "Output transient overcurrent permanent failure"
+		},
+		"135": {
+			"name": "unrecoverIacUnbalance",
+			"description": "Permanent failure of unbalanced output current"
+		},
+		"137": {
+			"name": "unrecoverPvConfigError",
+			"description": "Input mode setting error permanent failure",
+			"solution": "Check the PV input mode (parallel/independent). If incorrect, change the PV input mode."
+		},
+		"138": {
+			"name": "unrecoverPVOCPInstant",
+			"description": "Input overcurrent permanent fault"
+		},
+		"139": {
+			"name": "unrecoverHwPVOCP",
+			"description": "Input hardware overcurrent permanent failure"
+		},
+		"140": {
+			"name": "unrecoverRelayFail",
+			"description": "Permanent relay failure"
+		},
+		"141": {
+			"name": "unrecoverVbusUnbalance",
+			"description": "Bus voltage unbalanced permanent failure"
+		},
+		"145": {
+			"name": "USBFault",
+			"description": "USB fault",
+			"solution": "Check the USB port of the inverter."
+		},
+		"146": {
+			"name": "WifiFault",
+			"description": "Wifi fault",
+			"solution": "Check the Wifi port of the inverter."
+		},
+		"147": {
+			"name": "BluetoothFault",
+			"description": "Bluetooth fault",
+			"solution": "Check the Bluetooth connection of the inverter."
+		},
+		"148": {
+			"name": "RTCFault",
+			"description": "RTC clock failure",
+			"solution": "Internal fault. Switch OFF inverter, wait 5 minutes, then switch ON. If unresolved, contact technical support."
+		},
+		"149": {
+			"name": "CommEEPROMFault",
+			"description": "Communication board EEPROM error",
+			"solution": "Internal fault. Switch OFF inverter, wait 5 minutes, then switch ON. If unresolved, contact technical support."
+		},
+		"150": {
+			"name": "FlashFault",
+			"description": "Communication board FLASH error"
+		},
+		"151": {
+			"name": "FlashFault",
+			"description": "Communication board FLASH error"
+		},
+		"152": {
+			"name": "SafetyVerFault"
+		},
+		"153": {
+			"name": "SciCommLose(DC)",
+			"description": "SCI communication error (DC)"
+		},
+		"154": {
+			"name": "SciCommLose(AC)",
+			"description": "SCI communication error (AC)"
+		},
+		"155": {
+			"name": "SciCommLose(Fuse)",
+			"description": "SCI communication error (Fuse)"
+		},
+		"156": {
+			"name": "SoftVerError",
+			"description": "Inconsistent software versions",
+			"solution": "Contact technical support for software upgrades."
+		},
+		"157": {
+			"name": "BMS1CommunicatonFault",
+			"description": "Communication failure of lithium battery",
+			"solution": "Ensure battery is compatible with inverter. CAN communication recommended. Check communication line or port for faults."
+		},
+		"158": {
+			"name": "BMS2CommunicatonFault"
+		},
+		"159": {
+			"name": "BMS3CommunicatonFault"
+		},
+		"160": {
+			"name": "BMS4CommunicatonFault"
+		},
+		"161": {
+			"name": "ForceShutdown",
+			"description": "Force shutdown",
+			"solution": "The inverter has performed a forced shutdown."
+		},
+		"162": {
+			"name": "RemoteShutdown",
+			"description": "Remote shutdown",
+			"solution": "The inverter has performed a remote shutdown."
+		},
+		"163": {
+			"name": "Drms0Shutdown",
+			"description": "Drms0 shutdown",
+			"solution": "The inverter has performed a Drms0 shutdown."
+		},
+		"165": {
+			"name": "RemoteDerating",
+			"description": "Remote derating",
+			"solution": "The inverter is performing remote load reduction."
+		},
+		"166": {
+			"name": "LogicInterfaceDerating",
+			"description": "Logic interface derating",
+			"solution": "The inverter is derated by the execution logic interface."
+		},
+		"167": {
+			"name": "AlarmAntiRefluxing",
+			"description": "Anti reflux derating",
+			"solution": "The inverter is preventing countercurrent load drop."
+		},
+		"169": {
+			"name": "FanFault1"
+		},
+		"170": {
+			"name": "FanFault2"
+		},
+		"171": {
+			"name": "FanFault3"
+		},
+		"172": {
+			"name": "FanFault4"
+		},
+		"173": {
+			"name": "FanFault5"
+		},
+		"174": {
+			"name": "FanFault6"
+		},
+		"176": {
+			"name": "MeterCommLose"
+		},
+		"177": {
+			"name": "BMS OVP",
+			"description": "BMS over-voltage alarm",
+			"solution": "Internal battery failure. Close inverter and battery, wait 5 minutes, then restart. If unresolved, contact technical support."
+		},
+		"178": {
+			"name": "BMS UVP",
+			"description": "BMS under-voltage alarm"
+		},
+		"179": {
+			"name": "BMS OTP",
+			"description": "BMS high temperature warning"
+		},
+		"180": {
+			"name": "BMS UTP",
+			"description": "BMS low temperature alarm"
+		},
+		"181": {
+			"name": "BMS OCP",
+			"description": "Warning of overload in charge and discharge of BMS"
+		},
+		"182": {
+			"name": "BMS Short",
+			"description": "BMS short circuit alarm",
+			"solution": "Maintenance required."
+		},
+		"183": {
+			"name": "StringFuse_Fault0"
+		},
+		"184": {
+			"name": "StringFuse_Fault1"
+		},
+		"185": {
+			"name": "StringFuse_Fault2"
+		},
+		"186": {
+			"name": "StringFuse_Fault3"
+		},
+		"187": {
+			"name": "StringFuse_Fault4"
+		},
+		"188": {
+			"name": "StringFuse_Fault5"
+		},
+		"189": {
+			"name": "StringFuse_Fault6"
+		},
+		"190": {
+			"name": "StringFuse_Fault7"
+		},
+		"191": {
+			"name": "StringFuse_Fault8"
+		},
+		"192": {
+			"name": "StringFuse_Fault9"
+		},
+		"193": {
+			"name": "StringFuse_Fault10"
+		},
+		"194": {
+			"name": "StringFuse_Fault11"
+		},
+		"195": {
+			"name": "StringFuse_Fault12"
+		},
+		"196": {
+			"name": "StringFuse_Fault13"
+		},
+		"197": {
+			"name": "StringFuse_Fault14"
+		},
+		"198": {
+			"name": "StringFuse_Fault15"
+		},
+		"199": {
+			"name": "StringFuse_Fault16"
+		},
+		"200": {
+			"name": "StringFuse_Fault17"
+		},
+		"201": {
+			"name": "StringFuse_Fault18"
+		},
+		"202": {
+			"name": "StringFuse_Fault19"
+		},
+		"203": {
+			"name": "StringFuse_Fault20"
+		},
+		"204": {
+			"name": "StringFuse_Fault21"
+		},
+		"205": {
+			"name": "StringFuse_Fault22"
+		},
+		"206": {
+			"name": "StringFuse_Fault23"
+		},
+		"207": {
+			"name": "StringFuse_Fault24"
+		},
+		"208": {
+			"name": "StringFuse_Fault25"
+		},
+		"209": {
+			"name": "StringFuse_Fault26"
+		},
+		"210": {
+			"name": "StringFuse_Fault27"
+		},
+		"211": {
+			"name": "StringFuse_Fault28"
+		},
+		"212": {
+			"name": "StringFuse_Fault29"
+		},
+		"213": {
+			"name": "StringFuse_Fault30"
+		},
+		"214": {
+			"name": "StringFuse_Fault31"
+		},
+		"215": {
+			"name": "InputFuse_Fault0"
+		},
+		"216": {
+			"name": "InputFuse_Fault1"
+		},
+		"217": {
+			"name": "InputFuse_Fault2"
+		},
+		"218": {
+			"name": "InputFuse_Fault3"
+		},
+		"219": {
+			"name": "InputFuse_Fault4"
+		},
+		"220": {
+			"name": "InputFuse_Fault5"
+		},
+		"221": {
+			"name": "InputFuse_Fault6"
+		},
+		"222": {
+			"name": "InputFuse_Fault7"
+		},
+		"223": {
+			"name": "InputFuse_Fault8"
+		},
+		"224": {
+			"name": "InputFuse_Fault9"
+		},
+		"225": {
+			"name": "InputFuse_Fault10"
+		},
+		"226": {
+			"name": "InputFuse_Fault11"
+		},
+		"227": {
+			"name": "InputFuse_Fault12"
+		},
+		"228": {
+			"name": "InputFuse_Fault13"
+		},
+		"229": {
+			"name": "InputFuse_Fault14"
+		},
+		"230": {
+			"name": "InputFuse_Fault15"
+		},
+		"231": {
+			"name": "CombinerOverVoltageGroup1"
+		},
+		"232": {
+			"name": "CombinerOverVoltageGroup2"
+		},
+		"233": {
+			"name": "CombinerOverVoltageGroup3"
+		},
+		"234": {
+			"name": "CombinerOverVoltageGroup4"
+		},
+		"235": {
+			"name": "CombinerOverVoltageGroup5"
+		},
+		"236": {
+			"name": "CombinerOverVoltageGroup6"
+		},
+		"237": {
+			"name": "CombinerOverVoltageGroup7"
+		},
+		"238": {
+			"name": "CombinerOverVoltageGroup8"
+		},
+		"239": {
+			"name": "CombinerOverVoltageGroup9"
+		},
+		"240": {
+			"name": "CombinerOverVoltageGroup10"
+		},
+		"241": {
+			"name": "CombinerOverVoltageGroup11"
+		},
+		"242": {
+			"name": "CombinerOverVoltageGroup12"
+		},
+		"243": {
+			"name": "CombinerOverVoltageGroup13"
+		},
+		"244": {
+			"name": "CombinerOverVoltageGroup14"
+		},
+		"245": {
+			"name": "CombinerOverVoltageGroup15"
+		},
+		"246": {
+			"name": "CombinerOverVoltageGroup16"
+		},
+		"247": {
+			"name": "CombinerUnderVoltageGroup1"
+		},
+		"248": {
+			"name": "CombinerUnderVoltageGroup2"
+		},
+		"249": {
+			"name": "CombinerUnderVoltageGroup3"
+		},
+		"250": {
+			"name": "CombinerUnderVoltageGroup4"
+		},
+		"251": {
+			"name": "CombinerUnderVoltageGroup5"
+		},
+		"252": {
+			"name": "CombinerUnderVoltageGroup6"
+		},
+		"253": {
+			"name": "CombinerUnderVoltageGroup7"
+		},
+		"254": {
+			"name": "CombinerUnderVoltageGroup8"
+		},
+		"255": {
+			"name": "CombinerUnderVoltageGroup9"
+		},
+		"256": {
+			"name": "CombinerUnderVoltageGroup10"
+		},
+		"257": {
+			"name": "CombinerUnderVoltageGroup11"
+		},
+		"258": {
+			"name": "CombinerUnderVoltageGroup12"
+		},
+		"259": {
+			"name": "CombinerUnderVoltageGroup13"
+		},
+		"260": {
+			"name": "CombinerUnderVoltageGroup14"
+		},
+		"261": {
+			"name": "CombinerUnderVoltageGroup15"
+		},
+		"262": {
+			"name": "CombinerUnderVoltageGroup16"
+		},
+		"263": {
+			"name": "CombinerOverCurrent1"
+		},
+		"264": {
+			"name": "CombinerOverCurrent2"
+		},
+		"265": {
+			"name": "CombinerOverCurrent3"
+		},
+		"266": {
+			"name": "CombinerOverCurrent4"
+		},
+		"267": {
+			"name": "CombinerOverCurrent5"
+		},
+		"268": {
+			"name": "CombinerOverCurrent6"
+		},
+		"269": {
+			"name": "CombinerOverCurrent7"
+		},
+		"270": {
+			"name": "CombinerOverCurrent8"
+		},
+		"271": {
+			"name": "CombinerOverCurrent9"
+		},
+		"272": {
+			"name": "CombinerOverCurrent10"
+		},
+		"273": {
+			"name": "CombinerOverCurrent11"
+		},
+		"274": {
+			"name": "CombinerOverCurrent12"
+		},
+		"275": {
+			"name": "CombinerOverCurrent13"
+		},
+		"276": {
+			"name": "CombinerOverCurrent14"
+		},
+		"277": {
+			"name": "CombinerOverCurrent15"
+		},
+		"278": {
+			"name": "CombinerOverCurrent16"
+		},
+		"279": {
+			"name": "CombinerOverCurrent17"
+		},
+		"280": {
+			"name": "CombinerOverCurrent18"
+		},
+		"281": {
+			"name": "CombinerOverCurrent19"
+		},
+		"282": {
+			"name": "CombinerOverCurrent20"
+		},
+		"283": {
+			"name": "CombinerOverCurrent21"
+		},
+		"284": {
+			"name": "CombinerOverCurrent22"
+		},
+		"285": {
+			"name": "CombinerOverCurrent23"
+		},
+		"286": {
+			"name": "CombinerOverCurrent24"
+		},
+		"287": {
+			"name": "CombinerOverCurrent25"
+		},
+		"288": {
+			"name": "CombinerOverCurrent26"
+		},
+		"289": {
+			"name": "CombinerOverCurrent27"
+		},
+		"290": {
+			"name": "CombinerOverCurrent28"
+		},
+		"291": {
+			"name": "CombinerOverCurrent29"
+		},
+		"292": {
+			"name": "CombinerOverCurrent30"
+		},
+		"293": {
+			"name": "CombinerOverCurrent31"
+		},
+		"294": {
+			"name": "CombinerOverCurrent32"
+		},
+		"301": {
+			"name": "CombinerOverCurrent29"
+		},
+		"302": {
+			"name": "CombinerOverCurrent30"
+		},
+		"303": {
+			"name": "CombinerOverCurrent31"
+		},
+		"304": {
+			"name": "CombinerOverCurrent32"
+		},
+		"337": {
+			"name": "CombinerRefluxFault1"
+		},
+		"338": {
+			"name": "CombinerRefluxFault2"
+		},
+		"339": {
+			"name": "CombinerRefluxFault3"
+		},
+		"340": {
+			"name": "CombinerRefluxFault4"
+		},
+		"341": {
+			"name": "CombinerRefluxFault5"
+		},
+		"342": {
+			"name": "CombinerRefluxFault6"
+		},
+		"343": {
+			"name": "CombinerRefluxFault7"
+		},
+		"344": {
+			"name": "CombinerRefluxFault8"
+		},
+		"345": {
+			"name": "CombinerRefluxFault9"
+		},
+		"346": {
+			"name": "CombinerRefluxFault10"
+		},
+		"347": {
+			"name": "CombinerRefluxFault11"
+		},
+		"348": {
+			"name": "CombinerRefluxFault12"
+		},
+		"349": {
+			"name": "CombinerRefluxFault13"
+		},
+		"350": {
+			"name": "CombinerRefluxFault14"
+		},
+		"351": {
+			"name": "CombinerRefluxFault15"
+		},
+		"352": {
+			"name": "CombinerRefluxFault16"
+		},
+		"353": {
+			"name": "CombinerRefluxFault17"
+		},
+		"354": {
+			"name": "CombinerRefluxFault18"
+		},
+		"355": {
+			"name": "CombinerRefluxFault19"
+		},
+		"356": {
+			"name": "CombinerRefluxFault20"
+		},
+		"357": {
+			"name": "CombinerRefluxFault21"
+		},
+		"358": {
+			"name": "CombinerRefluxFault22"
+		},
+		"359": {
+			"name": "CombinerRefluxFault23"
+		},
+		"360": {
+			"name": "CombinerRefluxFault24"
+		},
+		"361": {
+			"name": "CombinerRefluxFault25"
+		},
+		"362": {
+			"name": "CombinerRefluxFault26"
+		},
+		"363": {
+			"name": "CombinerRefluxFault27"
+		},
+		"364": {
+			"name": "CombinerRefluxFault28"
+		},
+		"365": {
+			"name": "CombinerRefluxFault29"
+		},
+		"366": {
+			"name": "CombinerRefluxFault30"
+		},
+		"367": {
+			"name": "CombinerRefluxFault31"
+		},
+		"368": {
+			"name": "CombinerRefluxFault32"
+		},
+		"401": {
+			"name": "AFCI0"
+		},
+		"402": {
+			"name": "AFCI1"
+		},
+		"403": {
+			"name": "AFCI2"
+		},
+		"404": {
+			"name": "AFCI3"
+		},
+		"405": {
+			"name": "AFCI4"
+		},
+		"406": {
+			"name": "AFCI5"
+		},
+		"407": {
+			"name": "AFCI6"
+		},
+		"408": {
+			"name": "AFCI7"
+		},
+		"409": {
+			"name": "AFCI8"
+		},
+		"410": {
+			"name": "AFCI9"
+		},
+		"411": {
+			"name": "AFCI10"
+		},
+		"412": {
+			"name": "AFCI11"
+		},
+		"413": {
+			"name": "AFCI12"
+		},
+		"414": {
+			"name": "AFCI13"
+		},
+		"415": {
+			"name": "AFCI14"
+		},
+		"416": {
+			"name": "AFCI15"
+		},
+		"417": {
+			"name": "AFCI16"
+		},
+		"418": {
+			"name": "AFCI17"
+		},
+		"419": {
+			"name": "AFCI18"
+		},
+		"420": {
+			"name": "AFCI19"
+		},
+		"421": {
+			"name": "AFCI20"
+		},
+		"422": {
+			"name": "AFCI21"
+		},
+		"423": {
+			"name": "AFCI22"
+		},
+		"424": {
+			"name": "AFCI23"
+		},
+		"425": {
+			"name": "AFCI24"
+		},
+		"426": {
+			"name": "AFCI25"
+		},
+		"427": {
+			"name": "AFCI26"
+		},
+		"428": {
+			"name": "AFCI27"
+		},
+		"429": {
+			"name": "AFCI28"
+		},
+		"430": {
+			"name": "AFCI29"
+		},
+		"431": {
+			"name": "AFCI30"
+		},
+		"432": {
+			"name": "AFCI31"
+		}
+	}
 }
