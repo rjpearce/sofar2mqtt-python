@@ -301,18 +301,18 @@ class Sofar():
     def combine_aggregate_registers(self, register):
         """ Combine registers from the 'aggregate' field using the arithmetic function in 'agg_function' """
         raw_value = 0
-        for register_name in register['aggregate']:
-            if register_name in self.raw_data:
+        for agg_register_name in register['aggregate']:
+            if agg_register_name in self.raw_data:
                 if raw_value == 0:
-                    raw_value = self.raw_data[register_name]
+                    raw_value = self.raw_data[agg_register_name]
                 else:
                     if register['agg_function'] == 'add':
-                        raw_value += self.raw_data[register_name]
+                        raw_value += self.raw_data[agg_register_name]
                     elif register['agg_function'] == 'subtract':
-                        raw_value -= self.raw_data[register_name]
+                        raw_value -= self.raw_data[agg_register_name]
                     elif register['agg_function'] == 'avg':
                         raw_value = int(
-                            (raw_value + self.raw_data[register_name]) / 2)
+                            (raw_value + self.raw_data[agg_register_name]) / 2)
         self.raw_data[register['name']] = raw_value
         return raw_value
 
@@ -324,17 +324,20 @@ class Sofar():
                 continue
             raw_value = None
             logging.debug('Reading %s', register['name'])
+           
+            if register.get('read_type') == 'static':
+                logging.info(f"Using static value for {register['name']}")
+                raw_value = register['value']
             if 'aggregate' in register:
                 raw_value = self.combine_aggregate_registers(register)
-            if register.get('read_type') == 'static':
-                raw_value = register['value']
             if register.get('register', False):
-                raw_value = self.read_register(
-                    int(register['register'], 16),
-                    register.get('read_type', 'register'),
-                    register.get('signed', False),
-                    register.get('registers', 1)
-                )
+                if register.get('read', True):
+                    raw_value = self.read_register(
+                        int(register['register'], 16),
+                        register.get('read_type', 'register'),
+                        register.get('signed', False),
+                        register.get('registers', 1)
+                    )
 
             if 'aggregate_datetime_bitmap' in register:
                 continue

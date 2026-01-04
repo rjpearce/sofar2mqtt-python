@@ -794,6 +794,7 @@
 			"desc3": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189",
 			"type": "I32",
 			"function": "int",
+			"read": false,
 			"signed": true,
 			"passive": true,
 			"notify_on_change": true,
@@ -1202,6 +1203,21 @@
 				"icon": "mdi:alpha-a-box",
 				"state_class": "measurement",
 				"value_template": "{{ value_json.battery_current }}"
+			}
+		},
+		{
+			"name": "battery_current_2",
+			"register": "0x0669",
+			"function": "divide",
+			"factor": 100,
+			"signed": true,
+			"ha": {
+				"device_class": "current",
+				"unit_of_measurement": "A",
+				"name": "Battery Current 2",
+				"icon": "mdi:alpha-a-box",
+				"state_class": "measurement",
+				"value_template": "{{ value_json.battery_current_2 }}"
 			}
 		},
 		{
