@@ -1012,6 +1012,15 @@ class Sofar():
 
         return timestamp
 
+    def format_history_event(self, raw_value):
+        entry = self.config.get('error_codes', {}).get(str(raw_value), {})
+        name = entry.get("name", "")
+        description = entry.get("description", "")
+
+        if name and description:
+            return f"{name} – {description}"
+        return name or str(raw_value)
+
 
     def translate_from_raw_value(self, register, raw_value):
         """ Translate raw value to a normalized value using the function and factor """
@@ -1023,7 +1032,7 @@ class Sofar():
             elif register['function'] == 'mode':
                 return register['modes'].get(str(raw_value), raw_value)
             elif register['function'] == 'history_event_map':
-                return self.config.get('error_codes', {}).get(str(raw_value), raw_value)
+                return self.format_history_event(raw_value)
             elif register['function'] == 'bit_field':
                 length = len(register['fields'])
                 fields = []
