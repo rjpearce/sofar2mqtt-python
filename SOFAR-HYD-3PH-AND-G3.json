@@ -791,7 +791,8 @@
     {
       "name": "time_of_use_dow",
       "register": "0x1129",
-      "function": "bit_field",
+      "write_function": "bit_field",
+      "read_function": "bit_field",
       "fields": [
         "Sun",
         "Sat",
@@ -884,7 +885,8 @@
     {
       "name": "history_event_list_1",
       "register": "0x1480",
-      "function": "history_event_map",
+      "write_function": "history_event_map",
+      "read_function": "history_event_map",
       "ha": {
         "name": "History Event List 1",
         "icon": "mdi:calendar-alert",
