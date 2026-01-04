@@ -363,6 +363,9 @@ class Sofar():
             if not self.raw_data.get(register.get('name')) == raw_value:
                 if register.get('notify_on_change', False):
                     from_raw = self.raw_data.get(register.get('name'))
+                    if raw_value is None:
+                        logging.error(f"Value for {register['name']}: is none")
+                        continue
                     from_value = self.translate_from_raw_value(
                         register, from_raw)
                     logging.info(
