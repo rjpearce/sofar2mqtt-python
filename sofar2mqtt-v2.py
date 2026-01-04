@@ -363,7 +363,7 @@ class Sofar():
                         from_value = self.translate_from_raw_value(
                             register, from_raw)
                     except (ValueError, TypeError) as e:
-                        logging.error(f"Conversion failed for {from_raw}: {e}")
+                        logging.error(f"Conversion failed for {register['name']}, value {from_raw}: {e}")
                         continue
                     logging.info(
                         f"Notification - {register.get('name')} has changed from: {from_raw} ({from_value}) to: {raw_value} ({value})")
