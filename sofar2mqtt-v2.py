@@ -199,7 +199,7 @@ class Sofar():
                                         f"Received a request for {register['name']} but energy_storage_mode is not in Passive mode. Ignoring")
                                     continue
                             if register['name'] == 'charge_discharge_power':
-                                if int(self.raw_data.get('working_mode', None)) == 3:
+                                if int(self.raw_data.get('working_mode', None)) != 3:
                                     logging.info(
                                         f"Received a request for {register['name']} but working_mode is not in Passive mode. Ignoring")
                                     continue
