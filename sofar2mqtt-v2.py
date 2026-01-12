@@ -155,34 +155,34 @@ class Sofar():
                     logging.error(f"No function was provided for register {register['name']} skipping write operation. Check the JSON is configured correctly.")
                     continue
                 if register['function'] == 'mode':
-                        new_value = register['modes'].get(
-                            str(new_raw_value), None)
-                        logging.info(
-                            f"Received a request for {register['name']} to set mode value to: {new_raw_value} ({new_value})")
-                        if not new_value:
-                            logging.error(
-                                f"Received a request for {register['name']} but mode value: {new_value} is not a known mode. Ignoring")
-                        if register['name'] in self.raw_data:
-                            retry = self.write_retry
-                            raw_value = self.raw_data.get(
-                                register.get('name'), None)
-                            value = self.translate_from_raw_value(
-                                register, raw_value)
-                            while retry > 0:
-                                if self.raw_data[register['name']] == int(new_raw_value):
-                                    logging.info(
-                                        f"Current value for {register['name']}: {raw_value} ({value}). Matches desired value: {new_raw_value} ({new_value}).")
-                                    retry = 0
-                                else:
-                                    logging.info(
-                                        f"Current value for {register['name']}: {raw_value} ({value}), attempting to set it to: {new_raw_value} ({new_value}). Retries remaining: {retry}")
-                                    self.write_register(
-                                        register, int(new_raw_value))
-                                    time.sleep(self.write_retry_delay)
-                                    retry = retry - 1
-                        else:
-                            logging.error(
-                                f"No current read value for {register['name']} skipping write operation. Please try again.")
+                    new_value = register['modes'].get(
+                        str(new_raw_value), None)
+                    logging.info(
+                        f"Received a request for {register['name']} to set mode value to: {new_raw_value} ({new_value})")
+                    if not new_value:
+                        logging.error(
+                            f"Received a request for {register['name']} but mode value: {new_value} is not a known mode. Ignoring")
+                    if register['name'] in self.raw_data:
+                        retry = self.write_retry
+                        raw_value = self.raw_data.get(
+                            register.get('name'), None)
+                        value = self.translate_from_raw_value(
+                            register, raw_value)
+                        while retry > 0:
+                            if self.raw_data[register['name']] == int(new_raw_value):
+                                logging.info(
+                                    f"Current value for {register['name']}: {raw_value} ({value}). Matches desired value: {new_raw_value} ({new_value}).")
+                                retry = 0
+                            else:
+                                logging.info(
+                                    f"Current value for {register['name']}: {raw_value} ({value}), attempting to set it to: {new_raw_value} ({new_value}). Retries remaining: {retry}")
+                                self.write_register(
+                                    register, int(new_raw_value))
+                                time.sleep(self.write_retry_delay)
+                                retry = retry - 1
+                    else:
+                        logging.error(
+                            f"No current read value for {register['name']} skipping write operation. Please try again.")
                 else:
                     logging.info(
                         f"Received a request for {register['name']} to set value to: {payload}({new_raw_value})")
@@ -524,12 +524,12 @@ class Sofar():
         self.terminate(status_code=0)
 
 
-    def write_register_special(self, registeraddress, write_functioncode, value):
+    def write_register_special(self, registeraddress, functioncode, value):
         with self.mutex:
             reg_int = int(registeraddress, 16)
 
             logging.info(
-                f"Writing {registeraddress}({reg_int}) write_functioncode: {write_functioncode} with {value}"
+                f"Writing {registeraddress}({reg_int}) functioncode: {functioncode} with {value}"
             )
 
             # Payload = [cmd][param] (each uint16)
@@ -538,7 +538,7 @@ class Sofar():
             logging.info("Payload (no CRC): %s", payload.hex(" "))
 
             response = self.instrument._perform_command(
-                int(write_functioncode),
+                functioncode,   # 0x42
                 payload
             )
 
