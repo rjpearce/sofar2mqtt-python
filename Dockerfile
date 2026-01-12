@@ -11,7 +11,7 @@ RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} pip install --no-cache-dir -r requirem
 
 ENV CONFIG_FILE=sofar-hyd-ep.json \
     DAEMON=True \
-    LOG_LEVEL=DEBUG \
+    LOG_LEVEL=INFO \
     MQTT_HOST= \
     MQTT_PASSWORD= \
     MQTT_PORT=1883 \
