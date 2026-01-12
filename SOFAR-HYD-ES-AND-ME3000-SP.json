@@ -16,8 +16,7 @@
       "register": "0x1200",
       "desc": "Working mode",
       "type": "U16",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "Auto",
         "1": "Time of use",
@@ -43,17 +42,15 @@
     },
     {
       "name": "charge_discharge_power",
-      "register": "0x020d",
       "desc": "Charge/Discharge power (-3000 to 3000W) - used with Charge/Discharge modes",
       "type": "I16",
-      "write_function": "int",
-      "read_function": "multiply",
-      "factor": 10,
+      "function": "int",
       "min": -3000,
       "max": 3000,
       "signed": true,
       "passive": true,
       "write": true,
+      "read": false,
       "write_functioncode": "66",
       "notify_on_change": true,
       "write_addresses": {
@@ -72,7 +69,7 @@
         "name": "Charge/Discharge Power",
         "min": -3000,
         "max": 3000,
-        "step": 100,
+        "step": 10,
         "initial": 0,
         "mode": "slider",
         "value_template": "{{ value_json.charge_discharge_power }}",
@@ -84,9 +81,8 @@
     {
       "name": "running_state",
       "register": "0x200",
-      "write_function": "mode",
-      "read_function": "mode",
-      "modes": {
+      "function": "mode",
+           "modes": {
         "0": "Standby",
         "2": "Charging",
         "4": "Discharging",
@@ -179,9 +175,8 @@
     {
       "name": "grid_voltage",
       "register": "0x0206",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 10,
+      "function": "divide",
+            "factor": 10,
       "ha": {
         "device_class": "voltage",
         "unit_of_measurement": "V",
@@ -194,9 +189,8 @@
     {
       "name": "grid_current",
       "register": "0x0207",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "current",
         "unit_of_measurement": "A",
@@ -209,9 +203,8 @@
     {
       "name": "grid_freq",
       "register": "0x20c",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "frequency",
         "unit_of_measurement": "Hz",
@@ -236,9 +229,8 @@
     {
       "name": "battery_voltage",
       "register": "0x20e",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "voltage",
         "unit_of_measurement": "V",
@@ -251,9 +243,8 @@
     {
       "name": "battery_current",
       "register": "0x020F",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "current",
         "unit_of_measurement": "A",
@@ -261,6 +252,21 @@
         "icon": "mdi:alpha-a-box",
         "state_class": "measurement",
         "value_template": "{{ value_json.battery_current }}"
+      }
+    },
+    {
+      "name": "battery_power",
+      "register": "0x020d",
+      "type": "I16",
+      "function": "multiply",
+      "factor": 10,
+      "ha": {
+        "name": "Battery Power",
+        "value_template": "{{ value_json.battery_power }}",
+        "icon": "mdi:flash",
+        "state_class": "measurement",
+        "device_class": "power",
+        "unit_of_measurement": "W"
       }
     },
     {
@@ -278,8 +284,7 @@
     {
       "name": "grid_power",
       "register": "0x212",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "ha": {
         "device_class": "power",
@@ -293,8 +298,7 @@
     {
       "name": "consumption",
       "register": "0x213",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "ha": {
         "device_class": "power",
@@ -308,8 +312,7 @@
     {
       "name": "inverter_power",
       "register": "0x0214",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "ha": {
         "device_class": "power",
@@ -323,8 +326,7 @@
     {
       "name": "solarPV",
       "register": "0x215",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "ha": {
         "device_class": "power",
@@ -338,9 +340,8 @@
     {
       "name": "eps_output_voltage",
       "register": "0x0216",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 10,
+      "function": "divide",
+            "factor": 10,
       "ha": {
         "device_class": "voltage",
         "unit_of_measurement": "V",
@@ -353,8 +354,7 @@
     {
       "name": "eps_output_power",
       "register": "0x0217",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "ha": {
         "device_class": "power",
@@ -368,9 +368,8 @@
     {
       "name": "today_generation",
       "register": "0x218",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "energy",
         "unit_of_measurement": "kWh",
@@ -383,9 +382,8 @@
     {
       "name": "today_exported",
       "register": "0x219",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "energy",
         "unit_of_measurement": "kWh",
@@ -398,9 +396,8 @@
     {
       "name": "today_purchase",
       "register": "0x21a",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "energy",
         "unit_of_measurement": "kWh",
@@ -413,9 +410,8 @@
     {
       "name": "today_consumption",
       "register": "0x21b",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "energy",
         "unit_of_measurement": "kWh",
@@ -512,9 +508,8 @@
     {
       "name": "battery_charge_today",
       "register": "0x0224",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "energy",
         "unit_of_measurement": "kWh",
@@ -527,9 +522,8 @@
     {
       "name": "battery_discharge_today",
       "register": "0x0225",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "energy",
         "unit_of_measurement": "kWh",
@@ -615,9 +609,8 @@
     {
       "name": "inverter_bus_voltage",
       "register": "0x022D",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 10,
+      "function": "divide",
+            "factor": 10,
       "ha": {
         "device_class": "voltage",
         "unit_of_measurement": "V",
@@ -630,9 +623,8 @@
     {
       "name": "llc_bus_voltage",
       "register": "0x022E",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 10,
+      "function": "divide",
+            "factor": 10,
       "ha": {
         "device_class": "voltage",
         "unit_of_measurement": "V",
@@ -645,9 +637,8 @@
     {
       "name": "buck_current",
       "register": "0x022F",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "current",
         "unit_of_measurement": "A",
@@ -696,9 +687,8 @@
     {
       "name": "solarPVAmps",
       "register": "0x236",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "current",
         "unit_of_measurement": "A",
@@ -711,9 +701,8 @@
     {
       "name": "battery_current",
       "register": "0x207",
-      "write_function": "divide",
-      "read_function": "divide",
-      "factor": 100,
+      "function": "divide",
+            "factor": 100,
       "ha": {
         "device_class": "current",
         "unit_of_measurement": "A",

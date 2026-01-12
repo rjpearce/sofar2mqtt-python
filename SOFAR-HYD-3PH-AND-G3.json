@@ -147,8 +147,7 @@
       "register": "0x100C",
       "desc": "RS485 Baud Rate Selection",
       "type": "U16",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "4800",
         "1": "9600",
@@ -183,8 +182,7 @@
       "register": "0x100C",
       "desc": "RS485 Stop Bit Selection",
       "type": "U16",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "1",
         "1": "1.5",
@@ -213,8 +211,7 @@
       "register": "0x100C",
       "desc": "RS485 Parity Bit Selection",
       "type": "U16",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "None",
         "1": "Even",
@@ -291,8 +288,7 @@
       "register": "0x1046",
       "desc": "battery protocol",
       "type": "U16",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "Default",
         "1": "Pylon",
@@ -332,8 +328,7 @@
       "register": "0x1047",
       "desc": "battery over voltage",
       "type": "U16",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 10,
       "min": 0.0,
       "max": 65535.0,
@@ -357,8 +352,7 @@
       "register": "0x1048",
       "desc": "battery charge voltage",
       "type": "U16",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 10,
       "ha": {
         "name": "Battery Charge Voltage",
@@ -380,8 +374,7 @@
       "register": "0x1049",
       "desc": "battery lack voltage",
       "type": "U16",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 10,
       "min": 0.0,
       "max": 65535.0,
@@ -405,8 +398,7 @@
       "register": "0x104A",
       "desc": "battery discharge stop voltage",
       "type": "U16",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 10,
       "min": 0.0,
       "max": 65535.0,
@@ -430,8 +422,7 @@
       "register": "0x104B",
       "desc": "battery charge current limit",
       "type": "U16",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "min": 0,
       "max": 65535,
@@ -455,8 +446,7 @@
       "register": "0x104C",
       "desc": "battery discharge current limit",
       "type": "U16",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "min": 0,
       "max": 65535,
@@ -479,8 +469,7 @@
       "name": "battery_config_depth_of_discharge",
       "register": "0x104D",
       "desc": "Dod indicates the max discharge power, when SOC<1-DOD, inverter will stop power discharge , inverter will stop power discharge caused by other issues.        DOD<=EOD",
-      "write_function": "int",
-      "read_function": "int",
+      "function": "int",
       "min": 1,
       "max": 90,
       "write": true,
@@ -544,8 +533,7 @@
       "register": "0x1050",
       "desc": "battery nominal voltage",
       "type": "U16",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 10,
       "ha": {
         "name": "Battery Nominal Voltage",
@@ -567,8 +555,7 @@
       "register": "0x1051",
       "desc": "battery cell type",
       "type": "U16",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "Lead-acid",
         "1": "Lithium Iron Phosphate (LiFePO4)",
@@ -624,8 +611,7 @@
       "register": "0x1110",
       "desc": "Storage mode",
       "type": "U16",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "Self use",
         "1": "Time of use",
@@ -674,24 +660,21 @@
     {
       "name": "charge_power",
       "register": "0x1117",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "refresh": 3600
     },
     {
       "name": "discharge_power",
       "register": "0x1118",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "refresh": 3600
     },
     {
       "name": "time_of_use",
       "register": "0x1121",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "Disabled",
         "1": "Enabled"
@@ -706,8 +689,7 @@
     {
       "name": "time_of_use_charge_start_time",
       "register": "0x1122",
-      "write_function": "high_bit_low_bit",
-      "read_function": "high_bit_low_bit",
+      "function": "high_bit_low_bit",
       "join": ":",
       "ha": {
         "name": "Time of use - Start time",
@@ -719,8 +701,7 @@
     {
       "name": "time_of_use_charge_end_time",
       "register": "0x1123",
-      "write_function": "high_bit_low_bit",
-      "read_function": "high_bit_low_bit",
+      "function": "high_bit_low_bit",
       "join": ":",
       "ha": {
         "name": "Time of use - End time",
@@ -733,8 +714,7 @@
       "name": "time_of_use_charge_soc",
       "register": "0x1124",
       "desc": "Time of use SOC (30 to 100)",
-      "write_function": "int",
-      "read_function": "int",
+      "function": "int",
       "min": 30,
       "max": 100,
       "write": true,
@@ -765,8 +745,7 @@
     {
       "name": "time_of_use_start_date",
       "register": "0x1127",
-      "write_function": "high_bit_low_bit",
-      "read_function": "high_bit_low_bit",
+      "function": "high_bit_low_bit",
       "join": "/",
       "ha": {
         "name": "Time of use - Start date",
@@ -778,8 +757,7 @@
     {
       "name": "time_of_use_end_date",
       "register": "0x1128",
-      "write_function": "high_bit_low_bit",
-      "read_function": "high_bit_low_bit",
+      "function": "high_bit_low_bit",
       "join": "/",
       "ha": {
         "name": "Time of use - End date",
@@ -791,8 +769,7 @@
     {
       "name": "time_of_use_dow",
       "register": "0x1129",
-      "write_function": "bit_field",
-      "read_function": "bit_field",
+      "function": "bit_field",
       "fields": [
         "Sun",
         "Sat",
@@ -816,8 +793,7 @@
       "desc2": "Positive value=Export, Negative value=Import",
       "desc3": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189",
       "type": "I32",
-      "write_function": "int",
-      "read_function": "int",
+      "function": "int",
       "read": false,
       "signed": true,
       "passive": true,
@@ -863,8 +839,7 @@
     {
       "name": "state",
       "register": "0x0404",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "Waiting",
         "1": "Checking",
@@ -885,8 +860,7 @@
     {
       "name": "history_event_list_1",
       "register": "0x1480",
-      "write_function": "history_event_map",
-      "read_function": "history_event_map",
+      "function": "history_event_map",
       "ha": {
         "name": "History Event List 1",
         "icon": "mdi:calendar-alert",
@@ -964,8 +938,7 @@
     {
       "name": "pv_1_voltage",
       "register": "0x0584",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 10,
       "ha": {
         "device_class": "voltage",
@@ -979,8 +952,7 @@
     {
       "name": "pv_1_current",
       "register": "0x0585",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "current",
@@ -994,8 +966,7 @@
     {
       "name": "pv_1_power",
       "register": "0x0586",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "ha": {
         "device_class": "power",
@@ -1009,8 +980,7 @@
     {
       "name": "pv_2_voltage",
       "register": "0x0587",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 10,
       "ha": {
         "device_class": "voltage",
@@ -1024,8 +994,7 @@
     {
       "name": "pv_2_current",
       "register": "0x0588",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "current",
@@ -1039,8 +1008,7 @@
     {
       "name": "pv_2_power",
       "register": "0x0589",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "ha": {
         "device_class": "power",
@@ -1058,8 +1026,7 @@
         "pv_2_power"
       ],
       "agg_function": "add",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "ha": {
         "device_class": "power",
@@ -1073,8 +1040,7 @@
     {
       "name": "active_power",
       "register": "0x0485",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "signed": true,
       "ha": {
@@ -1089,8 +1055,7 @@
     {
       "name": "load_power",
       "register": "0x04AF",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "ha": {
         "device_class": "power",
@@ -1104,8 +1069,7 @@
     {
       "name": "grid",
       "register": "0x0488",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": -10,
       "signed": true,
       "ha": {
@@ -1131,8 +1095,7 @@
     {
       "name": "ongrid_frequency",
       "register": "0x0484",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "frequency",
@@ -1147,8 +1110,7 @@
     {
       "name": "ongrid_voltage",
       "register": "0x048D",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 10,
       "ha": {
         "device_class": "voltage",
@@ -1187,8 +1149,7 @@
     {
       "name": "offgrid_active_power",
       "register": "0x0504",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "ha": {
         "device_class": "power",
@@ -1202,8 +1163,7 @@
     {
       "name": "offgrid_frequency",
       "register": "0x0507",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "frequency",
@@ -1218,8 +1178,7 @@
     {
       "name": "offgrid_voltage",
       "register": "0x050A",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 10,
       "ha": {
         "device_class": "voltage",
@@ -1234,8 +1193,7 @@
     {
       "name": "battery_current",
       "register": "0x0605",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "signed": true,
       "ha": {
@@ -1250,8 +1208,7 @@
     {
       "name": "battery_power",
       "register": "0x0606",
-      "write_function": "multiply",
-      "read_function": "multiply",
+      "function": "multiply",
       "factor": 10,
       "signed": true,
       "ha": {
@@ -1266,8 +1223,7 @@
     {
       "name": "today_generation",
       "register": "0x0685",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1282,8 +1238,7 @@
     {
       "name": "total_generation",
       "register": "0x0687",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1298,8 +1253,7 @@
     {
       "name": "today_consumption",
       "register": "0x0689",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1314,8 +1268,7 @@
     {
       "name": "total_consumption",
       "register": "0x068B",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1330,8 +1283,7 @@
     {
       "name": "today_import",
       "register": "0x068D",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1346,8 +1298,7 @@
     {
       "name": "total_import",
       "register": "0x068F",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1362,8 +1313,7 @@
     {
       "name": "today_export",
       "register": "0x0691",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1378,8 +1328,7 @@
     {
       "name": "total_export",
       "register": "0x0693",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1394,8 +1343,7 @@
     {
       "name": "today_battery_charge",
       "register": "0x0695",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1410,8 +1358,7 @@
     {
       "name": "total_battery_charge",
       "register": "0x0697",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1426,8 +1373,7 @@
     {
       "name": "today_battery_discharge",
       "register": "0x0699",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1442,8 +1388,7 @@
     {
       "name": "total_battery_discharge",
       "register": "0x069B",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 100,
       "ha": {
         "device_class": "energy",
@@ -1458,8 +1403,7 @@
     {
       "name": "battery_voltage",
       "register": "0x0604",
-      "write_function": "divide",
-      "read_function": "divide",
+      "function": "divide",
       "factor": 10,
       "ha": {
         "device_class": "voltage",
@@ -1528,8 +1472,7 @@
       "register": "0x1029",
       "desc": "EPS On/Off control",
       "type": "U16",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "Off",
         "1": "On"
@@ -1575,8 +1518,7 @@
       "register": "0x1104",
       "desc": "Turn inverter on/off",
       "type": "U16",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "modes": {
         "0": "Off",
         "1": "On"
@@ -1680,8 +1622,7 @@
       "name": "passive_timeout_action",
       "register": "0x1185",
       "desc": "Passive mode timeout action",
-      "write_function": "mode",
-      "read_function": "mode",
+      "function": "mode",
       "type": "U16",
       "modes": {
         "0": "Force to standby",
@@ -1697,8 +1638,7 @@
       "desc": "Maximum power to grid in passive mode(-999999 to 999999) in watts",
       "desc2": "Positive value=Charging, Negative value=Discharging",
       "type": "I32",
-      "write_function": "int",
-      "read_function": "int",
+      "function": "int",
       "signed": true,
       "passive": true,
       "min": -999999,

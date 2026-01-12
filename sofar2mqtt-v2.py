@@ -64,15 +64,15 @@ class Sofar():
         logging.info(f"Starting sofar2mqtt-python {VERSION}")
         self.mutex = threading.Lock()
         self.setup_instrument()
-        self.raw_data['serial_number'] = "E1xxx"
+        self.raw_data['serial_number'] = self.determine_serial_number()
         self.client = mqtt.Client(
             client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
         if not self.raw_data['serial_number']:
             logging.error("Failed to determine serial number, Exiting")
             self.terminate(status_code=1)
-        self.raw_data['model'] = "ME3000SP"
-        #self.raw_data['protocol'] = self.determine_modbus_protocol()
-        protocol_file = "SOFAR-HYD-ES-AND-ME3000-SP.json"
+        self.raw_data['model'] = self.determine_model()
+        self.raw_data['protocol'] = self.determine_modbus_protocol()
+        protocol_file = self.raw_data.get('protocol', False)
 
         if protocol_file == "SOFAR-1-40KTL.json":
             logging.error(f"Sorry {self.raw_data['model']} is not currently supported. Exiting")
@@ -205,7 +205,7 @@ class Sofar():
                                 continue
                         if 'write_addresses' in register:
                             write_register = None
-                            functioncode = register.get('functioncode', '16')
+                            write_functioncode = register.get('write_functioncode', '16')
                             if new_raw_value == 0:
                                 write_register = register['write_addresses'].get("standby", None)
                                 new_raw_value = register['write_values'].get("standby", new_raw_value)
@@ -219,7 +219,7 @@ class Sofar():
                                 continue
                             logging.info(
                                 f"Mapping value: {new_raw_value} to write register: {write_register} for register: {register['name']}")
-                            self.write_register_special(write_register, functioncode, abs(new_raw_value))
+                            self.write_register_special(write_register, write_functioncode, abs(new_raw_value))
                             continue
                         if register['name'] in self.raw_data:
                             retry = self.write_retry
@@ -314,6 +314,8 @@ class Sofar():
 
     def update_state(self):
         for register in self.config['registers']:
+            if not register.get('read', True):
+                continue
             refresh = register.get('refresh', 1)
             if (self.iteration % refresh) != 0:
                 logging.debug(f"Skipping {register['name']}")
@@ -340,11 +342,6 @@ class Sofar():
                 #raw_value =  self.aggregate_datetime_bitmap(register)
             if raw_value is None:
                 logging.error(f"Value for {register['name']}: is none")
-                # Initialize writable registers with default value so they can be written to later
-                if register.get('write', False):
-                    if register['name'] not in self.raw_data or self.raw_data[register['name']] is None:
-                        self.raw_data[register['name']] = 0
-                        logging.info(f"Initialized write register {register['name']} with default value 0")
                 continue
             else:
                 value = self.translate_from_raw_value(register, raw_value)
@@ -364,9 +361,6 @@ class Sofar():
             if not self.raw_data.get(register.get('name')) == raw_value:
                 if register.get('notify_on_change', False):
                     from_raw = self.raw_data.get(register.get('name'))
-                    # Skip notification if previous value was None (initial read or failed read)
-                    if from_raw is None:
-                        continue
                     try:
                         from_value = self.translate_from_raw_value(
                             register, from_raw)
@@ -530,12 +524,12 @@ class Sofar():
         self.terminate(status_code=0)
 
 
-    def write_register_special(self, registeraddress, functioncode, value):
+    def write_register_special(self, registeraddress, write_functioncode, value):
         with self.mutex:
             reg_int = int(registeraddress, 16)
 
             logging.info(
-                f"Writing {registeraddress}({reg_int}) functioncode: {functioncode} with {value}"
+                f"Writing {registeraddress}({reg_int}) write_functioncode: {write_functioncode} with {value}"
             )
 
             # Payload = [cmd][param] (each uint16)
@@ -544,7 +538,7 @@ class Sofar():
             logging.info("Payload (no CRC): %s", payload.hex(" "))
 
             response = self.instrument._perform_command(
-                int(functioncode),
+                int(write_functioncode),
                 payload
             )
 
