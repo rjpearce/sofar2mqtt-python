@@ -151,10 +151,10 @@ class Sofar():
             if register['name'] == topic.split('/')[-1]:
                 new_raw_value = self.translate_to_raw_value(register, payload)
                 found = True
-                if 'write_function' in register:
+                if 'function' not in register:
                     logging.error(f"No function was provided for register {register['name']} skipping write operation. Check the JSON is configured correctly.")
                     continue
-                if register['write_function'] == 'mode':
+                if register['function'] == 'mode':
                         new_value = register['modes'].get(
                             str(new_raw_value), None)
                         logging.info(
@@ -184,60 +184,60 @@ class Sofar():
                             logging.error(
                                 f"No current read value for {register['name']} skipping write operation. Please try again.")
                 else:
-                        logging.info(
-                            f"Received a request for {register['name']} to set value to: {payload}({new_raw_value})")
-                        if int(new_raw_value) < register['min']:
-                            logging.error(
-                                f"Received a request for {register['name']} but value: {new_raw_value} is less than the min value: {register['min']}. Ignoring")
-                        elif int(new_raw_value) > register['max']:
-                            logging.error(
-                                f"Received a request for {register['name']} but value: {new_raw_value} is more than the max value: {register['max']}. Ignoring")
-                        else:
-                            if register['name'] == 'desired_power':
-                                if int(self.raw_data.get('energy_storage_mode', None)) == 0:
-                                    logging.info(
-                                        f"Received a request for {register['name']} but energy_storage_mode is not in Passive mode. Ignoring")
-                                    continue
-                            if register['name'] == 'charge_discharge_power':
-                                if int(self.raw_data.get('working_mode', None)) != 3:
-                                    logging.info(
-                                        f"Received a request for {register['name']} but working_mode is not in Passive mode. Ignoring")
-                                    continue
-                            if 'write_addresses' in register:
-                                write_register = None
-                                write_functioncode = register.get('write_functioncode', '16')
-                                if new_raw_value == 0:
-                                    write_register = register['write_addresses'].get("standby", None)
-                                    new_raw_value = register['write_values'].get("standby", new_raw_value)
-                                elif new_raw_value < 0:
-                                    write_register = register['write_addresses'].get("discharge", None)
-                                elif new_raw_value > 0:
-                                    write_register = register['write_addresses'].get("charge", None)
-                                if write_register is None:
-                                    logging.error(
-                                        f"No write address found for value: {new_raw_value} on register: {register['name']}. Ignoring")
-                                    continue
+                    logging.info(
+                        f"Received a request for {register['name']} to set value to: {payload}({new_raw_value})")
+                    if int(new_raw_value) < register['min']:
+                        logging.error(
+                            f"Received a request for {register['name']} but value: {new_raw_value} is less than the min value: {register['min']}. Ignoring")
+                    elif int(new_raw_value) > register['max']:
+                        logging.error(
+                            f"Received a request for {register['name']} but value: {new_raw_value} is more than the max value: {register['max']}. Ignoring")
+                    else:
+                        if register['name'] == 'desired_power':
+                            if int(self.raw_data.get('energy_storage_mode', None)) == 0:
                                 logging.info(
-                                    f"Mapping value: {new_raw_value} to write register: {write_register} for register: {register['name']}")
-                                self.write_register_special(write_register, write_functioncode, abs(new_raw_value))
+                                    f"Received a request for {register['name']} but energy_storage_mode is not in Passive mode. Ignoring")
                                 continue
-                            if register['name'] in self.raw_data:
-                                retry = self.write_retry
-                                while retry > 0:
-                                    if int(self.raw_data[register['name']]) == int(new_raw_value):
-                                        logging.info(
-                                            f"Current value for {register['name']}: {self.raw_data[register['name']]} matches desired value: {new_raw_value}")
-                                        retry = 0
-                                    else:
-                                        logging.info(
-                                            f"Current value for {register['name']}: {self.raw_data[register['name']]}, attempting to set it to {new_raw_value}. Retries remaining: {retry}")
-                                        self.write_register(
-                                            register, int(new_raw_value))
-                                        time.sleep(self.write_retry_delay)
-                                        retry = retry - 1
-                            else:
+                        if register['name'] == 'charge_discharge_power':
+                            if int(self.raw_data.get('working_mode', None)) != 3:
+                                logging.info(
+                                    f"Received a request for {register['name']} but working_mode is not in Passive mode. Ignoring")
+                                continue
+                        if 'write_addresses' in register:
+                            write_register = None
+                            functioncode = register.get('functioncode', '16')
+                            if new_raw_value == 0:
+                                write_register = register['write_addresses'].get("standby", None)
+                                new_raw_value = register['write_values'].get("standby", new_raw_value)
+                            elif new_raw_value < 0:
+                                write_register = register['write_addresses'].get("discharge", None)
+                            elif new_raw_value > 0:
+                                write_register = register['write_addresses'].get("charge", None)
+                            if write_register is None:
                                 logging.error(
-                                    f"No current read value for {register['name']} skipping write operation. Please try again.")
+                                    f"No write address found for value: {new_raw_value} on register: {register['name']}. Ignoring")
+                                continue
+                            logging.info(
+                                f"Mapping value: {new_raw_value} to write register: {write_register} for register: {register['name']}")
+                            self.write_register_special(write_register, functioncode, abs(new_raw_value))
+                            continue
+                        if register['name'] in self.raw_data:
+                            retry = self.write_retry
+                            while retry > 0:
+                                if int(self.raw_data[register['name']]) == int(new_raw_value):
+                                    logging.info(
+                                        f"Current value for {register['name']}: {self.raw_data[register['name']]} matches desired value: {new_raw_value}")
+                                    retry = 0
+                                else:
+                                    logging.info(
+                                        f"Current value for {register['name']}: {self.raw_data[register['name']]}, attempting to set it to {new_raw_value}. Retries remaining: {retry}")
+                                    self.write_register(
+                                        register, int(new_raw_value))
+                                    time.sleep(self.write_retry_delay)
+                                    retry = retry - 1
+                        else:
+                            logging.error(
+                                f"No current read value for {register['name']} skipping write operation. Please try again.")
 
         if not found:
             for block in self.config.get('write_register_blocks', []):
@@ -340,6 +340,11 @@ class Sofar():
                 #raw_value =  self.aggregate_datetime_bitmap(register)
             if raw_value is None:
                 logging.error(f"Value for {register['name']}: is none")
+                # Initialize writable registers with default value so they can be written to later
+                if register.get('write', False):
+                    if register['name'] not in self.raw_data or self.raw_data[register['name']] is None:
+                        self.raw_data[register['name']] = 0
+                        logging.info(f"Initialized write register {register['name']} with default value 0")
                 continue
             else:
                 value = self.translate_from_raw_value(register, raw_value)
@@ -359,6 +364,9 @@ class Sofar():
             if not self.raw_data.get(register.get('name')) == raw_value:
                 if register.get('notify_on_change', False):
                     from_raw = self.raw_data.get(register.get('name'))
+                    # Skip notification if previous value was None (initial read or failed read)
+                    if from_raw is None:
+                        continue
                     try:
                         from_value = self.translate_from_raw_value(
                             register, from_raw)
@@ -1022,23 +1030,23 @@ class Sofar():
 
     def translate_from_raw_value(self, register, raw_value):
         """ Translate raw value to a normalized value using the function and factor """
-        if 'read_function' in register:
-            if register['read_function'] == 'multiply':
+        if 'function' in register:
+            if register['function'] == 'multiply':
                 return raw_value * register['factor']
-            elif register['read_function'] == 'divide':
+            elif register['function'] == 'divide':
                 return raw_value / register['factor']
-            elif register['read_function'] == 'mode':
+            elif register['function'] == 'mode':
                 return register['modes'].get(str(raw_value), raw_value)
-            elif register['read_function'] == 'history_event_map':
+            elif register['function'] == 'history_event_map':
                 return self.format_history_event(raw_value)
-            elif register['read_function'] == 'bit_field':
+            elif register['function'] == 'bit_field':
                 length = len(register['fields'])
                 fields = []
                 for n in reversed(range(length)):
                     if raw_value & (1 << ((length-1)-n)):
                         fields.append(register['fields'][n])
                 return ','.join(fields)
-            elif register['read_function'] == 'high_bit_low_bit':
+            elif register['function'] == 'high_bit_low_bit':
                 high = raw_value >> 8  # shift right
                 low = raw_value & 255  # apply bitmask
                 # combine and pad 2 zeros
@@ -1047,16 +1055,16 @@ class Sofar():
 
     def translate_to_raw_value(self, register, value):
         """ Undo the operation performed by translate_from_raw_value """
-        if 'write_function' in register:
-            if register['write_function'] == 'int':
+        if 'function' in register:
+            if register['function'] == 'int':
                 return int(value)
-            if register['write_function'] == 'multiply':
+            if register['function'] == 'multiply':
                 return int(float(value) / register['factor'])
-            elif register['write_function'] == 'divide':
+            elif register['function'] == 'divide':
                 return int(float(value) * register['factor'])
-            elif register['write_function'] == 'mode':
+            elif register['function'] == 'mode':
                 return int(next((k for k, v in register['modes'].items() if v == value), value))
-            elif register['write_function'] == 'bit_field':
+            elif register['function'] == 'bit_field':
                 fields = value.split(',')
                 raw_value = 0
                 for field in fields:
@@ -1064,7 +1072,7 @@ class Sofar():
                         raw_value |= (
                             1 << (len(register['fields']) - 1 - register['fields'].index(field)))
                 return raw_value
-            elif register['write_function'] == 'high_bit_low_bit':
+            elif register['function'] == 'high_bit_low_bit':
                 high, low = map(int, value.split(register['join']))
                 return (high << 8) | low
         return int(value)
@@ -1080,7 +1088,7 @@ def validate_new_value(register, new_value):
         logging.error(
             f"Value {new_value} is greater than the maximum allowed value {register['max']} for register {register['name']}")
         return False
-    if 'write_function' in register and register['write_function'] == 'mode' and str(new_value) not in register['modes']:
+    if 'function' in register and register['function'] == 'mode' and str(new_value) not in register['modes']:
         logging.error(
             f"Value {new_value} is not a valid mode for register {register['name']}")
         return False
