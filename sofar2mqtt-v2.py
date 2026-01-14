@@ -64,26 +64,29 @@ class Sofar():
         logging.info(f"Starting sofar2mqtt-python {VERSION}")
         self.mutex = threading.Lock()
         self.setup_instrument()
-        self.raw_data['serial_number'] = self.determine_serial_number()
         self.client = mqtt.Client(
             client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
-        if not self.raw_data['serial_number']:
-            logging.error("Failed to determine serial number, Exiting")
-            self.terminate(status_code=1)
-        self.raw_data['model'] = self.determine_model()
-        self.raw_data['protocol'] = self.determine_modbus_protocol()
-        protocol_file = self.raw_data.get('protocol', False)
+        if os.environ.get("DEVICE_TYPE"):
+            protocol_file = os.environ.get("DEVICE_TYPE") + ".json"
+        else:
+            self.raw_data['serial_number'] = self.determine_serial_number()
+            if not self.raw_data['serial_number']:
+                logging.error("Failed to determine serial number, Exiting")
+                self.terminate(status_code=1)
+            self.raw_data['model'] = self.determine_model()
+            self.raw_data['protocol'] = self.determine_modbus_protocol()
+            protocol_file = self.raw_data.get('protocol', False)
 
-        if protocol_file == "SOFAR-1-40KTL.json":
-            logging.error(f"Sorry {self.raw_data['model']} is not currently supported. Exiting")
-            self.terminate(status_code=1)
-        if not protocol_file:
-            logging.error(f"Unknown protocol for model: {self.raw_data['model']}. Exiting")
-            self.terminate(status_code=1)
-        if not os.path.isfile(protocol_file):
-            logging.error(
-                f"Protocol file {protocol_file} does not exist. Exiting")
-            self.terminate(status_code=1)
+            if protocol_file == "SOFAR-1-40KTL.json":
+                logging.error(f"Sorry {self.raw_data['model']} is not currently supported. Exiting")
+                self.terminate(status_code=1)
+            if not protocol_file:
+                logging.error(f"Unknown protocol for model: {self.raw_data['model']}. Exiting")
+                self.terminate(status_code=1)
+            if not os.path.isfile(protocol_file):
+                logging.error(
+                    f"Protocol file {protocol_file} does not exist. Exiting")
+                self.terminate(status_code=1)
 
         self.config = load_config(protocol_file)
 
@@ -138,7 +141,6 @@ class Sofar():
             logging.info(f"Ignoring retained message on topic {message.topic}")
             return
         found = False
-        valid = False
         topic = message.topic
         payload = message.payload.decode("utf-8")
         if topic == "homeassistant/status":
@@ -152,29 +154,86 @@ class Sofar():
             if register['name'] == topic.split('/')[-1]:
                 new_raw_value = self.translate_to_raw_value(register, payload)
                 found = True
-                if 'function' in register:
-                    if register['function'] == 'mode':
-                        new_value = register['modes'].get(
-                            str(new_raw_value), None)
-                        logging.info(
-                            f"Received a request for {register['name']} to set mode value to: {new_raw_value} ({new_value})")
-                        if not new_value:
-                            logging.error(
-                                f"Received a request for {register['name']} but mode value: {new_value} is not a known mode. Ignoring")
+                if 'function' not in register:
+                    logging.error(f"No function was provided for register {register['name']} skipping write operation. Check the JSON is configured correctly.")
+                    continue
+                if register['function'] == 'mode':
+                    new_value = register['modes'].get(
+                        str(new_raw_value), None)
+                    logging.info(
+                        f"Received a request for {register['name']} to set mode value to: {new_raw_value} ({new_value})")
+                    if not new_value:
+                        logging.error(
+                            f"Received a request for {register['name']} but mode value: {new_value} is not a known mode. Ignoring")
+                    if register['name'] in self.raw_data:
+                        retry = self.write_retry
+                        raw_value = self.raw_data.get(
+                            register.get('name'), None)
+                        value = self.translate_from_raw_value(
+                            register, raw_value)
+                        while retry > 0:
+                            if self.raw_data[register['name']] == int(new_raw_value):
+                                logging.info(
+                                    f"Current value for {register['name']}: {raw_value} ({value}). Matches desired value: {new_raw_value} ({new_value}).")
+                                retry = 0
+                            else:
+                                logging.info(
+                                    f"Current value for {register['name']}: {raw_value} ({value}), attempting to set it to: {new_raw_value} ({new_value}). Retries remaining: {retry}")
+                                self.write_register(
+                                    register, int(new_raw_value))
+                                time.sleep(self.write_retry_delay)
+                                retry = retry - 1
+                    else:
+                        logging.error(
+                            f"No current read value for {register['name']} skipping write operation. Please try again.")
+                else:
+                    logging.info(
+                        f"Received a request for {register['name']} to set value to: {payload}({new_raw_value})")
+                    if int(new_raw_value) < register['min']:
+                        logging.error(
+                            f"Received a request for {register['name']} but value: {new_raw_value} is less than the min value: {register['min']}. Ignoring")
+                    elif int(new_raw_value) > register['max']:
+                        logging.error(
+                            f"Received a request for {register['name']} but value: {new_raw_value} is more than the max value: {register['max']}. Ignoring")
+                    else:
+                        if register['name'] == 'desired_power':
+                            if int(self.raw_data.get('energy_storage_mode', None)) == 0:
+                                logging.info(
+                                    f"Received a request for {register['name']} but energy_storage_mode is not in Passive mode. Ignoring")
+                                continue
+                        if register['name'] == 'charge_discharge_power':
+                            if int(self.raw_data.get('working_mode', None)) != 3:
+                                logging.info(
+                                    f"Received a request for {register['name']} but working_mode is not in Passive mode. Ignoring")
+                                continue
+                        if 'write_addresses' in register:
+                            write_register = None
+                            write_functioncode = register.get('write_functioncode', '16')
+                            if new_raw_value == 0:
+                                write_register = register['write_addresses'].get("standby", None)
+                                new_raw_value = register['write_values'].get("standby", new_raw_value)
+                            elif new_raw_value < 0:
+                                write_register = register['write_addresses'].get("discharge", None)
+                            elif new_raw_value > 0:
+                                write_register = register['write_addresses'].get("charge", None)
+                            if write_register is None:
+                                logging.error(
+                                    f"No write address found for value: {new_raw_value} on register: {register['name']}. Ignoring")
+                                continue
+                            logging.info(
+                                f"Mapping value: {new_raw_value} to write register: {write_register} for register: {register['name']}")
+                            self.write_register_special(write_register, write_functioncode, abs(new_raw_value))
+                            continue
                         if register['name'] in self.raw_data:
                             retry = self.write_retry
-                            raw_value = self.raw_data.get(
-                                register.get('name'), None)
-                            value = self.translate_from_raw_value(
-                                register, raw_value)
                             while retry > 0:
-                                if self.raw_data[register['name']] == int(new_raw_value):
+                                if int(self.raw_data[register['name']]) == int(new_raw_value):
                                     logging.info(
-                                        f"Current value for {register['name']}: {raw_value} ({value}). Matches desired value: {new_raw_value} ({new_value}).")
+                                        f"Current value for {register['name']}: {self.raw_data[register['name']]} matches desired value: {new_raw_value}")
                                     retry = 0
                                 else:
                                     logging.info(
-                                        f"Current value for {register['name']}: {raw_value} ({value}), attempting to set it to: {new_raw_value} ({new_value}). Retries remaining: {retry}")
+                                        f"Current value for {register['name']}: {self.raw_data[register['name']]}, attempting to set it to {new_raw_value}. Retries remaining: {retry}")
                                     self.write_register(
                                         register, int(new_raw_value))
                                     time.sleep(self.write_retry_delay)
@@ -182,66 +241,6 @@ class Sofar():
                         else:
                             logging.error(
                                 f"No current read value for {register['name']} skipping write operation. Please try again.")
-
-                    elif register['function'] == 'int':
-                        logging.info(
-                            f"Received a request for {register['name']} to set value to: {payload}({new_raw_value})")
-                        if int(new_raw_value) < register['min']:
-                            logging.error(
-                                f"Received a request for {register['name']} but value: {new_raw_value} is less than the min value: {register['min']}. Ignoring")
-                        elif int(new_raw_value) > register['max']:
-                            logging.error(
-                                f"Received a request for {register['name']} but value: {new_raw_value} is more than the max value: {register['max']}. Ignoring")
-                        else:
-                            if register['name'] == 'desired_power':
-                                if int(self.raw_data.get('energy_storage_mode', None)) == 0:
-                                    logging.info(
-                                        f"Received a request for {register['name']} but energy_storage_mode is not in Passive mode. Ignoring")
-                                    continue
-                            if register['name'] == 'charge_discharge_power':
-                                if int(self.raw_data.get('working_mode', None)) == 3:
-                                    logging.info(
-                                        f"Received a request for {register['name']} but working_mode is not in Passive mode. Ignoring")
-                                    continue
-                            if 'write_addresses' in register:
-                                write_register = None
-                                write_functioncode = register.get('write_functioncode', '16')
-                                if new_raw_value == 0:
-                                    write_register = register['write_addresses'].get("standby", None)
-                                    new_raw_value = register['write_values'].get("standby", new_raw_value)
-                                elif new_raw_value < 0:
-                                    write_register = register['write_addresses'].get("discharge", None)
-                                elif new_raw_value > 0:
-                                    write_register = register['write_addresses'].get("charge", None)
-                                if write_register is None:
-                                    logging.error(
-                                        f"No write address found for value: {new_raw_value} on register: {register['name']}. Ignoring")
-                                    continue
-                                logging.info(
-                                    f"Mapping value: {new_raw_value} to write register: {write_register} for register: {register['name']}")
-                                self.write_register_special(write_register, write_functioncode, abs(new_raw_value))
-                                continue
-                            if register['name'] in self.raw_data:
-                                retry = self.write_retry
-                                while retry > 0:
-                                    if int(self.raw_data[register['name']]) == int(new_raw_value):
-                                        logging.info(
-                                            f"Current value for {register['name']}: {self.raw_data[register['name']]} matches desired value: {new_raw_value}")
-                                        retry = 0
-                                    else:
-                                        logging.info(
-                                            f"Current value for {register['name']}: {self.raw_data[register['name']]}, attempting to set it to {new_raw_value}. Retries remaining: {retry}")
-                                        self.write_register(
-                                            register, int(new_raw_value))
-                                        time.sleep(self.write_retry_delay)
-                                        retry = retry - 1
-                            else:
-                                logging.error(
-                                    f"No current read value for {register['name']} skipping write operation. Please try again.")
-                    else:
-                        logging.error(f"Function provided {register['function']} is not known for register {register['name']} skipping write operation. Check the JSON is configured correctly.") 
-                else:
-                    logging.error(f"No function was provided for register {register['name']} skipping write operation. Check the JSON is configured correctly.")                            
 
         if not found:
             for block in self.config.get('write_register_blocks', []):
@@ -318,6 +317,8 @@ class Sofar():
 
     def update_state(self):
         for register in self.config['registers']:
+            if not register.get('read', True):
+                continue
             refresh = register.get('refresh', 1)
             if (self.iteration % refresh) != 0:
                 logging.debug(f"Skipping {register['name']}")
@@ -346,6 +347,10 @@ class Sofar():
                 logging.error(f"Value for {register['name']}: is none")
                 continue
             else:
+                # Normalize inverter 'no data' sentinel values before translation
+                if isinstance(raw_value, int) and (raw_value == 65535 or raw_value == -1):
+                    logging.debug(f"Raw sentinel value for {register['name']} detected: {raw_value}; normalizing to 0")
+                    raw_value = 0
                 value = self.translate_from_raw_value(register, raw_value)
                 # Inverter will return maximum 16-bit integer value when data not available (eg. grid usage when grid down)
                 if value == 65535:
@@ -363,8 +368,12 @@ class Sofar():
             if not self.raw_data.get(register.get('name')) == raw_value:
                 if register.get('notify_on_change', False):
                     from_raw = self.raw_data.get(register.get('name'))
-                    from_value = self.translate_from_raw_value(
-                        register, from_raw)
+                    try:
+                        from_value = self.translate_from_raw_value(
+                            register, from_raw)
+                    except (ValueError, TypeError) as e:
+                        logging.error(f"Conversion failed for {register['name']}, value {from_raw}: {e}")
+                        continue
                     logging.info(
                         f"Notification - {register.get('name')} has changed from: {from_raw} ({from_value}) to: {raw_value} ({value})")
                 self.raw_data[register.get('name')] = raw_value
@@ -536,7 +545,7 @@ class Sofar():
             logging.info("Payload (no CRC): %s", payload.hex(" "))
 
             response = self.instrument._perform_command(
-                functioncode,   # 0x42
+                int(functioncode),   # 0x42
                 payload
             )
 
@@ -898,10 +907,8 @@ class Sofar():
             logging.error(f"Block {block_name} not found in configuration")
             return
 
-        start_register = int(block['start_register'], 16)
         required_length = int(block['length'])
         values = []
-        raw_value = None
         for register_name in block['registers']:
             if register_name == update_register:
                 register = self.get_register(register_name)
