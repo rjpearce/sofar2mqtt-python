@@ -64,26 +64,29 @@ class Sofar():
         logging.info(f"Starting sofar2mqtt-python {VERSION}")
         self.mutex = threading.Lock()
         self.setup_instrument()
-        self.raw_data['serial_number'] = self.determine_serial_number()
         self.client = mqtt.Client(
             client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
-        if not self.raw_data['serial_number']:
-            logging.error("Failed to determine serial number, Exiting")
-            self.terminate(status_code=1)
-        self.raw_data['model'] = self.determine_model()
-        self.raw_data['protocol'] = self.determine_modbus_protocol()
-        protocol_file = self.raw_data.get('protocol', False)
+        if os.environ.get("DEVICE_TYPE"):
+            protocol_file = os.environ.get("DEVICE_TYPE") + ".json"
+        else:
+            self.raw_data['serial_number'] = self.determine_serial_number()
+            if not self.raw_data['serial_number']:
+                logging.error("Failed to determine serial number, Exiting")
+                self.terminate(status_code=1)
+            self.raw_data['model'] = self.determine_model()
+            self.raw_data['protocol'] = self.determine_modbus_protocol()
+            protocol_file = self.raw_data.get('protocol', False)
 
-        if protocol_file == "SOFAR-1-40KTL.json":
-            logging.error(f"Sorry {self.raw_data['model']} is not currently supported. Exiting")
-            self.terminate(status_code=1)
-        if not protocol_file:
-            logging.error(f"Unknown protocol for model: {self.raw_data['model']}. Exiting")
-            self.terminate(status_code=1)
-        if not os.path.isfile(protocol_file):
-            logging.error(
-                f"Protocol file {protocol_file} does not exist. Exiting")
-            self.terminate(status_code=1)
+            if protocol_file == "SOFAR-1-40KTL.json":
+                logging.error(f"Sorry {self.raw_data['model']} is not currently supported. Exiting")
+                self.terminate(status_code=1)
+            if not protocol_file:
+                logging.error(f"Unknown protocol for model: {self.raw_data['model']}. Exiting")
+                self.terminate(status_code=1)
+            if not os.path.isfile(protocol_file):
+                logging.error(
+                    f"Protocol file {protocol_file} does not exist. Exiting")
+                self.terminate(status_code=1)
 
         self.config = load_config(protocol_file)
 
@@ -538,7 +541,7 @@ class Sofar():
             logging.info("Payload (no CRC): %s", payload.hex(" "))
 
             response = self.instrument._perform_command(
-                functioncode,   # 0x42
+                int(functioncode),   # 0x42
                 payload
             )
 
