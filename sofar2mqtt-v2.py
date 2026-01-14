@@ -347,6 +347,10 @@ class Sofar():
                 logging.error(f"Value for {register['name']}: is none")
                 continue
             else:
+                # Normalize inverter 'no data' sentinel values before translation
+                if isinstance(raw_value, int) and (raw_value == 65535 or raw_value == -1):
+                    logging.debug(f"Raw sentinel value for {register['name']} detected: {raw_value}; normalizing to 0")
+                    raw_value = 0
                 value = self.translate_from_raw_value(register, raw_value)
                 # Inverter will return maximum 16-bit integer value when data not available (eg. grid usage when grid down)
                 if value == 65535:
