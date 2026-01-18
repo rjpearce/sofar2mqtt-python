@@ -260,6 +260,7 @@
       "type": "I16",
       "function": "multiply",
       "factor": 10,
+      "signed": true,
       "ha": {
         "name": "Battery Power",
         "value_template": "{{ value_json.battery_power }}",
