@@ -23,7 +23,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           # list of Docker images to use as base name for tags
-          images: rpearce/sofar2mqtt-python      
+          images: rpearce/sofar2mqtt-python
           # generate Docker tags based on the following events/attributes
           tags: |
             type=schedule

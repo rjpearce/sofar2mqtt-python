@@ -64,26 +64,38 @@ class Sofar():
         logging.info(f"Starting sofar2mqtt-python {VERSION}")
         self.mutex = threading.Lock()
         self.setup_instrument()
-        self.raw_data['serial_number'] = self.determine_serial_number()
         self.client = mqtt.Client(
             client_id=f"sofar2mqtt-{socket.gethostname()}", userdata=None, protocol=mqtt.MQTTv5, transport="tcp")
-        if not self.raw_data['serial_number']:
-            logging.error("Failed to determine serial number. Exiting")
-            self.terminate(status_code=1)
-        self.raw_data['model'] = self.determine_model()
-        self.raw_data['protocol'] = self.determine_modbus_protocol()
+        if os.environ.get("DEVICE_TYPE"):
+            protocol_file = os.environ.get("DEVICE_TYPE") + ".json"
+        else:
+            self.raw_data['serial_number'] = self.determine_serial_number()
+            if not self.raw_data['serial_number']:
+                logging.error("Failed to determine serial number, Exiting")
+                self.terminate(status_code=1)
+            self.raw_data['model'] = self.determine_model()
+            self.raw_data['protocol'] = self.determine_modbus_protocol()
+            protocol_file = self.raw_data.get('protocol', False)
 
-        if self.raw_data.get('protocol') == "SOFAR-1-40KTL.json":
-            logging.error("Unsupported protocol detected. Exiting")
-            self.terminate(status_code=1)
-
-        protocol_file = self.raw_data.get('protocol')
-        if not os.path.isfile(protocol_file):
-            logging.error(
-                f"Protocol file {protocol_file} does not exist. Exiting")
-            self.terminate(status_code=1)
+            if protocol_file == "SOFAR-1-40KTL.json":
+                logging.error(f"Sorry {self.raw_data['model']} is not currently supported. Exiting")
+                self.terminate(status_code=1)
+            if not protocol_file:
+                logging.error(f"Unknown protocol for model: {self.raw_data['model']}. Exiting")
+                self.terminate(status_code=1)
+            if not os.path.isfile(protocol_file):
+                logging.error(
+                    f"Protocol file {protocol_file} does not exist. Exiting")
+                self.terminate(status_code=1)
 
         self.config = load_config(protocol_file)
+
+        if 'registers' in self.config:
+            if 'serial_number' in self.config['registers']:
+                serial_number = self.config['registers']['serial_number']['value']
+                logging.error(f"Using static serial number from config file. Serial Number: {serial_number}")
+                self.raw_data['serial_number'] = serial_number
+
         self.write_registers = []
         untested = False
         for register in self.config['registers']:
@@ -129,7 +141,6 @@ class Sofar():
             logging.info(f"Ignoring retained message on topic {message.topic}")
             return
         found = False
-        valid = False
         topic = message.topic
         payload = message.payload.decode("utf-8")
         if topic == "homeassistant/status":
@@ -143,29 +154,86 @@ class Sofar():
             if register['name'] == topic.split('/')[-1]:
                 new_raw_value = self.translate_to_raw_value(register, payload)
                 found = True
-                if 'function' in register:
-                    if register['function'] == 'mode':
-                        new_value = register['modes'].get(
-                            str(new_raw_value), None)
-                        logging.info(
-                            f"Received a request for {register['name']} to set mode value to: {new_raw_value} ({new_value})")
-                        if not new_value:
-                            logging.error(
-                                f"Received a request for {register['name']} but mode value: {new_value} is not a known mode. Ignoring")
+                if 'function' not in register:
+                    logging.error(f"No function was provided for register {register['name']} skipping write operation. Check the JSON is configured correctly.")
+                    continue
+                if register['function'] == 'mode':
+                    new_value = register['modes'].get(
+                        str(new_raw_value), None)
+                    logging.info(
+                        f"Received a request for {register['name']} to set mode value to: {new_raw_value} ({new_value})")
+                    if not new_value:
+                        logging.error(
+                            f"Received a request for {register['name']} but mode value: {new_value} is not a known mode. Ignoring")
+                    if register['name'] in self.raw_data:
+                        retry = self.write_retry
+                        raw_value = self.raw_data.get(
+                            register.get('name'), None)
+                        value = self.translate_from_raw_value(
+                            register, raw_value)
+                        while retry > 0:
+                            if self.raw_data[register['name']] == int(new_raw_value):
+                                logging.info(
+                                    f"Current value for {register['name']}: {raw_value} ({value}). Matches desired value: {new_raw_value} ({new_value}).")
+                                retry = 0
+                            else:
+                                logging.info(
+                                    f"Current value for {register['name']}: {raw_value} ({value}), attempting to set it to: {new_raw_value} ({new_value}). Retries remaining: {retry}")
+                                self.write_register(
+                                    register, int(new_raw_value))
+                                time.sleep(self.write_retry_delay)
+                                retry = retry - 1
+                    else:
+                        logging.error(
+                            f"No current read value for {register['name']} skipping write operation. Please try again.")
+                else:
+                    logging.info(
+                        f"Received a request for {register['name']} to set value to: {payload}({new_raw_value})")
+                    if int(new_raw_value) < register['min']:
+                        logging.error(
+                            f"Received a request for {register['name']} but value: {new_raw_value} is less than the min value: {register['min']}. Ignoring")
+                    elif int(new_raw_value) > register['max']:
+                        logging.error(
+                            f"Received a request for {register['name']} but value: {new_raw_value} is more than the max value: {register['max']}. Ignoring")
+                    else:
+                        if register['name'] == 'desired_power':
+                            if int(self.raw_data.get('energy_storage_mode', None)) == 0:
+                                logging.info(
+                                    f"Received a request for {register['name']} but energy_storage_mode is not in Passive mode. Ignoring")
+                                continue
+                        if register['name'] == 'charge_discharge_power':
+                            if int(self.raw_data.get('working_mode', None)) != 3:
+                                logging.info(
+                                    f"Received a request for {register['name']} but working_mode is not in Passive mode. Ignoring")
+                                continue
+                        if 'write_addresses' in register:
+                            write_register = None
+                            write_functioncode = register.get('write_functioncode', '16')
+                            if new_raw_value == 0:
+                                write_register = register['write_addresses'].get("standby", None)
+                                new_raw_value = register['write_values'].get("standby", new_raw_value)
+                            elif new_raw_value < 0:
+                                write_register = register['write_addresses'].get("discharge", None)
+                            elif new_raw_value > 0:
+                                write_register = register['write_addresses'].get("charge", None)
+                            if write_register is None:
+                                logging.error(
+                                    f"No write address found for value: {new_raw_value} on register: {register['name']}. Ignoring")
+                                continue
+                            logging.info(
+                                f"Mapping value: {new_raw_value} to write register: {write_register} for register: {register['name']}")
+                            self.write_register_special(write_register, write_functioncode, abs(new_raw_value))
+                            continue
                         if register['name'] in self.raw_data:
                             retry = self.write_retry
-                            raw_value = self.raw_data.get(
-                                register.get('name'), None)
-                            value = self.translate_from_raw_value(
-                                register, raw_value)
                             while retry > 0:
-                                if self.raw_data[register['name']] == int(new_raw_value):
+                                if int(self.raw_data[register['name']]) == int(new_raw_value):
                                     logging.info(
-                                        f"Current value for {register['name']}: {raw_value} ({value}). Matches desired value: {new_raw_value} ({new_value}).")
+                                        f"Current value for {register['name']}: {self.raw_data[register['name']]} matches desired value: {new_raw_value}")
                                     retry = 0
                                 else:
                                     logging.info(
-                                        f"Current value for {register['name']}: {raw_value} ({value}), attempting to set it to: {new_raw_value} ({new_value}). Retries remaining: {retry}")
+                                        f"Current value for {register['name']}: {self.raw_data[register['name']]}, attempting to set it to {new_raw_value}. Retries remaining: {retry}")
                                     self.write_register(
                                         register, int(new_raw_value))
                                     time.sleep(self.write_retry_delay)
@@ -173,39 +241,6 @@ class Sofar():
                         else:
                             logging.error(
                                 f"No current read value for {register['name']} skipping write operation. Please try again.")
-
-                    elif register['function'] == 'int':
-                        logging.info(
-                            f"Received a request for {register['name']} to set value to: {payload}({new_raw_value})")
-                        if int(new_raw_value) < register['min']:
-                            logging.error(
-                                f"Received a request for {register['name']} but value: {new_raw_value} is less than the min value: {register['min']}. Ignoring")
-                        elif int(new_raw_value) > register['max']:
-                            logging.error(
-                                f"Received a request for {register['name']} but value: {new_raw_value} is more than the max value: {register['max']}. Ignoring")
-                        else:
-                            if register['name'] == 'desired_power':
-                                if int(self.raw_data.get('energy_storage_mode', None)) == 0:
-                                    logging.info(
-                                        f"Received a request for {register['name']} but energy_storage_mode is not in Passive mode. Ignoring")
-                                    continue
-                            if register['name'] in self.raw_data:
-                                retry = self.write_retry
-                                while retry > 0:
-                                    if int(self.raw_data[register['name']]) == int(new_raw_value):
-                                        logging.info(
-                                            f"Current value for {register['name']}: {self.raw_data[register['name']]} matches desired value: {new_raw_value}")
-                                        retry = 0
-                                    else:
-                                        logging.info(
-                                            f"Current value for {register['name']}: {self.raw_data[register['name']]}, attempting to set it to {new_raw_value}. Retries remaining: {retry}")
-                                        self.write_register(
-                                            register, int(new_raw_value))
-                                        time.sleep(self.write_retry_delay)
-                                        retry = retry - 1
-                            else:
-                                logging.error(
-                                    f"No current read value for {register['name']} skipping write operation. Please try again.")
 
         if not found:
             for block in self.config.get('write_register_blocks', []):
@@ -246,66 +281,99 @@ class Sofar():
             self.instrument.serial.bytesize = 8
             self.instrument.serial.parity = serial.PARITY_NONE
             self.instrument.serial.stopbits = 1
-            self.instrument.serial.timeout = 0.1   # seconds
+            self.instrument.serial.timeout = 0.5   # seconds
             self.instrument.close_port_after_each_call = False
             self.instrument.clear_buffers_before_each_transaction = True
+
+    def aggregate_datetime_bitmap(self, register):
+        additional_registers = register.get('aggregate_datetime_bitmap', {})
+        ts = self.read_event_timestamp(
+            additional_registers.get("year_month",""),
+            additional_registers.get("day_hour",""),
+            additional_registers.get("minute_second","")
+        )
+        if ts is None: 
+            return "No valid timestamp available"
+        else: 
+            return ts.strftime("%Y-%m-%d %H:%M:%S")
 
     def combine_aggregate_registers(self, register):
         """ Combine registers from the 'aggregate' field using the arithmetic function in 'agg_function' """
         raw_value = 0
-        for register_name in register['aggregate']:
-            if register_name in self.raw_data:
+        for agg_register_name in register['aggregate']:
+            if agg_register_name in self.raw_data:
                 if raw_value == 0:
-                    raw_value = self.raw_data[register_name]
+                    raw_value = self.raw_data[agg_register_name]
                 else:
                     if register['agg_function'] == 'add':
-                        raw_value += self.raw_data[register_name]
+                        raw_value += self.raw_data[agg_register_name]
                     elif register['agg_function'] == 'subtract':
-                        raw_value -= self.raw_data[register_name]
+                        raw_value -= self.raw_data[agg_register_name]
                     elif register['agg_function'] == 'avg':
                         raw_value = int(
-                            (raw_value + self.raw_data[register_name]) / 2)
+                            (raw_value + self.raw_data[agg_register_name]) / 2)
         self.raw_data[register['name']] = raw_value
         return raw_value
 
     def update_state(self):
         for register in self.config['registers']:
+            if not register.get('read', True):
+                continue
             refresh = register.get('refresh', 1)
             if (self.iteration % refresh) != 0:
                 logging.debug(f"Skipping {register['name']}")
                 continue
             raw_value = None
             logging.debug('Reading %s', register['name'])
+           
+            if register.get('read_type') == 'static':
+                logging.info(f"Using static value for {register['name']}")
+                raw_value = register['value']
             if 'aggregate' in register:
                 raw_value = self.combine_aggregate_registers(register)
-            else:
-                raw_value = self.read_register(
-                    int(register['register'], 16),
-                    register.get('read_type', 'register'),
-                    register.get('signed', False),
-                    register.get('registers', 1)
-                )
+            if register.get('register', False):
+                if register.get('read', True):
+                    raw_value = self.read_register(
+                        int(register['register'], 16),
+                        register.get('read_type', 'register'),
+                        register.get('signed', False),
+                        register.get('registers', 1)
+                    )
+
+            if 'aggregate_datetime_bitmap' in register:
+                continue
+                #raw_value =  self.aggregate_datetime_bitmap(register)
             if raw_value is None:
                 logging.error(f"Value for {register['name']}: is none")
                 continue
             else:
+                # Normalize inverter 'no data' sentinel values before translation
+                if isinstance(raw_value, int) and (raw_value == 65535 or raw_value == -1):
+                    logging.debug(f"Raw sentinel value for {register['name']} detected: {raw_value}; normalizing to 0")
+                    raw_value = 0
                 value = self.translate_from_raw_value(register, raw_value)
                 # Inverter will return maximum 16-bit integer value when data not available (eg. grid usage when grid down)
                 if value == 65535:
                     value = 0
-                if 'min' in register and value < register['min']:
-                    logging.error(
-                        f"Value for {register['name']}: {str(value)} is lower than min allowed value: {register['min']}")
-                if 'max' in register and value > register['max']:
-                    logging.error(
-                        f"Value for {register['name']}: {str(raw_value)} is greater than max allowed value: {register['max']}")
+                if 'min' in register:
+                    if int(value) < register.get('min'):
+                        logging.error(
+                            f"Value for {register['name']}: {str(value)} is lower than min allowed value: {register['min']}")
+                if 'max' in register:
+                    if int(value) > register.get('max', 0):
+                        logging.error(
+                            f"Value for {register['name']}: {str(raw_value)} is greater than max allowed value: {register['max']}")
                 logging.debug(f"Read {register['name']} {value}")
 
             if not self.raw_data.get(register.get('name')) == raw_value:
                 if register.get('notify_on_change', False):
                     from_raw = self.raw_data.get(register.get('name'))
-                    from_value = self.translate_from_raw_value(
-                        register, from_raw)
+                    try:
+                        from_value = self.translate_from_raw_value(
+                            register, from_raw)
+                    except (ValueError, TypeError) as e:
+                        logging.error(f"Conversion failed for {register['name']}, value {from_raw}: {e}")
+                        continue
                     logging.info(
                         f"Notification - {register.get('name')} has changed from: {from_raw} ({from_value}) to: {raw_value} ({value})")
                 self.raw_data[register.get('name')] = raw_value
@@ -462,8 +530,30 @@ class Sofar():
             self.iteration += 1
         self.terminate(status_code=0)
 
+
+    def write_register_special(self, registeraddress, functioncode, value):
+        with self.mutex:
+            reg_int = int(registeraddress, 16)
+
+            logging.info(
+                f"Writing {registeraddress}({reg_int}) functioncode: {functioncode} with {value}"
+            )
+
+            # Payload = [cmd][param] (each uint16)
+            payload = struct.pack(">HH", reg_int, value)
+
+            logging.info("Payload (no CRC): %s", payload.hex(" "))
+
+            response = self.instrument._perform_command(
+                int(functioncode),   # 0x42
+                payload
+            )
+
+            logging.info("Raw response: %s", response.hex(" "))
+        return response
+
     def write_register(self, register, value):
-        """ Read value from register with a retry mechanism """
+        """ Write value to register """
         with self.mutex:
             retry = self.write_retry
             logging.info(
@@ -598,7 +688,9 @@ class Sofar():
                 self.failures = self.failures + 1
                 self.failure_pattern += "f"
                 self.failed.append(registeraddress)
-            if value:
+            if value is None:
+                self.failure_pattern += "n"
+            else:
                 self.failure_pattern += "."
             return value
 
@@ -612,55 +704,67 @@ class Sofar():
             return serial_number[0] == 'S' and serial_number[1:].isalnum()
         return False
 
+    def read_ascii(self, start, count):
+        try:
+            regs = self.instrument.read_registers(start, count, functioncode=3)
+        except Exception as e:
+            logging.debug(f"Error reading registers at {hex(start)}: {e}")
+            return None
+
+        chars = []
+        for val in regs:
+            hi = (val >> 8) & 0xFF
+            lo = val & 0xFF
+
+            # Sofar stores ASCII in HIGH BYTE first for this model
+            for b in (hi, lo):
+                if b == 0:
+                    continue
+                c = chr(b)
+                if c.isprintable():
+                    chars.append(c)
+
+        return "".join(chars)
+
     def determine_serial_number(self):
-        """ Determine the serial number from the inverter """
-        serial_number = None
+        """Determine the serial number from the inverter."""
+  
+        # 1) First location: 0x2001–0x2007 (14 chars)
+        serial = self.read_ascii(0x2001, 7)
+        if serial and self.is_valid_serial_number(serial):
+            logging.info(f"Valid Serial number found at first location: {serial}")
+            return serial
 
-        # Try first location: 0x2001 ... 0x2007
-        try:
-            serial_number = ''.join([self.read_register(
-                register, 'string', False, 1) for register in range(0x2001, 0x2008)])
-            if self.is_valid_serial_number(serial_number):
-                logging.info(
-                    f"Valid Serial number found at first location: {serial_number}")
-                return serial_number
-        except Exception as e:
-            logging.info(
-                f"Failed to validate serial number from first location: {str(e)}")
+        # 2) Second location: 0x0445–0x044B (14 chars)
+        serial = self.read_ascii(0x0445, 7)
+        if serial and self.is_valid_serial_number(serial):
+            logging.info(f"Valid Serial number found at second location: {serial}")
+            return serial
 
-        # Try second location: 0x0445 ... 0x044B (14 digits)
-        try:
-            serial_number = ''.join([self.read_register(
-                register, 'string', False, 1) for register in range(0x0445, 0x044C)])
-            if self.is_valid_serial_number(serial_number):
-                logging.info(
-                    f"Valid Serial number found at second location: {serial_number}")
-                return serial_number
-        except Exception as e:
-            logging.info(
-                f"Failed to validate serial number from second location: {str(e)}")
+        # 3) Third location: 0x0445–0x044C (16 chars) + 0x0470–0x0471 (4 chars)
+        part1 = self.read_ascii(0x0445, 8)   # 16 chars
+        part2 = self.read_ascii(0x0470, 2)   # 4 chars
+        serial = part1 + part2
 
-        # Try third location: 0x0445 ... 0x044C and 0x0470...0x0471 (20 digits)
-        try:
-            serial_number_part1 = ''.join([self.read_register(
-                register, 'string', False, 1) for register in range(0x0445, 0x044C)])
-            serial_number_part2 = ''.join([self.read_register(
-                register, 'string', False, 1) for register in range(0x0470, 0x0472)])
-            serial_number = serial_number_part1 + serial_number_part2
-            if self.is_valid_serial_number(serial_number):
-                logging.info(
-                    f"Valid Serial number found at third location: {serial_number}")
-                return serial_number
-        except Exception as e:
-            logging.info(
-                f"Failed to validate serial number from third location: {str(e)}")
+        if part1 is not None and part2 is not None:
+            # Sofar rule: if part2 is empty → 14-digit serial
+            if part2.strip("") == "":
+                if self.is_valid_serial_number(part1):
+                    logging.info(f"Valid 14-digit Serial number found at third location: {part1}")
+                    return part1
+            else:
+                serial = part1 + part2
+                if self.is_valid_serial_number(serial):
+                    logging.info(f"Valid 20-digit Serial number found at third location: {serial}")
+                    return serial
 
         logging.error("Failed to determine serial number")
         return None
 
+
     def determine_model(self):
         """ Determine the model of the inverter based on the serial number """
-        serial_number = self.raw_data.get('serial_number')
+        serial_number = self.raw_data.get('serial_number') 
         model = None
         if len(serial_number) == 14:
             code = serial_number[1:3]
@@ -763,7 +867,7 @@ class Sofar():
             "SOFAR ESI 2.5...5.0K": "SOFAR-HYD-3PH-AND-G3.json"
         }
 
-        modbus_protocol = protocol_mapping.get(self.raw_data.get('model'))
+        modbus_protocol = protocol_mapping.get(self.raw_data.get('model'), False)
         if modbus_protocol:
             logging.info(f"Modbus protocol determined: {modbus_protocol}")
         else:
@@ -803,10 +907,8 @@ class Sofar():
             logging.error(f"Block {block_name} not found in configuration")
             return
 
-        start_register = int(block['start_register'], 16)
         required_length = int(block['length'])
         values = []
-        raw_value = None
         for register_name in block['registers']:
             if register_name == update_register:
                 register = self.get_register(register_name)
@@ -868,6 +970,64 @@ class Sofar():
             logging.error(
                 f"Register {register_name} not found in configuration")
         return register
+    
+    def read_event_timestamp(self,
+                            reg_yM,
+                            reg_dH,
+                            reg_mS):
+        """
+        Reads inverter history timestamp registers and returns a datetime object.
+
+        Register format:
+        reg_yM (0x1481):
+            High byte = year (last two digits)
+            Low byte  = month
+
+        reg_dH (0x1482):
+            High byte = day
+            Low byte  = hour
+
+        reg_mS (0x1483):
+            High byte = minute
+            Low byte  = second
+        """
+        logging.info(f"Reading event timestamp from registers: yM={reg_yM}, dH={reg_dH}, mS={reg_mS}")
+        if reg_yM == "" or reg_dH == "" or reg_mS == "": return None
+
+        # Read raw register values
+        yM = self.instrument.read_register(int(reg_yM, 16), 0, 3)
+        dH = self.instrument.read_register(int(reg_dH, 16), 0, 3)
+        mS = self.instrument.read_register(int(reg_mS, 16), 0, 3)
+
+        logging.info(f"Read event timestamp registers: yM={yM}, dH={dH}, mS={mS}")
+
+        # Extract bytes
+        year_2digit = (yM >> 8) & 0xFF
+        month       = yM & 0xFF
+
+        day         = (dH >> 8) & 0xFF
+        hour        = dH & 0xFF
+
+        minute      = (mS >> 8) & 0xFF
+        second      = mS & 0xFF
+
+        # Convert 2‑digit year to full year (assume 2000–2099)
+        year_full = 2000 + year_2digit
+
+        # Build datetime
+        timestamp = datetime.datetime(year_full, month, day, hour, minute, second)
+
+        return timestamp
+
+    def format_history_event(self, raw_value):
+        entry = self.config.get('error_codes', {}).get(str(raw_value), {})
+        name = entry.get("name", "")
+        description = entry.get("description", "")
+
+        if name and description:
+            return f"{name} – {description}"
+        return name or str(raw_value)
+
 
     def translate_from_raw_value(self, register, raw_value):
         """ Translate raw value to a normalized value using the function and factor """
@@ -878,6 +1038,8 @@ class Sofar():
                 return raw_value / register['factor']
             elif register['function'] == 'mode':
                 return register['modes'].get(str(raw_value), raw_value)
+            elif register['function'] == 'history_event_map':
+                return self.format_history_event(raw_value)
             elif register['function'] == 'bit_field':
                 length = len(register['fields'])
                 fields = []
