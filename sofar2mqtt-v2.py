@@ -17,7 +17,7 @@ import paho.mqtt.client as mqtt
 import requests
 import os
 
-VERSION = "3.1.0"
+VERSION = "4.0.1"
 
 
 def load_config(config_file_path):
