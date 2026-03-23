@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sofar2mqtt"
+version = "4.0.1"
+description = "Sofar inverter to MQTT integration with Home Assistant auto-discovery"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Youri", email = "youri@example.com"}
+]
+keywords = ["sofar", "mqtt", "solar", "inverter", "home-assistant"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "click>=8.0.0",
+    "paho-mqtt>=1.6.0",
+    "minimalmodbus>=2.0.0",
+    "pyserial>=3.5",
+    "pydantic>=2.0.0",
+    "requests>=2.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "pylint>=3.0.0",
+]
+
+[project.scripts]
+sofar2mqtt = "sofar2mqtt.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sofar2mqtt*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "B904",  # allow raise without from in exception handlers
+]
+
+[tool.ruff.isort]
+known-first-party = ["sofar2mqtt"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Start loose, tighten over time
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=sofar2mqtt --cov-report=term-missing"

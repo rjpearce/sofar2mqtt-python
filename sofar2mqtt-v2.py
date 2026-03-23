@@ -403,8 +403,7 @@ class Sofar():
             self.client.publish(self.topic + "state_all",
                                 json_data, retain=True)
 
-            with open("data.json", "w") as write_file:
-                write_file.write(json_data)
+
             if self.legacy_publish:
                 self.publish_legacy_state()
         except Exception:
