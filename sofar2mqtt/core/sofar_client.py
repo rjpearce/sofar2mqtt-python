@@ -106,7 +106,8 @@ class SofarClient:
 
         # Initialize discovery
         if self.ha_discovery:
-            self.discovery = HomeAssistantDiscovery(self.mqtt)
+            serial_number = self._get_serial_number()
+            self.discovery = HomeAssistantDiscovery(self.mqtt, serial_number)
 
         logger.info(f"Setup complete for {self.device_name}")
 
@@ -131,6 +132,19 @@ class SofarClient:
             return __version__
         except ImportError:
             return "4.0.1"
+
+    def _get_serial_number(self) -> str:
+        """Get inverter serial number from config or use fallback."""
+        # Check if serial_number register is defined in config
+        if self.config:
+            for register in self.config.registers:
+                if register.name == "serial_number":
+                    # If it's a static value, use that (even if wrong like ME3000SP)
+                    if hasattr(register, "value") and register.value:
+                        return str(register.value)
+                    # Otherwise use fallback
+                    break
+        return "inverter"
 
     def _on_mqtt_connect(self, client, userdata, flags, rc, properties=None) -> None:
         """Handle MQTT connection."""
@@ -298,8 +312,12 @@ class SofarClient:
         # Handle string reads
         if read_type == "string":
             addr = int(register["register"], 16)
-            num_regs = len(register.get("registers", [1]))
-            return self.modbus.read_string(addr, num_regs)
+            num_regs = register.get("registers", 1)
+            # Handle both int and list (from config parsing)
+            if isinstance(num_regs, int):
+                return self.modbus.read_string(addr, num_regs)
+            else:
+                return self.modbus.read_string(addr, len(num_regs))
 
         # Handle long reads
         if read_type == "long":

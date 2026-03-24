@@ -1,6 +1,8 @@
 """Main entry point for sofar2mqtt CLI."""
 
 import logging
+import os
+from pathlib import Path
 
 import click
 
@@ -103,9 +105,6 @@ def main(
 
     # Determine config file
     if not config:
-        import os
-        from pathlib import Path
-
         config_type = os.environ.get("DEVICE_TYPE", "")
         if config_type:
             config = f"{config_type}.json"
