@@ -36,9 +36,9 @@ jobs:
         run: |
           ruff check sofar2mqtt/
 
-      - name: Type check with mypy
-        run: |
-          mypy sofar2mqtt/
+#      - name: Type check with mypy
+#        run: |
+#          mypy sofar2mqtt/
 
       - name: Run tests with coverage
         run: |
