@@ -182,7 +182,8 @@ class ModbusClient:
                 payload = struct.pack(">HH", reg_int, value)
 
                 logger.debug(
-                    f"Special write: 0x{reg_int:04X} func=0x{function_code:02X} payload={payload.hex(' ')}"
+                    f"Special write: 0x{reg_int:04X} "
+                    f"func=0x{function_code:02X} payload={payload.hex(' ')}"
                 )
 
                 response = self.instrument._perform_command(function_code, payload)

@@ -45,9 +45,13 @@ class HomeAssistantDiscovery:
 
     def discover_all(self, registers: list, device_id: str, device_name: str) -> None:
         """Publish discovery configuration for all registers."""
-        device_info = build_device_info({"model": device_name}, {"sw_version_com": "unknown", "hw_version": "unknown"})
+        device_info = build_device_info(
+            {"model": device_name}, {"sw_version_com": "unknown", "hw_version": "unknown"}
+        )
         for register in registers:
-            self.publish_register_discovery(register.model_dump() if hasattr(register, 'model_dump') else register, device_info)
+            self.publish_register_discovery(
+                register.model_dump() if hasattr(register, "model_dump") else register, device_info
+            )
 
     def publish_register_discovery(
         self, register: dict[str, Any], device_info: dict[str, Any]

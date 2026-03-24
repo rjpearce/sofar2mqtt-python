@@ -39,7 +39,18 @@ class RegisterDefinition(BaseModel):
     register: str | None = None  # Hex address like "0x1234"
     read_type: Literal["register", "long", "string", "static"] = "register"
     type: Literal["U16", "I16", "U32", "I32"] | None = None
-    function: Literal["multiply", "divide", "mode", "bit_field", "high_bit_low_bit", "int", "history_event_map"] | None = None
+    function: (
+        Literal[
+            "multiply",
+            "divide",
+            "mode",
+            "bit_field",
+            "high_bit_low_bit",
+            "int",
+            "history_event_map",
+        ]
+        | None
+    ) = None
     factor: float | None = None
     modes: dict[str, str] | None = None
     fields: list[str] | None = None

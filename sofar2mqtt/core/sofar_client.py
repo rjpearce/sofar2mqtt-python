@@ -280,7 +280,8 @@ class SofarClient:
         self.raw_data["modbus_retry_rate"] = retry_rate
 
         logger.info(
-            f"Modbus: req={self.requests} retries={self.retries} ({retry_rate}%) failures={self.failures} ({failure_rate}%)"
+            f"Modbus: req={self.requests} retries={self.retries} ({retry_rate}%) "
+            f"failures={self.failures} ({failure_rate}%)"
         )
 
     def _read_register(self, register: dict[str, Any]) -> Any | None:
