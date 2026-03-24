@@ -1,31 +1,32 @@
 """Data models for Sofar2MQTT register definitions."""
 
-from typing import Optional, Dict, Any, List, Literal
-from pydantic import BaseModel, Field
+from typing import Any, Literal
+
+from pydantic import BaseModel
 
 
 class HomeAssistantConfig(BaseModel):
     """Home Assistant auto-discovery configuration."""
 
-    name: Optional[str] = None
-    object_id: Optional[str] = None
-    unique_id: Optional[str] = None
-    device_class: Optional[str] = None
-    entity_category: Optional[str] = None
-    state_class: Optional[str] = None
-    unit_of_measurement: Optional[str] = None
-    icon: Optional[str] = None
-    value_template: Optional[str] = None
-    command_topic: Optional[str] = None
-    state_topic: Optional[str] = None
-    control: Optional[Literal["number", "select", "text"]] = None
-    min: Optional[float] = None
-    max: Optional[float] = None
-    step: Optional[float] = None
-    mode: Optional[Literal["slider", "box"]] = None
-    initial: Optional[float] = None
+    name: str | None = None
+    object_id: str | None = None
+    unique_id: str | None = None
+    device_class: str | None = None
+    entity_category: str | None = None
+    state_class: str | None = None
+    unit_of_measurement: str | None = None
+    icon: str | None = None
+    value_template: str | None = None
+    command_topic: str | None = None
+    state_topic: str | None = None
+    control: Literal["number", "select", "text"] | None = None
+    min: float | None = None
+    max: float | None = None
+    step: float | None = None
+    mode: Literal["slider", "box"] | None = None
+    initial: float | None = None
     enabled_by_default: bool = True
-    options: Optional[List[str]] = None
+    options: list[str] | None = None
 
     class Config:
         extra = "allow"
@@ -35,48 +36,38 @@ class RegisterDefinition(BaseModel):
     """Definition of a Modbus register."""
 
     name: str
-    register: Optional[str] = None  # Hex address like "0x1234"
+    register: str | None = None  # Hex address like "0x1234"
     read_type: Literal["register", "long", "string", "static"] = "register"
-    type: Optional[Literal["U16", "I16", "U32", "I32"]] = None
-    function: Optional[
-        Literal[
-            "multiply",
-            "divide",
-            "mode",
-            "bit_field",
-            "high_bit_low_bit",
-            "int",
-            "history_event_map",
-        ]
-    ] = None
-    factor: Optional[float] = None
-    modes: Optional[Dict[str, str]] = None
-    fields: Optional[List[str]] = None
-    join: Optional[str] = None
-    min: Optional[float] = None
-    max: Optional[float] = None
+    type: Literal["U16", "I16", "U32", "I32"] | None = None
+    function: Literal["multiply", "divide", "mode", "bit_field", "high_bit_low_bit", "int", "history_event_map"] | None = None
+    factor: float | None = None
+    modes: dict[str, str] | None = None
+    fields: list[str] | None = None
+    join: str | None = None
+    min: float | None = None
+    max: float | None = None
     signed: bool = False
     write: bool = False
     read: bool = True
     refresh: int = 1  # Read every N iterations
     notify_on_change: bool = False
-    ha: Optional[HomeAssistantConfig] = None
-    desc: Optional[str] = None
+    ha: HomeAssistantConfig | None = None
+    desc: str | None = None
 
     # Special configurations
-    aggregate: Optional[List[str]] = None  # For combining multiple registers
-    agg_function: Optional[Literal["add", "subtract", "avg"]] = None
-    aggregate_datetime_bitmap: Optional[Dict[str, str]] = None
+    aggregate: list[str] | None = None  # For combining multiple registers
+    agg_function: Literal["add", "subtract", "avg"] | None = None
+    aggregate_datetime_bitmap: dict[str, str] | None = None
 
     # Write-specific configurations
-    write_addresses: Optional[Dict[str, str]] = None
-    write_values: Optional[Dict[str, Any]] = None
-    write_functioncode: Optional[str] = None
+    write_addresses: dict[str, str] | None = None
+    write_values: dict[str, Any] | None = None
+    write_functioncode: str | None = None
     passive: bool = False  # Don't poll this register
     untested: bool = False  # Track registers not tested
 
     # Static values
-    value: Optional[Any] = None
+    value: Any | None = None
 
     class Config:
         extra = "allow"
@@ -92,8 +83,8 @@ class WriteRegisterBlock(BaseModel):
     name: str
     start_register: str  # Starting hex address
     length: int  # Number of registers in the block
-    registers: List[str]  # List of register names
-    append: Optional[List[int]] = None  # Values to append at the end
+    registers: list[str]  # List of register names
+    append: list[int] | None = None  # Values to append at the end
 
 
 # InverterConfig is defined in inverter_config.py to avoid circular imports

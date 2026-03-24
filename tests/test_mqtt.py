@@ -1,8 +1,5 @@
 """Tests for MQTT client and discovery."""
 
-import pytest
-import json
-from unittest.mock import MagicMock
 from sofar2mqtt.mqtt.discovery import HomeAssistantDiscovery, build_device_info
 
 

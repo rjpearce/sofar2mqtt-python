@@ -2,7 +2,9 @@
 
 import logging
 import socket
-from typing import Optional, Callable, Any
+from collections.abc import Callable
+from typing import Any
+
 import paho.mqtt.client as mqtt
 
 logger = logging.getLogger(__name__)
@@ -15,10 +17,10 @@ class MqttClient:
         self,
         broker: str,
         port: int = 1883,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        ca_certs: Optional[str] = None,
-        client_id: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
+        ca_certs: str | None = None,
+        client_id: str | None = None,
     ):
         """Initialize MQTT client."""
         self.broker = broker

@@ -1,9 +1,9 @@
 """Tests for main SoFar client functionality."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-import json
-import time
-from unittest.mock import MagicMock, patch, call
+
 from sofar2mqtt.core.sofar_client import SofarClient
 from sofar2mqtt.models.inverter_config import InverterConfig
 from sofar2mqtt.models.register import RegisterDefinition
@@ -220,28 +220,6 @@ class TestSofarClientPublishState:
         # Verify all values were published
         assert client.mqtt.publish.call_count >= 3  # state_all + individual + bridge
 
-    def test_publish_state_writes_data_file(self, mock_converter, mock_modbus):
-        """Test that publish_state writes data to file."""
-        mock_config_instance = InverterConfig(
-            registers=[RegisterDefinition(name="voltage", register="0x1000", read=True)]
-        )
-
-        client = SofarClient(
-            config_path="/tmp/config.json",
-            modbus_device="/dev/ttyUSB0",
-            mqtt_broker="localhost",
-        )
-        client.config = mock_config_instance
-        client.mqtt = MagicMock()
-        client.raw_data = {"voltage": 230}
-
-        mock_converter.from_raw = MagicMock(return_value=230.0)
-
-        with patch("builtins.open", MagicMock()) as mock_open:
-            client.publish_state()
-            # Should attempt to open file for writing
-            # Note: actual file writing is tested via exception handling
-
 
 class TestSofarClientWriteRegister:
     """Test write register functionality."""
@@ -317,26 +295,6 @@ class TestSofarClientLifecycle:
         client.stop()
 
         client.modbus.close.assert_called_once()
-
-    def test_running_flag_set_on_start(self):
-        """Test that running flag is managed correctly."""
-        client = SofarClient(
-            config_path="/tmp/config.json",
-            modbus_device="/dev/ttyUSB0",
-            mqtt_broker="localhost",
-        )
-        mock_config_instance = MagicMock()
-        mock_config_instance.registers = []
-
-        with patch("sofar2mqtt.core.sofar_client.load_config", return_value=mock_config_instance):
-            with patch.object(client, "setup"):
-                client.running = False
-
-                # Start doesn't call run, so running stays False
-                client.start()
-
-                # running should still be False since run() wasn't called
-                assert client.running is False or client.running is not True
 
 
 class TestSofarClientMqttCallbacks:

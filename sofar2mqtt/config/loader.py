@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
 
 from sofar2mqtt.models.inverter_config import InverterConfig
 
@@ -26,7 +26,7 @@ def load_config(config_path: str) -> InverterConfig:
 
     logger.info(f"Loading configuration from {config_path}")
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         config_dict = json.load(f)
 
     # Validate required fields
@@ -60,7 +60,7 @@ class ConfigLoader:
 
         logger.info(f"Loading configuration from {self.config_path}")
 
-        with open(self.config_path, "r", encoding="utf-8") as f:
+        with open(self.config_path, encoding="utf-8") as f:
             config = json.load(f)
 
         # Validate required fields
@@ -123,7 +123,7 @@ class ConfigLoader:
             )
 
     @staticmethod
-    def load_from_file(config_path: str) -> Dict[str, Any]:
+    def load_from_file(config_path: str) -> dict[str, Any]:
         """
         Static convenience method to load config from file path.
 

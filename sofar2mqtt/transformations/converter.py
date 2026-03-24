@@ -1,7 +1,7 @@
 """Value transformation utilities for Sofar2MQTT."""
 
 import logging
-from typing import Any, Dict, Optional, List, Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +10,7 @@ class ValueConverter:
     """Converts between raw Modbus register values and normalized human-readable values."""
 
     @staticmethod
-    def from_raw(register: Dict[str, Any], raw_value: Any) -> Any:
+    def from_raw(register: dict[str, Any], raw_value: Any) -> Any:
         """Convert a raw register value to its normalized form."""
         if raw_value is None:
             return None
@@ -44,7 +44,7 @@ class ValueConverter:
         return raw_value
 
     @staticmethod
-    def to_raw(register: Dict[str, Any], value: Any) -> int:
+    def to_raw(register: dict[str, Any], value: Any) -> int:
         """Convert a human-readable value to raw Modbus format."""
         function = register.get("function")
 
@@ -81,14 +81,14 @@ class ValueConverter:
         return int(value) if value is not None else 0
 
     @staticmethod
-    def _format_history_event(register: Dict[str, Any], raw_value: int) -> str:
+    def _format_history_event(register: dict[str, Any], raw_value: int) -> str:
         """Format a history event error code."""
         # Note: This would need access to error codes from config
         # For now, return the raw value as string
         return str(raw_value)
 
     @staticmethod
-    def validate(register: Dict[str, Any], value: Any) -> bool:
+    def validate(register: dict[str, Any], value: Any) -> bool:
         """Validate a value against register constraints."""
         if value is None:
             return False
@@ -115,7 +115,7 @@ class ValueConverter:
         return True
 
 
-def combine_registers(raw_data: Dict[str, Any], register: Dict[str, Any]) -> Optional[Any]:
+def combine_registers(raw_data: dict[str, Any], register: dict[str, Any]) -> Any | None:
     """Combine multiple registers using aggregate function."""
     agg_registers = register.get("aggregate", [])
     if not agg_registers:
@@ -144,7 +144,7 @@ def combine_registers(raw_data: Dict[str, Any], register: Dict[str, Any]) -> Opt
     return result
 
 
-def read_ascii(instrument, start_address: int, count: int) -> Optional[str]:
+def read_ascii(instrument, start_address: int, count: int) -> str | None:
     """Read ASCII string from consecutive registers."""
     try:
         regs = instrument.read_registers(start_address, count, functioncode=3)

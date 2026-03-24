@@ -1,6 +1,5 @@
 """Tests for value conversion and transformation logic."""
 
-import pytest
 from sofar2mqtt.transformations.converter import ValueConverter, combine_registers
 
 

@@ -1,8 +1,9 @@
 """Tests for MQTT client functionality."""
 
-import pytest
-import socket
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from sofar2mqtt.mqtt.client import MqttClient
 
 

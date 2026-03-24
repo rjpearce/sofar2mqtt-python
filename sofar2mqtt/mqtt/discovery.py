@@ -1,8 +1,8 @@
 """Home Assistant MQTT discovery for Sofar2MQTT."""
 
-import logging
 import json
-from typing import Dict, Any, Optional
+import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -43,8 +43,14 @@ class HomeAssistantDiscovery:
 
         logger.info(f"Published bridge discovery for {self.serial}")
 
+    def discover_all(self, registers: list, device_id: str, device_name: str) -> None:
+        """Publish discovery configuration for all registers."""
+        device_info = build_device_info({"model": device_name}, {"sw_version_com": "unknown", "hw_version": "unknown"})
+        for register in registers:
+            self.publish_register_discovery(register.model_dump() if hasattr(register, 'model_dump') else register, device_info)
+
     def publish_register_discovery(
-        self, register: Dict[str, Any], device_info: Dict[str, Any]
+        self, register: dict[str, Any], device_info: dict[str, Any]
     ) -> None:
         """Publish discovery configuration for a single register."""
         if "ha" not in register:
@@ -76,7 +82,7 @@ class HomeAssistantDiscovery:
             logger.error(f"Failed to publish discovery for {register['name']}: {e}")
 
 
-def build_device_info(config: Dict[str, Any], raw_data: Dict[str, Any]) -> Dict[str, Any]:
+def build_device_info(config: dict[str, Any], raw_data: dict[str, Any]) -> dict[str, Any]:
     """Build device information for Home Assistant."""
     return {
         "name": config.get("model", "Sofar Inverter"),

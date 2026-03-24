@@ -6,14 +6,14 @@ import signal
 import socket
 import time
 from threading import Lock, Thread
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import paho.mqtt.client as paho
 
 from sofar2mqtt.config.loader import load_config
 from sofar2mqtt.core.modbus_client import ModbusClient
-from sofar2mqtt.mqtt.discovery import HomeAssistantDiscovery
 from sofar2mqtt.models.inverter_config import InverterConfig
+from sofar2mqtt.mqtt.discovery import HomeAssistantDiscovery
 from sofar2mqtt.transformations.converter import ValueConverter, combine_registers
 
 logger = logging.getLogger(__name__)
@@ -28,8 +28,8 @@ class SofarClient:
         modbus_device: str,
         mqtt_broker: str,
         mqtt_port: int = 1883,
-        mqtt_user: Optional[str] = None,
-        mqtt_password: Optional[str] = None,
+        mqtt_user: str | None = None,
+        mqtt_password: str | None = None,
         device_id: str = "sofar",
         device_name: str = "Sofar Inverter",
         poll_interval: int = 10,
@@ -52,9 +52,9 @@ class SofarClient:
         # State
         self.running = False
         self.iteration = 0
-        self.raw_data: Dict[str, Any] = {}
+        self.raw_data: dict[str, Any] = {}
         self._mutex = Lock()
-        self._thread: Optional[Thread] = None
+        self._thread: Thread | None = None
 
         # Statistics
         self.requests = 0
@@ -62,13 +62,13 @@ class SofarClient:
         self.retries = 0
 
         # Components (initialized in setup)
-        self.modbus: Optional[ModbusClient] = None
-        self.mqtt: Optional[paho.Client] = None
-        self.config: Optional[InverterConfig] = None
-        self.discovery: Optional[HomeAssistantDiscovery] = None
+        self.modbus: ModbusClient | None = None
+        self.mqtt: paho.Client | None = None
+        self.config: InverterConfig | None = None
+        self.discovery: HomeAssistantDiscovery | None = None
 
         # Write registers cache
-        self._write_registers: List[Dict[str, Any]] = []
+        self._write_registers: list[dict[str, Any]] = []
 
     def setup(self) -> None:
         """Initialize all components and load configuration."""
@@ -138,7 +138,7 @@ class SofarClient:
 
         if rc == 0:
             # Subscribe to write topics
-            self.mqtt.subscribe(f"sofar/rw/#", qos=0)
+            self.mqtt.subscribe("sofar/rw/#", qos=0)
 
             # Publish Home Assistant discovery
             if self.discovery:
@@ -164,7 +164,7 @@ class SofarClient:
 
         logger.warning(f"No matching write register for topic: {topic}")
 
-    def _handle_register_write(self, register: Dict[str, Any], payload: str) -> None:
+    def _handle_register_write(self, register: dict[str, Any], payload: str) -> None:
         """Handle write request for a register."""
         try:
             new_value = ValueConverter.to_raw(register, payload)
@@ -192,7 +192,7 @@ class SofarClient:
         except Exception as e:
             logger.error(f"Error handling write for {register['name']}: {e}")
 
-    def _write_register(self, register: Dict[str, Any], value: int) -> bool:
+    def _write_register(self, register: dict[str, Any], value: int) -> bool:
         """Write value to register with retry logic."""
         if not self.modbus:
             return False
@@ -206,7 +206,7 @@ class SofarClient:
         # Standard write
         return self.modbus.write_register(addr, value)
 
-    def _write_special_register(self, register: Dict[str, Any], value: int) -> bool:
+    def _write_special_register(self, register: dict[str, Any], value: int) -> bool:
         """Handle special write operations (charge/discharge power)."""
         if not self.modbus:
             return False
@@ -283,7 +283,7 @@ class SofarClient:
             f"Modbus: req={self.requests} retries={self.retries} ({retry_rate}%) failures={self.failures} ({failure_rate}%)"
         )
 
-    def _read_register(self, register: Dict[str, Any]) -> Optional[Any]:
+    def _read_register(self, register: dict[str, Any]) -> Any | None:
         """Read a single register."""
         if not self.modbus:
             return None

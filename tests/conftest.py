@@ -1,9 +1,10 @@
 """Pytest fixtures and configuration."""
 
-import pytest
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
+
+import pytest
 
 BASE_DIR = Path(__file__).parent.parent
 CONFIG_DIR = BASE_DIR / "config"

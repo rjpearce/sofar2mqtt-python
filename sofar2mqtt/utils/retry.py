@@ -1,9 +1,10 @@
 """Retry utility for handling transient failures."""
 
-import time
 import logging
+import time
+from collections.abc import Callable
 from functools import wraps
-from typing import TypeVar, Callable, Tuple, Any
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def retry_on_failure(
-    max_retries: int, delay: float, exceptions: Tuple[type, ...]
+    max_retries: int, delay: float, exceptions: tuple[type, ...]
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retrying operations on failure.

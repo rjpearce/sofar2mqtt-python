@@ -3,9 +3,9 @@
 import logging
 import threading
 import time
-from typing import Optional, List
-from minimalmodbus import Instrument, NoResponseError, InvalidResponseError
+
 import serial
+from minimalmodbus import Instrument, InvalidResponseError, NoResponseError
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class ModbusClient:
         self.slave_id = slave_id
         self.retry = retry
         self.retry_delay = retry_delay
-        self.instrument: Optional[Instrument] = None
+        self.instrument: Instrument | None = None
         self._mutex = threading.Lock()
 
     def setup(self) -> None:
@@ -41,7 +41,7 @@ class ModbusClient:
         function_code: int = 3,
         signed: bool = False,
         number_of_registers: int = 1,
-    ) -> Optional[int]:
+    ) -> int | None:
         """Read a single register with retry logic."""
         with self._mutex:
             if not self.instrument:
@@ -67,7 +67,7 @@ class ModbusClient:
                             functioncode=function_code,
                             signed=signed,
                         )
-                except (NoResponseError, InvalidResponseError, serial.SerialException) as e:
+                except (NoResponseError, InvalidResponseError, serial.SerialException):
                     retry_count -= 1
                     if retry_count > 0:
                         logger.debug(f"Read failed, retrying... ({retry_count} left)")
@@ -78,7 +78,7 @@ class ModbusClient:
 
             return value
 
-    def read_long(self, register_address: int, signed: bool = True) -> Optional[int]:
+    def read_long(self, register_address: int, signed: bool = True) -> int | None:
         """Read a 32-bit long value (2 registers)."""
         with self._mutex:
             if not self.instrument:
@@ -94,7 +94,7 @@ class ModbusClient:
                 logger.error(f"Failed to read long at 0x{register_address:04X}: {e}")
                 return None
 
-    def read_string(self, register_address: int, number_of_registers: int = 1) -> Optional[str]:
+    def read_string(self, register_address: int, number_of_registers: int = 1) -> str | None:
         """Read a string value from multiple registers."""
         with self._mutex:
             if not self.instrument:
@@ -125,7 +125,7 @@ class ModbusClient:
                     self.instrument.write_register(register_address, int(value), functioncode=6)
                     success = True
                     logger.debug(f"Successfully wrote 0x{register_address:04X} = {value}")
-                except (NoResponseError, InvalidResponseError, serial.SerialException) as e:
+                except (NoResponseError, InvalidResponseError, serial.SerialException):
                     retry_count -= 1
                     if retry_count > 0:
                         logger.debug(f"Write failed, retrying... ({retry_count} left)")
@@ -136,7 +136,7 @@ class ModbusClient:
 
             return success
 
-    def write_registers(self, start_address: int, values: List[int]) -> bool:
+    def write_registers(self, start_address: int, values: list[int]) -> bool:
         """Write multiple consecutive registers with retry logic."""
         with self._mutex:
             if not self.instrument:
@@ -151,7 +151,7 @@ class ModbusClient:
                     self.instrument.write_registers(start_address, values, functioncode=16)
                     success = True
                     logger.debug(f"Successfully wrote registers at 0x{start_address:04X}")
-                except (NoResponseError, InvalidResponseError, serial.SerialException) as e:
+                except (NoResponseError, InvalidResponseError, serial.SerialException):
                     retry_count -= 1
                     if retry_count > 0:
                         logger.debug(f"Write failed, retrying... ({retry_count} left)")
@@ -164,7 +164,7 @@ class ModbusClient:
 
     def write_register_special(
         self, register_address: int, function_code: int, value: int
-    ) -> Optional[bytes]:
+    ) -> bytes | None:
         """Write using a special/proprietary function code."""
         import struct
 
@@ -194,7 +194,7 @@ class ModbusClient:
                 logger.error(f"Special write failed: {e}")
                 return None
 
-    def read_ascii(self, start_address: int, count: int) -> Optional[str]:
+    def read_ascii(self, start_address: int, count: int) -> str | None:
         """Read ASCII string from consecutive registers."""
         with self._mutex:
             if not self.instrument:

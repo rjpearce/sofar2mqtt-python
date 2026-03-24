@@ -1,6 +1,7 @@
 """Main entry point for sofar2mqtt CLI."""
 
 import logging
+
 import click
 
 from sofar2mqtt.core.sofar_client import SofarClient

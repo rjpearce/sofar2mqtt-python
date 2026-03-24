@@ -1,7 +1,7 @@
 """Tests for Modbus client functionality."""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
 from sofar2mqtt.core.modbus_client import ModbusClient
 
 

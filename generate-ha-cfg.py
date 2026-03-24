@@ -1,11 +1,13 @@
 import json
-import yaml
+
 import click
+import yaml
+
 
 def load_config(config_file_path):
     """ Load configuration file """
     config = {}
-    with open(config_file_path, mode='r', encoding='utf-8') as config_file:
+    with open(config_file_path, encoding='utf-8') as config_file:
         config = json.loads(config_file.read())
     return config
 
@@ -24,19 +26,19 @@ def main(config_file):
     yaml_filename = f"ha/{config_file.split('.')[0]}.yaml"
     mqtt_cfg = {
         "sensor": [
-            { 
+            {
                 "name": "Sofar:Modbus failures",
                 "state_class": "measurement",
                 "state_topic": "sofar/modbus_failures",
                 "unique_id": "sofar_modbus_failures"
             },
-            { 
+            {
                 "name": "Sofar:Modbus requests",
                 "state_class": "measurement",
                 "state_topic": "sofar/modbus_requests",
                 "unique_id": "sofar_modbus_requests"
             },
-            { 
+            {
                 "name": "Sofar:Modbus failure rate",
                 "state_class": "measurement",
                 "state_topic": "sofar/modbus_failure_rate",

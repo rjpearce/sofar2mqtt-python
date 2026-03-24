@@ -4,18 +4,18 @@ __version__ = "4.0.1"
 __author__ = "Youri"
 __email__ = "youri@example.com"
 
-from sofar2mqtt.models import (
-    RegisterDefinition,
-    HomeAssistantConfig,
-    WriteRegisterBlock,
-    InverterConfig,
-)
+from sofar2mqtt.config.loader import ConfigLoader, load_config
 from sofar2mqtt.core.modbus_client import ModbusClient
 from sofar2mqtt.core.sofar_client import SofarClient
+from sofar2mqtt.models import (
+    HomeAssistantConfig,
+    InverterConfig,
+    RegisterDefinition,
+    WriteRegisterBlock,
+)
 from sofar2mqtt.mqtt.client import MqttClient
 from sofar2mqtt.mqtt.discovery import HomeAssistantDiscovery, build_device_info
 from sofar2mqtt.transformations.converter import ValueConverter, combine_registers, read_ascii
-from sofar2mqtt.config.loader import ConfigLoader, load_config
 from sofar2mqtt.utils.retry import retry_on_failure
 
 __all__ = [
