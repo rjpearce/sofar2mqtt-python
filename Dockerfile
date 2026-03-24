@@ -1,13 +1,12 @@
-FROM python:3.14-alpine3.23
+FROM python:3.14-slim
 
 WORKDIR /opt/sofar2mqtt
 
 # Copy project files
 COPY pyproject.toml README.md ./
 
-# Install build dependencies and project
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir .[dev]
+# Install project dependencies
+RUN pip install --no-cache-dir .[dev]
 
 # Copy remaining project files
 COPY sofar2mqtt/ ./sofar2mqtt/
