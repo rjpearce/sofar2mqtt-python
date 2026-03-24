@@ -2,6 +2,13 @@ FROM python:3.14-slim
 
 WORKDIR /opt/sofar2mqtt
 
+# Upgrade pip and install system dependencies
+RUN pip install --upgrade pip && apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy project files
 COPY pyproject.toml README.md ./
 
