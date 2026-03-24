@@ -1,3 +1,7 @@
 .idea
 sofar2mqtt.egg-info
+
+# agents
 .opencode
+/CLAUDE.md
+/.claude
