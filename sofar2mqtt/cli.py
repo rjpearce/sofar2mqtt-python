@@ -6,6 +6,8 @@ import click
 
 from sofar2mqtt.core.sofar_client import SofarClient
 
+logger = logging.getLogger(__name__)
+
 
 @click.command(context_settings={"show_default": True})
 @click.option("--daemon", envvar="DAEMON", is_flag=True, default=False, help="Run as a daemon")
@@ -122,23 +124,15 @@ def main(
         # Initialize and run client
         client = SofarClient(
             config_path=config,
-            device=device,
-            broker=broker,
-            port=port,
-            username=username,
-            password=password,
-            retry=retry,
-            retry_delay=retry_delay,
-            write_retry=write_retry,
-            write_retry_delay=write_retry_delay,
-            refresh_interval=refresh_interval,
-            topic=topic,
-            write_topic=write_topic,
-            legacy_publish=legacy_publish,
+            modbus_device=device,
+            mqtt_broker=broker,
+            mqtt_port=port,
+            mqtt_user=username,
+            mqtt_password=password,
         )
 
         client.setup()
-        client.run(daemon=daemon)
+        client.run()
 
     except Exception as e:
         logging.error(f"Fatal error: {e}", exc_info=True)
