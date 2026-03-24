@@ -2,9 +2,16 @@ FROM python:3.14-alpine3.23
 
 WORKDIR /opt/sofar2mqtt
 
-COPY pyproject.toml ./
+# Copy project files
+COPY pyproject.toml README.md ./
 
-RUN pip install --no-cache-dir .
+# Install build dependencies and project
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir .[dev]
+
+# Copy remaining project files
+COPY sofar2mqtt/ ./sofar2mqtt/
+COPY config/*.json ./
 
 ENV CONFIG_FILE=sofar-hyd-ep.json \
     DAEMON=True \
@@ -21,7 +28,5 @@ ENV CONFIG_FILE=sofar-hyd-ep.json \
     TTY_DEVICE= \
     WRITE_RETRY_ATTEMPTS=5 \
     WRITE_RETRY_DELAY=5
-
-COPY config/*.json ./
 
 CMD ["sofar2mqtt"]
