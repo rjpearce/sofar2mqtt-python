@@ -2,12 +2,9 @@ FROM python:3.14-alpine3.23
 
 WORKDIR /opt/sofar2mqtt
 
-COPY requirements.txt ./
+COPY pyproject.toml ./
 
-ARG TARGETOS
-ARG TARGETARCH
-
-RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir .
 
 ENV CONFIG_FILE=sofar-hyd-ep.json \
     DAEMON=True \
@@ -23,9 +20,8 @@ ENV CONFIG_FILE=sofar-hyd-ep.json \
     RETRY_DELAY=0.1 \
     TTY_DEVICE= \
     WRITE_RETRY_ATTEMPTS=5 \
-    WRITE_RETRY_DELAY=5 
+    WRITE_RETRY_DELAY=5
 
-COPY sofar2mqtt-v2.py *.json ./
+COPY config/*.json ./
 
-CMD [ "python", "sofar2mqtt-v2.py" ]
-
+CMD ["sofar2mqtt"]
