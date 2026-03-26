@@ -12,8 +12,8 @@ RUN pip install --upgrade pip && apt-get update && apt-get install -y --no-insta
 # Copy project files
 COPY pyproject.toml README.md ./
 
-# Install project dependencies
-RUN pip install --no-cache-dir .[dev]
+# Install project dependencies (without dev extras which require Rust toolchain on ARM)
+RUN pip install --no-cache-dir .
 
 # Copy remaining project files
 COPY sofar2mqtt/ ./sofar2mqtt/
