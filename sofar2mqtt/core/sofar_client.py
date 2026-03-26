@@ -361,13 +361,6 @@ class SofarClient:
         if not self.discovery or not self.config:
             return
 
-        # Wait for version info to be available
-        while self.raw_data.get("sw_version_com") in [None, "TBD"] and self.raw_data.get(
-            "hw_version"
-        ) in [None, "TBD"]:
-            logger.info("Waiting for version info...")
-            time.sleep(5)
-
         # Discover all registers
         self.discovery.discover_all(self.config.registers, self.device_id, self.device_name)
 
