@@ -20,8 +20,10 @@ RUN pip install --no-cache-dir -e .
 # Copy config files
 COPY config/*.json ./
 
-# Create a non-root user for security
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /opt/sofar2mqtt
+# Create a non-root user for security and add to dialout group for serial access
+RUN useradd -m -u 1000 appuser && \
+    usermod -aG dialout appuser && \
+    chown -R appuser:appuser /opt/sofar2mqtt
 
 USER appuser
 
