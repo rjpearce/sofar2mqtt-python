@@ -1,8 +1,6 @@
 """Sofar2MQTT - Sofar inverter to MQTT integration with Home Assistant auto-discovery."""
 
 __version__ = "4.0.1"
-__author__ = "Youri"
-__email__ = "youri@example.com"
 
 from sofar2mqtt.config.loader import ConfigLoader, load_config
 from sofar2mqtt.core.modbus_client import ModbusClient
