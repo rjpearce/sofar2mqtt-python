@@ -293,7 +293,7 @@ class SofarClient:
         self.raw_data["modbus_failure_rate"] = failure_rate
         self.raw_data["modbus_retry_rate"] = retry_rate
 
-        logger.info(
+        logger.debug(
             f"Modbus: req={self.requests} retries={self.retries} ({retry_rate}%) "
             f"failures={self.failures} ({failure_rate}%)"
         )
