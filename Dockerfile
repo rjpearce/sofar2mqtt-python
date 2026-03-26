@@ -12,12 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy project files
 COPY pyproject.toml README.md ./
+COPY sofar2mqtt ./sofar2mqtt/
 
 # Install project in editable mode to avoid path issues
 RUN pip install --no-cache-dir -e .
 
-# Copy remaining project files (excluding __pycache__ and .pyc files)
-COPY sofar2mqtt/ ./sofar2mqtt/
+# Copy config files
 COPY config/*.json ./
 
 # Create a non-root user for security
