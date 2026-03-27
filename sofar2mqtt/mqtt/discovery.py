@@ -36,7 +36,7 @@ class HomeAssistantDiscovery:
         }
 
         topic = f"homeassistant/binary_sensor/{self.serial}/connection_state/config"
-        self.mqtt.publish(topic, json.dumps(payload), retain=False)
+        self.mqtt.publish(topic, json.dumps(payload), retain=True)
 
         # Publish online status
         self.mqtt.publish("sofar2mqtt_python/bridge", "online", retain=False)
@@ -80,7 +80,7 @@ class HomeAssistantDiscovery:
             control_type = ha_config.get("control", "sensor")
             topic = f"homeassistant/{control_type}/sofar_{register['name']}/config"
 
-            self.mqtt.publish(topic, json.dumps(payload), retain=False)
+            self.mqtt.publish(topic, json.dumps(payload), retain=True)
 
         except Exception as e:
             logger.error(f"Failed to publish discovery for {register['name']}: {e}")
