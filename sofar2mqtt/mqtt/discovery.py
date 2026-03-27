@@ -45,6 +45,9 @@ class HomeAssistantDiscovery:
 
     def discover_all(self, registers: list, device_id: str, device_name: str) -> None:
         """Publish discovery configuration for all registers."""
+        # Publish bridge status first
+        self.publish_bridge_status()
+
         device_info = build_device_info(
             {"model": device_name}, {"sw_version_com": "unknown", "hw_version": "unknown"}
         )
@@ -70,14 +73,14 @@ class HomeAssistantDiscovery:
                 "availability": [{"topic": "sofar2mqtt_python/bridge", "value_template": "online"}],
             }
 
-            # Merge HA-specific configuration
+            # Merge HA-specific configuration (skip None values to preserve defaults)
             ha_config = register["ha"]
             for key, value in ha_config.items():
-                if key != "control":  # Control determines entity type
+                if key != "control" and value is not None:  # Control determines entity type, skip None
                     payload[key] = value
 
             # Determine entity type and topic
-            control_type = ha_config.get("control", "sensor")
+            control_type = ha_config.get("control") or "sensor"
             topic = f"homeassistant/{control_type}/sofar_{register['name']}/config"
 
             self.mqtt.publish(topic, json.dumps(payload), retain=True)
