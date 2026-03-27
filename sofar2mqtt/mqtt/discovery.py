@@ -39,7 +39,7 @@ class HomeAssistantDiscovery:
         self.mqtt.publish(topic, json.dumps(payload), retain=True)
 
         # Publish online status
-        self.mqtt.publish("sofar2mqtt_python/bridge", "online", retain=False)
+        self.mqtt.publish("sofar2mqtt_python/bridge", "online", retain=True)
 
         logger.info(f"Published bridge discovery for {self.serial}")
 

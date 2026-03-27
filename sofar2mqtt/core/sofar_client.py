@@ -96,6 +96,9 @@ class SofarClient:
         if self.mqtt_user and self.mqtt_password:
             self.mqtt.username_pw_set(self.mqtt_user, self.mqtt_password)
 
+        # Set up Last Will Testament - publishes offline if client disconnects unexpectedly
+        self.mqtt.will_set("sofar2mqtt_python/bridge", "offline", qos=0, retain=True)
+
         # Set up callbacks
         self.mqtt.on_connect = self._on_mqtt_connect
         self.mqtt.on_message = self._on_mqtt_message
@@ -393,9 +396,11 @@ class SofarClient:
         logger.info("Shutting down...")
         self.running = False
 
-        # Publish offline status
+        # Publish offline status (before LWT takes over on disconnect)
         if self.mqtt:
-            self.mqtt.publish("sofar2mqtt_python/bridge", "offline", retain=False)
+            # Clear the will to prevent duplicate offline messages
+            self.mqtt.will_clear()
+            self.mqtt.publish("sofar2mqtt_python/bridge", "offline", retain=True)
             self.mqtt.disconnect()
             self.mqtt.loop_stop()
 
