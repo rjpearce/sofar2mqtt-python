@@ -18,7 +18,7 @@ class TestHomeAssistantDiscovery:
         discovery.publish_bridge_status()
 
         # Check that bridge topic was published
-        mock_mqtt_client.publish.assert_any_call("sofar2mqtt_python/bridge", "online", retain=False)
+        mock_mqtt_client.publish.assert_any_call("sofar2mqtt_python/bridge", "online", retain=True)
 
         # Verify bridge discovery was attempted
         calls = mock_mqtt_client.publish.call_args_list

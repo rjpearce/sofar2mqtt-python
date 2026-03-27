@@ -276,7 +276,7 @@ class TestSofarClientLifecycle:
 
         client.stop()
 
-        client.mqtt.publish.assert_called_with("sofar2mqtt_python/bridge", "offline", retain=False)
+        client.mqtt.publish.assert_called_with("sofar2mqtt_python/bridge", "offline", retain=True)
         client.mqtt.disconnect.assert_called_once()
         client.mqtt.loop_stop.assert_called_once()
 
