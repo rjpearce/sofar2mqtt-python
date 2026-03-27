@@ -597,7 +597,8 @@
     },
     {
       "name": "battery_cycles",
-      "register": "0x22c",
+      "register": "0x022C",
+      "type": "I16",
       "ha": {
         "device_class": "battery",
         "unit_of_measurement": "cycles",
