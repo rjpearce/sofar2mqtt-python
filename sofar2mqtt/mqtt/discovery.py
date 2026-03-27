@@ -76,7 +76,7 @@ class HomeAssistantDiscovery:
             # Merge HA-specific configuration (skip None values to preserve defaults)
             ha_config = register["ha"]
             for key, value in ha_config.items():
-                if key != "control" and value is not None:  # Control determines entity type, skip None
+                if key != "control" and value is not None:
                     payload[key] = value
 
             # Determine entity type and topic
