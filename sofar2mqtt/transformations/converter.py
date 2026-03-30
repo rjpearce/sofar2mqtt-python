@@ -98,12 +98,14 @@ class ValueConverter:
         except (ValueError, TypeError):
             return False
 
-        if "min" in register and float_value < register["min"]:
-            logger.error(f"Value {value} is less than min {register['min']}")
+        min_value = register.get("min")
+        if min_value is not None and float_value < min_value:
+            logger.error(f"Value {value} is less than min {min_value}")
             return False
 
-        if "max" in register and float_value > register["max"]:
-            logger.error(f"Value {value} is greater than max {register['max']}")
+        max_value = register.get("max")
+        if max_value is not None and float_value > max_value:
+            logger.error(f"Value {value} is greater than max {max_value}")
             return False
 
         if register.get("function") == "mode":
