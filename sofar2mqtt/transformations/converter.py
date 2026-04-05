@@ -53,7 +53,7 @@ class ValueConverter:
         elif function == "divide":
             return int(float(value) * register.get("factor", 1))
         elif function == "mode":
-            modes = register.get("modes", {})
+            modes = register.get("modes") or {}
             for k, v in modes.items():
                 if v == value:
                     return int(k)
@@ -109,7 +109,7 @@ class ValueConverter:
             return False
 
         if register.get("function") == "mode":
-            modes = register.get("modes", {})
+            modes = register.get("modes") or {}
             if str(value) not in modes and value not in modes.values():
                 logger.error(f"Value {value} is not a valid mode")
                 return False
