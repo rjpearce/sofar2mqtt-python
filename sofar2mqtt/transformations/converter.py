@@ -22,7 +22,7 @@ class ValueConverter:
         elif function == "divide":
             return raw_value / register.get("factor", 1)
         elif function == "mode":
-            modes = register.get("modes", {})
+            modes = register.get("modes") or {}
             return modes.get(str(raw_value), raw_value)
         elif function == "bit_field":
             fields = register.get("fields", [])
