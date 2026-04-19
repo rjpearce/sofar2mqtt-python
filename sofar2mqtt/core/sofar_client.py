@@ -196,8 +196,10 @@ class SofarClient:
                 return
             
             new_value = ValueConverter.to_raw(register, payload)
+            logger.debug(f"to_raw returned: {new_value}")
 
             # Validate value
+            logger.debug(f"Validating register={register}, new_value={new_value}")
             if not ValueConverter.validate(register, new_value):
                 logger.error(f"Invalid value for {register['name']}: {payload}")
                 return
