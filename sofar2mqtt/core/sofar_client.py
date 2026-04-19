@@ -81,6 +81,11 @@ class SofarClient:
         self._write_registers = [
             r.model_dump() for r in self.config.registers if r.write and not r.untested
         ]
+        # Debug: Log the number of write registers and check for None values
+        logger.debug(f"Cached {len(self._write_registers)} write registers")
+        for i, reg in enumerate(self._write_registers):
+            if reg is None:
+                logger.error(f"Write register {i} is None!")
 
         # Initialize Modbus client
         self.modbus = ModbusClient(device=self.modbus_device, retry=2, retry_delay=0.1)
@@ -184,6 +189,12 @@ class SofarClient:
     def _handle_register_write(self, register: dict[str, Any], payload: str) -> None:
         """Handle write request for a register."""
         try:
+            # Debug: Log the register dict to understand what's being passed
+            logger.debug(f"Handling write for register: {register}, payload: {payload}")
+            if register is None:
+                logger.error("Register is None - this should not happen!")
+                return
+            
             new_value = ValueConverter.to_raw(register, payload)
 
             # Validate value

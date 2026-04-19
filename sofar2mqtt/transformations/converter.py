@@ -46,6 +46,11 @@ class ValueConverter:
     @staticmethod
     def to_raw(register: dict[str, Any], value: Any) -> int:
         """Convert a human-readable value to raw Modbus format."""
+        # Debug: Log the register and value
+        logger.debug(f"to_raw called with register={register}, value={value}")
+        if register is None:
+            logger.error("register is None in to_raw!")
+            return 0
         function = register.get("function")
 
         if function == "multiply":
