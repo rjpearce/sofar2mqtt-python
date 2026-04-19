@@ -107,18 +107,23 @@ class ValueConverter:
         except (ValueError, TypeError):
             return False
 
+        logger.debug(f"Checking min_value")
         min_value = register.get("min")
         if min_value is not None and float_value < min_value:
             logger.error(f"Value {value} is less than min {min_value}")
             return False
 
+        logger.debug(f"Checking max_value")
         max_value = register.get("max")
         if max_value is not None and float_value > max_value:
             logger.error(f"Value {value} is greater than max {max_value}")
             return False
 
+        logger.debug(f"Checking function")
         if register.get("function") == "mode":
+            logger.debug(f"Checking modes")
             modes = register.get("modes") or {}
+            logger.debug(f"modes={modes}, value={value}, str(value)={str(value)}")
             if str(value) not in modes and value not in modes.values():
                 logger.error(f"Value {value} is not a valid mode")
                 return False
