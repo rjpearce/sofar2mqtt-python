@@ -95,6 +95,10 @@ class ValueConverter:
     @staticmethod
     def validate(register: dict[str, Any], value: Any) -> bool:
         """Validate a value against register constraints."""
+        logger.debug(f"validate called with register={register}, value={value}")
+        if register is None:
+            logger.error("register is None in validate!")
+            return False
         if value is None:
             return False
 
