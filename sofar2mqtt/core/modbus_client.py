@@ -31,8 +31,7 @@ class ModbusClient:
             self.instrument.serial.parity = serial.PARITY_NONE
             self.instrument.serial.stopbits = 1
             self.instrument.serial.timeout = 0.5
-            self.instrument.close_port_after_each_call = False
-            self.instrument.clear_buffers_before_each_transaction = True
+            self.instrument.close_port_after_each_call = True
             logger.debug(f"Modbus instrument configured for {self.device}")
 
     def read_register(
