@@ -194,7 +194,7 @@ class SofarClient:
             if register is None:
                 logger.error("Register is None - this should not happen!")
                 return
-            
+
             new_value = ValueConverter.to_raw(register, payload)
             logger.debug(f"to_raw returned: {new_value}")
 
@@ -231,7 +231,10 @@ class SofarClient:
 
         # Special handling for multi-address registers
         write_addresses = register.get("write_addresses")
-        logger.debug(f"Checking write_addresses for {register.get('name')}: write_addresses={write_addresses}")
+        logger.debug(
+            f"Checking write_addresses for {register.get('name')}: "
+            f"write_addresses={write_addresses}"
+        )
         if write_addresses:
             logger.debug(f"Calling _write_special_register with write_addresses={write_addresses}")
             return self._write_special_register(register, value)
@@ -244,7 +247,10 @@ class SofarClient:
         if not self.modbus:
             return False
 
-        logger.debug(f"_write_special_register called with write_addresses={register.get('write_addresses')}")
+        logger.debug(
+            f"_write_special_register called with "
+            f"write_addresses={register.get('write_addresses')}"
+        )
         write_addr = register["write_addresses"].get("discharge")
         if not write_addr:
             logger.error("No write address found for special register")
