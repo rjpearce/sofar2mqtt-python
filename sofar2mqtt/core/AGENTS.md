@@ -18,10 +18,15 @@ The main orchestrator class that coordinates all operations:
 
 **Key Methods:**
 - `__init__()`: Initialize clients with configuration
-- `run()`: Main polling loop (runs indefinitely)
-- `read_registers()`: Poll inverter and publish to MQTT
-- `write_register(register_name, value)`: Write configuration values
-- `on_mqtt_message()`: Handle incoming MQTT write commands
+- `setup()`: Load config, initialize Modbus/MQTT, set up callbacks
+- `run()`: Main polling loop (runs indefinitely, sleeps `poll_interval` between cycles)
+- `update_state()`: Process queued writes, poll inverter registers, update state
+- `publish_state()`: Publish converted state to MQTT
+- `handle_write(client, userdata, message)`: MQTT `on_message` callback — validates and queues write commands; rejects writes to `passive` registers unless the inverter is in Passive mode (`_is_passive_mode()`)
+- `_is_passive_mode()`: returns True when any configured mode register currently reports `Passive mode`
+- `_maybe_heartbeat()` / `_send_heartbeat()`: keepalive for Passive mode — sends function code `0x49` (73) to register `0x2201` (ME3000SP) at the configured interval while Passive mode is active; without it the inverter drops to standby after ~60s
+- `_write_register(register, value)`: Execute a queued write (standard function code 6, or special/proprietary function code, e.g. 66 for ME3000SP passive power via `write_addresses`)
+- `_on_mqtt_connect()`: Subscribe to `sofar/rw/#` and publish HA discovery
 
 ### [`modbus_client.py`](modbus_client.py)
 Thread-safe Modbus RTU client wrapper around `minimalmodbus`:

@@ -67,7 +67,7 @@ def main(
         client = SofarClient(
             config_path=config,
             modbus_device=device,
-            mqtt_broker=broker,
+            mqtt_host=broker,
             mqtt_port=port,
             mqtt_user=username,
             mqtt_password=password,

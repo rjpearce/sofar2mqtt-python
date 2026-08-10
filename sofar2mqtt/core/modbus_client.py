@@ -3,6 +3,8 @@
 import logging
 import threading
 import time
+from collections.abc import Callable
+from typing import Any
 
 import serial
 from minimalmodbus import Instrument, InvalidResponseError, NoResponseError
@@ -13,7 +15,13 @@ logger = logging.getLogger(__name__)
 class ModbusClient:
     """Thread-safe Modbus client for Sofar inverter communication."""
 
-    def __init__(self, device: str, slave_id: int = 1, retry: int = 2, retry_delay: float = 0.1):
+    def __init__(
+        self,
+        device: str,
+        slave_id: int = 1,
+        retry: int = 2,
+        retry_delay: float = 0.1,
+    ):
         """Initialize Modbus client."""
         self.device = device
         self.slave_id = slave_id
@@ -23,143 +31,138 @@ class ModbusClient:
         self._mutex = threading.Lock()
 
     def setup(self) -> None:
-        """Configure the Modbus instrument with Sofar-specific settings."""
+        """Initialize the Modbus instrument."""
         with self._mutex:
             self.instrument = Instrument(self.device, self.slave_id)
             self.instrument.serial.baudrate = 9600
-            self.instrument.serial.bytesize = 8
             self.instrument.serial.parity = serial.PARITY_NONE
-            self.instrument.serial.stopbits = 1
-            self.instrument.serial.timeout = 0.5
+            self.instrument.serial.stopbits = serial.STOPBITS_ONE
+            self.instrument.serial.bytesize = serial.EIGHTBITS
+            self.instrument.serial.timeout = 1.0
+            # Close the port between calls: the inverter does not reliably accept
+            # a write command right after read commands on an open port.
             self.instrument.close_port_after_each_call = True
+            # minimalmodbus uses MODE_RTU by default, no need to set explicitly
             logger.debug(f"Modbus instrument configured for {self.device}")
+
+    def _check_initialized(self) -> bool:
+        """Check if instrument is initialized."""
+        if not self.instrument:
+            logger.error("Modbus instrument not initialized")
+            return False
+        return True
+
+    def _execute_with_retry(
+        self,
+        operation: Callable[[], Any],
+        error_msg: str,
+        default: Any = None,
+    ) -> Any:
+        """Execute an operation with retry logic."""
+        retry_count = self.retry
+        while retry_count > 0:
+            try:
+                return operation()
+            except (NoResponseError, InvalidResponseError, serial.SerialException) as e:
+                retry_count -= 1
+                if retry_count > 0:
+                    logger.debug(f"{error_msg}, retrying... ({retry_count} left)")
+                    time.sleep(self.retry_delay)
+                else:
+                    logger.error(f"{error_msg}: {e}")
+        return default
 
     def read_register(
         self,
         register_address: int,
         function_code: int = 3,
-        signed: bool = False,
-        number_of_registers: int = 1,
+        signed: bool = True,
     ) -> int | None:
         """Read a single register with retry logic."""
         with self._mutex:
-            if not self.instrument:
-                logger.error("Modbus instrument not initialized")
+            if not self._check_initialized():
                 return None
 
-            value = None
-            retry_count = self.retry
+            def operation():
+                return self.instrument.read_register(
+                    register_address,
+                    functioncode=function_code,
+                    signed=signed,
+                )
 
-            while retry_count > 0 and value is None:
-                try:
-                    if function_code == 3:
-                        value = self.instrument.read_register(
-                            register_address,
-                            number_of_decimals=0,
-                            functioncode=function_code,
-                            signed=signed,
-                        )
-                    elif function_code == 4:
-                        value = self.instrument.read_input_registers(
-                            register_address,
-                            number_of_registers,
-                            functioncode=function_code,
-                            signed=signed,
-                        )
-                except (NoResponseError, InvalidResponseError, serial.SerialException):
-                    retry_count -= 1
-                    if retry_count > 0:
-                        logger.debug(f"Read failed, retrying... ({retry_count} left)")
-                        time.sleep(self.retry_delay)
-
-            if value is None:
-                logger.error(f"Failed to read register 0x{register_address:04X}")
-
-            return value
+            return self._execute_with_retry(
+                operation,
+                f"Failed to read register 0x{register_address:04X}",
+            )
 
     def read_long(self, register_address: int, signed: bool = True) -> int | None:
-        """Read a 32-bit long value (2 registers)."""
+        """Read a 32-bit value from two consecutive registers."""
         with self._mutex:
-            if not self.instrument:
-                logger.error("Modbus instrument not initialized")
+            if not self._check_initialized():
                 return None
 
-            try:
-                value = self.instrument.read_long(
-                    register_address, functioncode=3, signed=signed, number_of_registers=2
+            def operation():
+                return self.instrument.read_long(
+                    register_address,
+                    signed=signed,
                 )
-                return value
-            except (NoResponseError, InvalidResponseError, serial.SerialException) as e:
-                logger.error(f"Failed to read long at 0x{register_address:04X}: {e}")
-                return None
 
-    def read_string(self, register_address: int, number_of_registers: int = 1) -> str | None:
-        """Read a string value from multiple registers."""
+            return self._execute_with_retry(
+                operation,
+                f"Failed to read long at 0x{register_address:04X}",
+            )
+
+    def read_string(self, register_address: int, count: int = 16) -> str | None:
+        """Read a string from consecutive registers."""
         with self._mutex:
-            if not self.instrument:
-                logger.error("Modbus instrument not initialized")
+            if not self._check_initialized():
                 return None
 
-            try:
-                value = self.instrument.read_string(
-                    register_address, functioncode=3, number_of_registers=number_of_registers
+            def operation():
+                return self.instrument.read_string(
+                    register_address,
+                    count,
                 )
-                return value
-            except (NoResponseError, InvalidResponseError, serial.SerialException) as e:
-                logger.error(f"Failed to read string at 0x{register_address:04X}: {e}")
-                return None
+
+            return self._execute_with_retry(
+                operation,
+                f"Failed to read string at 0x{register_address:04X}",
+            )
 
     def write_register(self, register_address: int, value: int) -> bool:
         """Write a value to a single register with retry logic."""
         with self._mutex:
-            if not self.instrument:
-                logger.error("Modbus instrument not initialized")
+            if not self._check_initialized():
                 return False
 
-            retry_count = self.retry
-            success = False
+            def operation():
+                self.instrument.write_register(
+                    register_address,
+                    int(value),
+                )
+                return True
 
-            while retry_count > 0 and not success:
-                try:
-                    self.instrument.write_register(register_address, int(value), functioncode=6)
-                    success = True
-                    logger.debug(f"Successfully wrote 0x{register_address:04X} = {value}")
-                except (NoResponseError, InvalidResponseError, serial.SerialException):
-                    retry_count -= 1
-                    if retry_count > 0:
-                        logger.debug(f"Write failed, retrying... ({retry_count} left)")
-                        time.sleep(self.retry_delay)
-
-            if not success:
-                logger.error(f"Failed to write register 0x{register_address:04X} = {value}")
-
-            return success
+            return self._execute_with_retry(
+                operation,
+                f"Failed to write register 0x{register_address:04X}",
+                default=False,
+            )
 
     def write_registers(self, start_address: int, values: list[int]) -> bool:
         """Write multiple consecutive registers with retry logic."""
         with self._mutex:
-            if not self.instrument:
-                logger.error("Modbus instrument not initialized")
+            if not self._check_initialized():
                 return False
 
-            retry_count = self.retry
-            success = False
+            def operation():
+                self.instrument.write_registers(start_address, values)
+                return True
 
-            while retry_count > 0 and not success:
-                try:
-                    self.instrument.write_registers(start_address, values, functioncode=16)
-                    success = True
-                    logger.debug(f"Successfully wrote registers at 0x{start_address:04X}")
-                except (NoResponseError, InvalidResponseError, serial.SerialException):
-                    retry_count -= 1
-                    if retry_count > 0:
-                        logger.debug(f"Write failed, retrying... ({retry_count} left)")
-                        time.sleep(self.retry_delay)
-
-            if not success:
-                logger.error(f"Failed to write registers at 0x{start_address:04X}")
-
-            return success
+            return self._execute_with_retry(
+                operation,
+                f"Failed to write registers at 0x{start_address:04X}",
+                default=False,
+            )
 
     def write_register_special(
         self, register_address: int, function_code: int, value: int
@@ -168,59 +171,65 @@ class ModbusClient:
         import struct
 
         with self._mutex:
-            if not self.instrument:
-                logger.error("Modbus instrument not initialized")
+            if not self._check_initialized():
                 return None
 
-            try:
-                reg_int = (
-                    int(register_address, 16)
-                    if isinstance(register_address, str)
-                    else register_address
-                )
-                payload = struct.pack(">HH", reg_int, value)
+            def operation():
+                payload = struct.pack(">H", register_address) + struct.pack(">H", value)
+                return self.instrument._perform_command(function_code, payload)
 
-                logger.debug(
-                    f"Special write: 0x{reg_int:04X} "
-                    f"func=0x{function_code:02X} payload={payload.hex(' ')}"
-                )
-
-                response = self.instrument._perform_command(function_code, payload)
-
-                logger.debug(f"Special write response: {response.hex(' ')}")
-                return response
-
-            except Exception as e:
-                logger.error(f"Special write failed: {e}")
-                return None
+            return self._execute_with_retry(
+                operation,
+                "Special write failed",
+            )
 
     def read_ascii(self, start_address: int, count: int) -> str | None:
         """Read ASCII string from consecutive registers."""
         with self._mutex:
-            if not self.instrument:
-                logger.error("Modbus instrument not initialized")
+            if not self._check_initialized():
                 return None
 
-            try:
+            def operation():
                 regs = self.instrument.read_registers(start_address, count, functioncode=3)
-            except Exception as e:
-                logger.debug(f"Error reading registers at 0x{start_address:04X}: {e}")
+                chars = []
+                for reg in regs:
+                    # Convert register to 2 ASCII characters
+                    chars.append(chr((reg >> 8) & 0xFF))
+                    chars.append(chr(reg & 0xFF))
+                return "".join(chars).rstrip("\x00")
+
+            return self._execute_with_retry(
+                operation,
+                f"Failed to read ASCII at 0x{start_address:04X}",
+            )
+
+    def read_holding_registers(self, start_address: int, num_registers: int) -> list[int] | None:
+        """Read multiple holding registers with retry logic."""
+        with self._mutex:
+            if not self._check_initialized():
                 return None
 
-            chars = []
-            for val in regs:
-                hi = (val >> 8) & 0xFF
-                lo = val & 0xFF
+            def operation():
+                return self.instrument.read_registers(start_address, num_registers, functioncode=3)
 
-                # Sofar stores ASCII in HIGH BYTE first
-                for b in (hi, lo):
-                    if b == 0:
-                        continue
-                    c = chr(b)
-                    if c.isprintable():
-                        chars.append(c)
+            return self._execute_with_retry(
+                operation,
+                f"Failed to read holding registers at 0x{start_address:04X}",
+            )
 
-            return "".join(chars)
+    def read_input_registers(self, start_address: int, num_registers: int) -> list[int] | None:
+        """Read multiple input registers with retry logic."""
+        with self._mutex:
+            if not self._check_initialized():
+                return None
+
+            def operation():
+                return self.instrument.read_registers(start_address, num_registers, functioncode=4)
+
+            return self._execute_with_retry(
+                operation,
+                f"Failed to read input registers at 0x{start_address:04X}",
+            )
 
     def close(self) -> None:
         """Close the Modbus connection."""

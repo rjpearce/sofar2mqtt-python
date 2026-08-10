@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from sofar2mqtt.models.register import RegisterDefinition, WriteRegisterBlock
+from sofar2mqtt.models.register import HeartbeatConfig, RegisterDefinition, WriteRegisterBlock
 
 
 class InverterConfig(BaseModel):
@@ -13,6 +13,7 @@ class InverterConfig(BaseModel):
     registers: list[RegisterDefinition]
     write_register_blocks: list[WriteRegisterBlock] | None = None
     error_codes: dict[str, Any] | None = None
+    heartbeat: HeartbeatConfig | None = None
 
     class Config:
         extra = "allow"

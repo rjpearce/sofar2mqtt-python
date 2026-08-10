@@ -713,5 +713,12 @@
         "value_template": "{{ value_json.battery_current }}"
       }
     }
-  ]
+  ],
+  "heartbeat": {
+    "enabled": true,
+    "address": "0x2201",
+    "value": "0x2202",
+    "function_code": 73,
+    "interval": 5
+  }
 }

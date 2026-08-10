@@ -74,8 +74,11 @@ class RegisterDefinition(BaseModel):
     write_addresses: dict[str, str] | None = None
     write_values: dict[str, Any] | None = None
     write_functioncode: str | None = None
+    # "standard" = function code 6, "special" = proprietary function code (e.g. 66)
+    write_type: Literal["standard", "special"] = "standard"
     passive: bool = False  # Don't poll this register
     untested: bool = False  # Track registers not tested
+    sentinel_value: int | None = None  # Value to normalize (e.g., -1 for invalid)
 
     # Static values
     value: Any | None = None
@@ -96,6 +99,16 @@ class WriteRegisterBlock(BaseModel):
     length: int  # Number of registers in the block
     registers: list[str]  # List of register names
     append: list[int] | None = None  # Values to append at the end
+
+
+class HeartbeatConfig(BaseModel):
+    """Passive-mode heartbeat configuration (function code 0x49, register 0x2201)."""
+
+    enabled: bool = True
+    address: str = "0x2201"  # Heartbeat register
+    value: str = "0x2202"  # Heartbeat payload value
+    function_code: int = 73  # 0x49
+    interval: int = 5  # Seconds between heartbeats (1-10 recommended)
 
 
 # InverterConfig is defined in inverter_config.py to avoid circular imports
