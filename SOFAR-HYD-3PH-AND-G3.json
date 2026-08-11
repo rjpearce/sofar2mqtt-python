@@ -794,7 +794,7 @@
       "desc3": "Reading 0x1189 will always return 0. Min is typically -6000 or the value set to 0x1189. Max is typically +6000 or the value set to 0x1189",
       "type": "I32",
       "function": "int",
-      "read": false,
+      "read": true,
       "signed": true,
       "passive": true,
       "notify_on_change": true,
@@ -853,7 +853,7 @@
       "ha": {
         "name": "State",
         "icon": "mdi:power-standby",
-        "entity_category": "None",
+        "entity_category": "diagnostic",
         "value_template": "{{ value_json.state }}"
       }
     },
