@@ -1,4 +1,4 @@
-FROM python:3.14-alpine3.23
+FROM dhi.io/python:3-alpine-dev@sha256:2ab18f7a9cebd19356996fdbae5bc69c3948920a364661fe420ab292fff341e9
 
 WORKDIR /opt/sofar2mqtt
 
