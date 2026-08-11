@@ -329,8 +329,6 @@ class Sofar():
             if register.get('read_type') == 'static':
                 logging.info(f"Using static value for {register['name']}")
                 raw_value = register['value']
-            if 'aggregate' in register:
-                raw_value = self.combine_aggregate_registers(register)
             if register.get('register', False):
                 if register.get('read', True):
                     raw_value = self.read_register(
@@ -338,7 +336,9 @@ class Sofar():
                         register.get('read_type', 'register'),
                         register.get('signed', False),
                         register.get('registers', 1)
-                    )
+                )
+            if 'aggregate' in register:
+                raw_value = self.combine_aggregate_registers(register)
 
             if 'aggregate_datetime_bitmap' in register:
                 continue
@@ -365,7 +365,7 @@ class Sofar():
                             f"Value for {register['name']}: {str(raw_value)} is greater than max allowed value: {register['max']}")
                 logging.debug(f"Read {register['name']} {value}")
 
-            if not self.raw_data.get(register.get('name')) == raw_value:
+            if self.raw_data.get(register.get('name')) != raw_value:
                 if register.get('notify_on_change', False):
                     from_raw = self.raw_data.get(register.get('name'))
                     try:
